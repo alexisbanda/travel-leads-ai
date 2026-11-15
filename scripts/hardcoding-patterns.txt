@@ -1,0 +1,22 @@
+# Patrones que NO pueden aparecer en el código del motor (apps/, functions/, packages/shared).
+# Expresiones regulares extendidas (grep -E), una por línea. Distingue mayúsculas: escribe las variantes.
+
+# Regiones de Google Cloud
+\b(europe|us|asia|southamerica|northamerica|australia|me|africa)-[a-z]+[0-9]\b
+
+# Zonas horarias IANA
+\b(Europe|America|Asia|Africa|Australia|Pacific|Atlantic)/[A-Z][A-Za-z_]+
+
+# Locales concretos
+['"](es|en|de|fr|it|pt)-[A-Z]{2}['"]
+
+# Monedas
+['"](EUR|USD|GBP|PEN|COP|MXN|CHF)['"]
+€
+
+# Prefijos telefónicos en literales
+['"]\+[0-9]{2,3}
+
+# Países (añade los de nuevas instancias)
+Ecuador|Españ|Spain|Perú|Peru|Colombia|Alemania|Germany|Estados Unidos|United States
+Galápagos|Galapagos|Madrid|Quito|Guayaquil

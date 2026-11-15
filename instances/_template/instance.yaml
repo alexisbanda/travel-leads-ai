@@ -1,0 +1,102 @@
+# Plantilla de instancia. Copia esta carpeta a instances/<destino>-<mercado> y rellena.
+# Documentación: docs/11-instancias-y-configuracion.md
+# NUNCA pongas secretos aquí: usa referencias "secret:NOMBRE" (Secret Manager del proyecto de la instancia).
+
+id: xx-yy                       # <destino>-<mercado>[-<sufijo>], ISO 3166-1 alfa-2 en minúsculas
+name: "Nombre comercial de la instancia"
+status: draft                   # draft | pilot | active | paused
+
+# Agencia receptiva: cotiza, contrata, cobra y opera los viajes.
+agency:
+  slug: agencia-xx
+  legalName: ""
+  country: XX                   # normalmente igual que destination.country
+  timezone: ""                  # IANA, p. ej. America/Lima. Por defecto: el del pack de destino
+  website: ""
+  notify:
+    channel: whatsapp_group     # whatsapp_group | email | slack
+    target: secret:AGENCY_NOTIFY_TARGET
+
+# Socio de marketing en el mercado emisor.
+partner:
+  legalName: ""
+  country: YY
+
+destination:
+  country: XX                   # debe existir packages/destinations/<xx>
+
+market:
+  country: YY                   # debe existir packages/markets/<yy>
+  # Opcionales: si se omiten, se usan los del pack de mercado.
+  # locale: es-ES
+  # currency: EUR
+  # timezone: Europe/Madrid
+  # phoneDefaultRegion: ES
+  businessHours:
+    start: "09:00"
+    end: "21:00"
+    days: [1, 2, 3, 4, 5, 6]    # 1 = lunes … 7 = domingo, en la zona horaria del mercado
+
+brand:
+  displayName: ""
+  domain: ""
+  logo: ""                      # ruta en Cloud Storage o en content/
+  primaryColor: "#000000"
+
+infra:
+  firebaseProjects:
+    dev: tla-xx-yy-dev
+    prod: tla-xx-yy-prod
+  region: ""                    # debe estar entre las permitidas por el pack de mercado
+  bigqueryLocation: ""          # EU, US…
+
+channels:
+  crm:
+    provider: hubspot           # hubspot | pipedrive
+    tokenSecret: secret:CRM_API_TOKEN
+  whatsapp:
+    bsp: respond_io             # respond_io | 360dialog | other
+    number: ""                  # número del mercado en E.164
+    webhookSecret: secret:WHATSAPP_BSP_WEBHOOK_SECRET
+  meta:
+    pixelId: ""
+    adAccountId: ""
+    pageId: ""
+    capiTokenSecret: secret:META_CAPI_ACCESS_TOKEN
+  gtmId: ""
+  ga4MeasurementId: ""
+
+# Segmentos de público de esta instancia (ids libres, etiquetas en el idioma del mercado).
+segments:
+  - id: adventure
+    label: ""
+
+pricing:
+  # Rangos de presupuesto por persona, en la moneda del mercado.
+  budgetRanges: []              # p. ej. ["<2000", "2000-4000", "4000-6000", ">6000"]
+
+sla:
+  warnAfterMinutes: 10
+  breachAfterMinutes: 30
+
+compliance:
+  dataRetentionMonths: 24
+  legalTextsVersion: ""
+  internationalTransfer: scc    # scc | adequacy | none (validado según mercado y destino)
+
+commission:
+  model: fee_plus_commission    # fee | commission | fee_plus_commission
+  rate: 0                       # según contrato
+
+agents:
+  qualification:
+    enabled: false
+    mode: assisted              # assisted | autonomous (autonomous requiere ADR)
+  proposal:
+    enabled: false
+  persona:
+    name: ""                    # nombre visible del asistente
+    # El aviso de IA y el tono base vienen del pack de mercado y no se pueden desactivar.
+
+features:
+  mcpCatalog: false

@@ -1,0 +1,12 @@
+rules_version = '2';
+
+// Política por defecto: ningún cliente lee ni escribe directamente en Firestore.
+// Todas las escrituras pasan por Cloud Functions (Admin SDK), que ignora estas reglas.
+// Ver docs/08-seguridad-y-cumplimiento.md antes de abrir cualquier colección.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

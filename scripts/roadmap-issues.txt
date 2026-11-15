@@ -1,0 +1,54 @@
+# Fuente de las issues del roadmap (docs/10-roadmap.md).
+# Formato: hito|etiquetas separadas por coma|título|descripción (usa \n para saltos de línea)
+# Las líneas que empiezan por # se ignoran.
+
+M0 · Fundamentos|type:chore,area:infra,priority:high,instance:ec-es|[ec-es] Crear proyectos Firebase de la instancia|Proyectos tla-ec-es-dev y tla-ec-es-prod.\n- Firestore en la región de instance.yaml (no se puede cambiar después)\n- Plan Blaze con alertas al 50/90/100 %\n- Actualizar .firebaserc con los alias ec-es-dev y ec-es-prod
+M0 · Fundamentos|type:chore,area:infra,priority:high,scope:engine|Scaffolding del monorepo pnpm con TypeScript|- packages/shared, functions y apps/landings con tsconfig base\n- ESLint, Prettier y Vitest\n- Scripts lint, typecheck y test funcionando en CI
+M0 · Fundamentos|type:chore,area:infra,scope:engine|CI/CD por instancia con GitHub Actions|- Validar todas las instancias en cada PR\n- Despliegue a dev de cada instancia activa al fusionar en main\n- Despliegue a prod con tags <id>@vX.Y.Z y aprobación manual (environment por instancia)\n- Autenticación con Workload Identity Federation, sin claves JSON
+M0 · Fundamentos|type:feature,area:data,priority:high,scope:engine|Esquemas Zod iniciales en packages/shared|Lead, Attribution, Consent, LeadStatus y eventos según docs/02-modelo-de-datos.md
+M0 · Fundamentos|type:feature,area:infra,priority:high,scope:engine|Esquema InstanceConfig y comando instance:validate|Zod para instance.yaml, packs de mercado y destino, reglas cruzadas (región según régimen legal, transferencias, aviso IA). Ver docs/11.
+M0 · Fundamentos|type:feature,area:infra,priority:high,scope:engine|Comandos instance:build, instance:seed y deploy:instance|Resolver mercado + destino + instancia en generated/instance.json; sembrar config/* en Firestore; desplegar con el alias <id>-<env>
+M0 · Fundamentos|type:feature,area:data,scope:engine|Pack de mercado es (España)|Locale, moneda, zona horaria, régimen RGPD, regiones permitidas, aviso de IA, textos legales base, tono del agente
+M0 · Fundamentos|type:feature,area:data,scope:engine|Pack de destino ec (Ecuador)|Regiones, moneda local, zona horaria, temporadas, fuentes oficiales de requisitos para el mercado es
+M0 · Fundamentos|type:chore,area:infra,scope:engine|Script check-hardcoding en CI|Falla si aparecen valores de país, moneda, prefijo, región o texto legal fuera de packages/markets, packages/destinations e instances/
+M0 · Fundamentos|type:chore,area:infra,blocked:agency,instance:ec-es|[ec-es] Línea española y WhatsApp Business|- Línea dedicada del mercado a nombre del socio\n- Perfil de WhatsApp Business verificado con aviso de asistente IA\n- Preparado para conectar a un BSP\n- Número en instances/ec-es/instance.yaml
+M0 · Fundamentos|type:chore,area:infra,instance:ec-es|[ec-es] Cuentas de Meta, GTM y GA4|- Business Manager, cuenta publicitaria, Pixel\n- Contenedor GTM y propiedad GA4\n- Documento de propiedad de activos validado con la agencia
+M0 · Fundamentos|type:chore,area:infra,instance:ec-es|[ec-es] Dominio y correo profesional|Dominio, DNS, correo y verificación del dominio en Meta
+M0 · Fundamentos|type:docs,priority:high,instance:ec-es|[ec-es] Encargo legal: privacidad, cookies, aviso legal y contrato de datos|Textos legales y contrato de tratamiento con la agencia con cláusulas contractuales tipo (transferencia a Ecuador)
+M0 · Fundamentos|type:chore,area:infra,instance:ec-es|[ec-es] Elegir CRM y proveedor de WhatsApp (ADR)|Comparar HubSpot vs Pipedrive y 2-3 BSP. Documentar en un ADR.
+
+M1 · Captación|type:feature,area:functions,priority:high,scope:engine|Ingesta de leads desde landing (spec 001)|Implementar docs/specs/001-ingesta-lead-landing.md
+M1 · Captación|type:spec,area:functions,scope:engine|Spec: webhook de Meta Lead Ads|Verificación, firma, inbox idempotente y mapeo de campos del formulario
+M1 · Captación|type:feature,area:functions,scope:engine|Webhook de Meta Lead Ads|Implementar según su spec
+M1 · Captación|type:spec,area:functions,scope:engine|Spec: orquestación onLeadCreated|CRM, aviso a la agencia y CAPI con Cloud Tasks
+M1 · Captación|type:feature,area:functions,priority:high,scope:engine|Orquestación onLeadCreated con Cloud Tasks|Tareas independientes con reintentos: crm.upsert, agency.notify, meta.capi.lead
+M1 · Captación|type:feature,area:functions,scope:engine|Alertas de SLA (slaWatchdog)|Scheduler cada 5 min con umbrales en config/sla
+M1 · Captación|type:feature,area:landings,priority:high,scope:engine|Plantilla de landings Next.js|Modelo de contenido JSON, rutas dinámicas y despliegue en App Hosting
+M1 · Captación|type:feature,area:landings,good-first-issue,scope:engine|Componentes de landing: Hero, Itinerario, FAQ, CTA WhatsApp|Según docs/04-landings.md, con datos de ejemplo
+M1 · Captación|type:feature,area:landings,scope:engine|Formulario con App Check y consentimiento|reCAPTCHA Enterprise, honeypot y texto legal versionado
+M1 · Captación|type:feature,area:landings,scope:engine|Tracking: GTM, Pixel, Consent Mode v2 y UTMs|event_id compartido con CAPI
+M1 · Captación|type:feature,area:landings,scope:engine|JSON-LD schema.org, sitemap y llms.txt|TouristTrip, Offer, FAQPage y Organization
+M1 · Captación|type:chore,area:infra,instance:ec-es|[ec-es] Configurar CRM: etapas e integración|Nuevo, Calificado, Enviado a agencia, Cotizado, Ganado, Perdido; campo leadId obligatorio
+
+M2 · Conversación|type:chore,area:infra,instance:ec-es|[ec-es] Conectar WhatsApp al BSP y aprobar plantillas|Plantillas: acuse fuera de horario, seguimiento, recordatorio
+M2 · Conversación|type:feature,area:functions,scope:engine|Webhook de WhatsApp|Lead con source whatsapp, ctwa_clid y código de campaña
+M2 · Conversación|type:docs,area:agents,good-first-issue,instance:ec-es|[ec-es] Guion de calificación para humanos|Preguntas, orden y respuestas frecuentes, antes de automatizar
+M2 · Conversación|type:spec,area:agents,scope:engine|Spec: agente de calificación en modo asistido|Tools, guardrails, derivaciones y registro en agent_runs
+M2 · Conversación|type:feature,area:agents,priority:high,scope:engine|Agente de calificación (modo asistido)|Implementar según spec, con filtro de PII
+M2 · Conversación|type:feature,area:agents,scope:engine|Evals iniciales del agente|Casos de docs/06-agentes-ia.md y comando pnpm evals
+M2 · Conversación|type:feature,area:data,blocked:agency,scope:engine|Esquema y script de ingesta del catálogo|Extraer PDFs de la agencia a JSON validado, estado draft
+
+M3 · Contenido|type:docs,area:content,instance:ec-es|[ec-es] Perfiles de público y ejes de contenido|Aventura, parejas, sénior, diáspora
+M3 · Contenido|type:docs,area:content,blocked:agency,instance:ec-es|[ec-es] Guía de marca|Logo, colores, tipografía y tono
+M3 · Contenido|type:docs,area:content,instance:ec-es|[ec-es] Guía de grabación para los guías de la agencia|Vertical, tomas cortas, reacciones de clientes, consentimiento de imagen
+M3 · Contenido|type:chore,area:content,good-first-issue,instance:ec-es|[ec-es] Crear perfiles en Instagram, Facebook y TikTok|Bio, enlace con UTM y número español
+M3 · Contenido|type:docs,area:content,instance:ec-es|[ec-es] Flujo de producción con IA y calendario editorial|Vídeo bruto, guion y ganchos con IA, edición, revisión, publicación
+
+M4 · Medición y QA|type:feature,area:data,scope:engine|Exportación Firestore a BigQuery y vistas|v_funnel_daily, v_sla, v_commissions, v_agent_quality
+M4 · Medición y QA|type:feature,area:data,instance:ec-es|[ec-es] Panel en Looker Studio|KPIs de docs/07-medicion.md
+M4 · Medición y QA|type:feature,area:functions,scope:engine|Webhook del CRM y conversión offline Purchase|Venta en CRM actualiza el lead, crea sales y envía Purchase a Meta
+M4 · Medición y QA|type:chore,good-first-issue,instance:ec-es|[ec-es] Ejecutar prueba de punta a punta (spec 002)|Checklist completo en dev con datos ficticios
+
+M5 · Piloto|type:feature,area:mcp,scope:engine|Servidor MCP del catálogo|Tools de solo lectura según docs/05-catalogo-y-mcp.md
+M5 · Piloto|type:feature,area:agents,scope:engine|Agente de propuestas (borrador interno)|Itinerario y rango orientativo para el vendedor de la agencia
+M5 · Piloto|type:chore,area:content,blocked:agency,instance:ec-es|[ec-es] Lanzar piloto: 2 landings y 2 productos|Presupuesto acotado y revisión semanal

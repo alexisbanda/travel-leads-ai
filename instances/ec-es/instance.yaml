@@ -1,0 +1,97 @@
+# Instancia ec-es: receptivo en Ecuador captando viajeros en España.
+# Contexto de negocio: instances/ec-es/README.md
+# Valores marcados TODO se completan en M0 (ver docs/10-roadmap.md).
+
+id: ec-es
+name: "Ecuador desde España"    # TODO: nombre comercial definitivo
+status: draft
+
+agency:
+  slug: agencia-ec              # TODO: slug de la agencia
+  legalName: ""                 # TODO
+  country: EC
+  website: ""                   # TODO
+  notify:
+    channel: whatsapp_group
+    target: secret:AGENCY_NOTIFY_TARGET
+
+partner:
+  legalName: ""                 # TODO: autónomo del socio en España
+  country: ES
+
+destination:
+  country: EC
+
+market:
+  country: ES                   # es-ES, EUR, Europe/Madrid y región ES vienen del pack
+  businessHours:
+    start: "09:00"
+    end: "21:00"
+    days: [1, 2, 3, 4, 5, 6]
+
+brand:
+  displayName: ""               # TODO: logo y nombre pendientes de la agencia
+  domain: ""
+  logo: ""
+  primaryColor: "#000000"
+
+infra:
+  firebaseProjects:
+    dev: tla-ec-es-dev          # TODO: confirmar IDs disponibles
+    prod: tla-ec-es-prod
+  region: europe-southwest1
+  bigqueryLocation: EU
+
+channels:
+  crm:
+    provider: hubspot           # TODO: confirmar con la agencia (ADR pendiente)
+    tokenSecret: secret:CRM_API_TOKEN
+  whatsapp:
+    bsp: respond_io             # TODO: confirmar (ADR pendiente)
+    number: ""                  # TODO: línea española dedicada (+34)
+    webhookSecret: secret:WHATSAPP_BSP_WEBHOOK_SECRET
+  meta:
+    pixelId: ""
+    adAccountId: ""
+    pageId: ""
+    capiTokenSecret: secret:META_CAPI_ACCESS_TOKEN
+  gtmId: ""
+  ga4MeasurementId: ""
+
+segments:
+  - id: adventure
+    label: "Aventura y naturaleza"
+  - id: couple
+    label: "Parejas y luna de miel"
+  - id: senior
+    label: "Sénior activo"
+  - id: diaspora
+    label: "Diáspora ecuatoriana"
+
+pricing:
+  budgetRanges: ["<2000", "2000-4000", "4000-6000", ">6000"]
+
+sla:
+  warnAfterMinutes: 10
+  breachAfterMinutes: 30
+
+compliance:
+  dataRetentionMonths: 24
+  legalTextsVersion: ""         # TODO: tras revisión del abogado
+  internationalTransfer: scc    # Ecuador sin decisión de adecuación de la UE
+
+commission:
+  model: fee_plus_commission
+  rate: 0                       # TODO: según contrato con la agencia
+
+agents:
+  qualification:
+    enabled: true
+    mode: assisted
+  proposal:
+    enabled: false
+  persona:
+    name: ""                    # TODO
+
+features:
+  mcpCatalog: false
