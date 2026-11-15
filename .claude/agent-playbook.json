@@ -1,0 +1,35 @@
+{
+  "$schema": "https://raw.githubusercontent.com/alexisbanda/agent-playbook/main/config/agent-playbook.schema.json",
+  "version": 1,
+  "profile": "reduced",
+  "tracker": {
+    "type": "github",
+    "github": {
+      "repo": "alexisbanda/travel-leads-ai",
+      "in_progress_label": "in-progress"
+    }
+  },
+  "hooks": {
+    "mode": "warn",
+    "production_patterns": [
+      "firebase\\s+deploy",
+      "--project[= ]prod\\b"
+    ]
+  },
+  "review_bot": {
+    "enabled": false
+  },
+  "second_reviewer": {
+    "enabled": true
+  },
+  "gemini_readers": {
+    "enabled": true
+  },
+  "environment": {
+    "dev_url": "",
+    "test_command": "PATH=$HOME/.n/bin:$PATH pnpm test",
+    "worktree_test_command": "",
+    "deploy_check": ""
+  },
+  "journeys": []
+}
