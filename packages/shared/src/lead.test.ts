@@ -9,4 +9,18 @@ describe("LeadStatus", () => {
   it("rechaza un estado que no existe en la máquina de estados", () => {
     expect(() => LeadStatus.parse("unknown")).toThrow();
   });
+
+  it("tiene exactamente los 9 estados de docs/02-modelo-de-datos.md", () => {
+    expect(LeadStatus.options).toEqual([
+      "new",
+      "contacted",
+      "unresponsive",
+      "qualified",
+      "handed_off",
+      "quoted",
+      "won",
+      "lost",
+      "invalid",
+    ]);
+  });
 });

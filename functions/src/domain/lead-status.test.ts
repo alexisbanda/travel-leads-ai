@@ -11,6 +11,7 @@ describe("isTerminalStatus", () => {
   it("es false para estados no terminales", () => {
     expect(isTerminalStatus("new")).toBe(false);
     expect(isTerminalStatus("contacted")).toBe(false);
+    expect(isTerminalStatus("unresponsive")).toBe(false);
     expect(isTerminalStatus("qualified")).toBe(false);
     expect(isTerminalStatus("handed_off")).toBe(false);
     expect(isTerminalStatus("quoted")).toBe(false);

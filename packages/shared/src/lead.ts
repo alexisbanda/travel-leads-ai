@@ -5,10 +5,13 @@ import { z } from "zod";
  *
  * new -> contacted -> qualified -> handed_off -> quoted -> won | lost
  * new -> invalid
+ * contacted -> unresponsive (sin respuesta 7 días)
+ * unresponsive -> contacted (retoma)
  */
 export const LeadStatus = z.enum([
   "new",
   "contacted",
+  "unresponsive",
   "qualified",
   "handed_off",
   "quoted",
