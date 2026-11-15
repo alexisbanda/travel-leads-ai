@@ -1,6 +1,6 @@
 # Specs
 
-Toda funcionalidad empieza aquí. Copia `_plantilla.md` como `NNN-nombre-corto.md` y abre un PR solo con la spec antes de implementar.
+Los flujos con varias piezas (p. ej. webhook → inbox → lead → tareas) empiezan aquí: copia `_plantilla.md` como `NNN-nombre-corto.md` y abre un PR solo con la spec antes de implementar. Para tareas acotadas a un componente, el issue de Ticket Studio (secciones `## Historia` y `## Especificación` con criterios de aceptación) cuenta como spec y no necesita un documento aparte.
 
 | Spec | Título | Estado |
 | --- | --- | --- |

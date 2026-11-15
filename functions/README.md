@@ -2,7 +2,7 @@
 
 Backend en **Cloud Functions for Firebase (2ª gen) con Node 22 + TypeScript**. La región se toma de la configuración resuelta de la instancia (`setGlobalOptions`); nunca se escribe en el código.
 
-> Estado: pendiente de scaffolding (semana 1–2 del roadmap).
+> Estado: cimientos del paquete listos (build, lint, typecheck, test y `domain/` mínimo); las funciones listadas abajo están pendientes.
 
 ## Funciones previstas
 

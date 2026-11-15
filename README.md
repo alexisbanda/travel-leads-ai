@@ -118,14 +118,16 @@ Detalle en [docs/01-arquitectura.md](docs/01-arquitectura.md).
 
 ```bash
 git clone <url-del-repo> && cd travel-leads-ai
+nvm use                                    # usa la versión de .nvmrc (Node 22)
 corepack enable
 pnpm install
 cp .env.example .env.local                 # solo valores de desarrollo
-pnpm instance:validate ec-es
-pnpm instance:build ec-es                  # genera la configuración resuelta
+# pnpm instance:validate ec-es              # pendiente (épica Configuración de instancias)
+# pnpm instance:build ec-es                 # pendiente (épica Configuración de instancias): genera generated/instance.json
 firebase use ec-es-dev
+pnpm --filter functions run build          # el emulador de Functions carga functions/lib/
 firebase emulators:start                   # Functions + Firestore + UI en :4000
-INSTANCE=ec-es pnpm dev
+# INSTANCE=ec-es pnpm dev                   # pendiente (épica Landings)
 ```
 
 ### Scripts
@@ -138,9 +140,10 @@ INSTANCE=ec-es pnpm dev
 | `pnpm deploy:instance <id> <env>` | Despliega una instancia |
 | `pnpm dev` | Arranca los paquetes en modo desarrollo (requiere `INSTANCE`) |
 | `pnpm lint` / `pnpm typecheck` / `pnpm test` | Calidad estática y tests |
+| `pnpm format` / `pnpm format:check` | Formato con Prettier |
 | `pnpm evals` | Evaluaciones de los agentes (motor + casos de la instancia) |
 
-> Los comandos `instance:*` y `deploy:instance` se implementan en M0 (ver roadmap).
+> Los comandos `instance:*`, `deploy:instance` y `pnpm dev` (landings) se implementan en las épicas de Configuración de instancias y Landings (ver roadmap). Mientras tanto, `firebase emulators:start` funciona sin ellos.
 
 ## Entornos
 

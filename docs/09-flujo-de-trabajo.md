@@ -25,10 +25,10 @@ Etiquetas (las de tipo, riesgo, tamaño y estado las crea Ticket Studio al publi
 
 ## Desarrollo guiado por specs
 
-1. **Spec** en `docs/specs/NNN-nombre.md` con la plantilla. Incluye contexto, comportamiento esperado, contratos (tipos/endpoints), casos límite, criterios de aceptación y fuera de alcance.
-2. Revisión de la spec (PR solo con la spec).
-3. Implementación con la spec como contexto principal del agente de IA.
-4. El PR enlaza la spec y marca los criterios de aceptación cumplidos.
+1. **Spec.** Un issue publicado con el contrato de Ticket Studio (secciones `## Historia` y `## Especificación` con criterios de aceptación) cuenta como spec para tareas acotadas a un componente. Los flujos con varias piezas (p. ej. webhook → inbox → lead → tareas) llevan además una spec en `docs/specs/NNN-nombre.md` con la plantilla: contexto, comportamiento esperado, contratos (tipos/endpoints), casos límite, criterios de aceptación y fuera de alcance.
+2. Si hay spec en `docs/specs/`, se revisa en un PR solo con la spec antes de implementar.
+3. Implementación con la spec (el issue de Ticket Studio o el documento en `docs/specs/`) como contexto principal del agente de IA.
+4. El PR enlaza la spec (issue y, si existe, documento en `docs/specs/`) y marca los criterios de aceptación cumplidos.
 
 ## Trabajar con Claude y Gemini
 
