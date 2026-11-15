@@ -1,6 +1,6 @@
 # 10 · Roadmap
 
-Seis semanas para tener el motor listo y probado con su **primera instancia, `ec-es`**; el piloto arranca cuando llega el material de la agencia. Cada tarea indica si es del **motor** (sirve a todas las instancias) o de la **instancia** `ec-es`. Fechas tentativas desde el lunes 16/11/2026; la semana 6 coincide con Navidad, así que el arranque real del piloto probablemente sea en enero, a tiempo para la temporada de venta del verano europeo. Las issues de cada fase se generan desde [`scripts/roadmap-issues.txt`](../scripts/roadmap-issues.txt) con `scripts/bootstrap-github.sh`.
+Seis semanas para tener el motor listo y probado con su **primera instancia, `ec-es`**; el piloto arranca cuando llega el material de la agencia. Cada tarea indica si es del **motor** (sirve a todas las instancias) o de la **instancia** `ec-es`. Fechas tentativas desde el lunes 16/11/2026; la semana 6 coincide con Navidad, así que el arranque real del piloto probablemente sea en enero, a tiempo para la temporada de venta del verano europeo. El backlog vive en GitHub Issues, creado con Ticket Studio a partir de [`docs/product/BRIEF.md`](product/BRIEF.md): las épicas del brief sustituyen a estas fases como fuente de verdad del trabajo pendiente.
 
 ```mermaid
 gantt

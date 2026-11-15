@@ -1,2 +1,3 @@
 .agent-playbook/
 .claude/settings.local.json
+.ticket-studio/

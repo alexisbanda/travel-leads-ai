@@ -15,7 +15,7 @@ GitHub Projects con columnas: **Backlog → Listo → En curso → En revisión 
 
 Una issue está **Lista** cuando tiene: objetivo claro, criterios de aceptación y, si es una funcionalidad, spec aprobada.
 
-Etiquetas (las crea `scripts/bootstrap-github.sh`):
+Etiquetas (las de tipo, riesgo, tamaño y estado las crea Ticket Studio al publicar; las de área y alcance se crean con `gh label create`):
 
 | Tipo | Área | Otras |
 | --- | --- | --- |
