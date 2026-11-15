@@ -18,7 +18,7 @@ Motor genérico de captación y calificación de leads para agencias de viajes r
 
 ## Cómo trabajar
 
-- **Spec antes que código.** Toda funcionalidad nueva empieza con una spec en `docs/specs/` usando `docs/specs/_plantilla.md`.
+- **Spec antes que código.** Un issue de Ticket Studio con las secciones `## Historia` y `## Especificación` (criterios de aceptación) ya cuenta como spec. Los flujos con varias piezas (p. ej. webhook → inbox → lead → tareas) llevan además una spec en `docs/specs/` usando `docs/specs/_plantilla.md`.
 - **Decisiones de arquitectura** → nuevo ADR en `docs/adr/`.
 - Cambios en el modelo de datos o en `InstanceConfig` → actualiza `packages/shared` **y** los docs 02 u 11 en el mismo PR.
 - Si un cambio necesita un valor nuevo por país o agencia, añádelo al esquema de configuración con su valor por defecto en el pack correspondiente, no en el código.

@@ -2,7 +2,7 @@
 
 Tipos y esquemas **Zod** compartidos entre landings, functions y el servidor MCP. Es la única fuente de verdad del modelo de datos.
 
-> Estado: pendiente de scaffolding (semana 1 del roadmap).
+> Estado: scaffolding del paquete listo (`LeadStatus`); el resto de esquemas (`attribution`, `consent`, `catalog`, `events`, `instance`) está pendiente.
 
 ## Contenido previsto
 
