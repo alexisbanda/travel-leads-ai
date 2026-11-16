@@ -1,0 +1,22 @@
+{
+  "name": "@tla/destinations",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Packs de destino (un pack por país receptivo), validados con el esquema DestinationPack de @tla/shared.",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "default": "./index.ts"
+    }
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@tla/shared": "workspace:*"
+  }
+}
