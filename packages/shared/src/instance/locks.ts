@@ -48,9 +48,7 @@ function mismatch(
   };
 }
 
-function marketField(
-  key: "locale" | "currency" | "timezone" | "phoneDefaultRegion",
-): Check {
+function marketField(key: "locale" | "currency" | "timezone" | "phoneDefaultRegion"): Check {
   return (market, instance) => {
     const actual = instance.market[key];
     if (!isSet(actual) || actual === market[key]) return undefined;
