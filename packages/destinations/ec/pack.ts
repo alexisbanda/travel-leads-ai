@@ -6,6 +6,8 @@ import { DestinationPack } from "@tla/shared";
  * Fuente de la taxonomía de regiones y temporadas: docs/11-instancias-y-configuracion.md.
  *
  * Fuentes oficiales para el mercado `ES`:
+ * - Ministerio de Asuntos Exteriores de España — ficha de recomendaciones de
+ *   viaje a Ecuador (incluye documentación y visados para españoles).
  * - Dirección General de Migración de Ecuador (requisitos de entrada al país).
  * - Embajada de España en Ecuador (información y recomendaciones para viajeros
  *   españoles que visitan Ecuador).
@@ -58,11 +60,20 @@ export const ec: DestinationPack = DestinationPack.parse({
     ES: {
       entryRequirements: [
         {
+          label:
+            "Recomendaciones de viaje a Ecuador — documentación y visados · Ministerio de Asuntos Exteriores de España",
+          url: "https://www.exteriores.gob.es/es/ServiciosAlCiudadano/Paginas/Detalle-recomendaciones-de-viaje.aspx?trc=Ecuador",
+        },
+        {
           label: "Requisitos de entrada a Ecuador — Dirección General de Migración de Ecuador",
           url: "https://www.migracion.gob.ec/",
         },
       ],
       travelAdvice: [
+        {
+          label: "Recomendaciones de viaje a Ecuador · Ministerio de Asuntos Exteriores de España",
+          url: "https://www.exteriores.gob.es/es/ServiciosAlCiudadano/Paginas/Detalle-recomendaciones-de-viaje.aspx?trc=Ecuador",
+        },
         {
           label: "Embajada de España en Ecuador — información y recomendaciones para viajeros",
           url: "https://www.exteriores.gob.es/Embajadas/quito/es",

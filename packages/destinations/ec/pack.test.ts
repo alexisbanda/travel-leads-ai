@@ -35,6 +35,14 @@ describe("pack de destino ec", () => {
     for (const source of es.travelAdvice) expect(source.url).toMatch(/^https:\/\//);
     expect(es.adequacyDecision).toBe(false);
   });
+
+  it("el primer aviso de viaje para ES apunta a la ficha oficial de Ecuador de exteriores.gob.es", () => {
+    const es = ec.markets.ES;
+    if (!es) throw new Error("ec.markets.ES no está definido");
+    const [first] = es.travelAdvice;
+    expect(first?.url).toContain("exteriores.gob.es");
+    expect(first?.url).toContain("recomendaciones-de-viaje");
+  });
 });
 
 describe("registro de packs de destino", () => {
