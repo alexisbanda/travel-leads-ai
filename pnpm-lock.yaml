@@ -45,6 +45,16 @@ importers:
         specifier: ^6.1.1
         version: 6.6.0(firebase-admin@12.7.0)
 
+  packages/markets:
+    dependencies:
+      '@tla/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      yaml:
+        specifier: ^2.9.1
+        version: 2.9.1
+
   packages/shared:
     dependencies:
       zod:

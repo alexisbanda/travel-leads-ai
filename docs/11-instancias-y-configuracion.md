@@ -186,6 +186,22 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 
 Las versiones (`aiDisclosure.version`, `legalTexts.version`) son `draft` o un identificador como `1.0.0` o `2026-01`. Los textos no pueden estar vacíos.
 
+Los packs viven en el paquete `@tla/markets` (`packages/markets/<iso>/pack.ts`) y se registran por código de país en `marketPacks`; `getMarketPack(country)` devuelve `undefined` si no existe. `aiDisclosure.text` admite el marcador `{brand}`, que se sustituye por `brand.displayName` de la instancia.
+
+#### Claves bloqueadas
+
+`findLockedOverrides(market, instance)` (`@tla/shared`) es una función pura que lista los campos de la instancia que sobrescriben una clave de `market.locked`, como `{ key, path, expected, actual, message }`. Solo comprueba las claves bloqueadas por el pack, y un valor vacío (`""`, instancia en `draft`) u omitido no cuenta como sobrescritura.
+
+| Clave bloqueada | Campo de la instancia | Regla |
+| --- | --- | --- |
+| `dataRegions` | `infra.region` | Debe estar en la lista |
+| `bigqueryLocation` | `infra.bigqueryLocation` | Debe ser igual |
+| `locale`, `currency`, `timezone`, `phoneDefaultRegion`, `businessHours` | `market.<clave>` | Si se indica, debe ser igual (los días de `businessHours` se comparan sin orden) |
+| `dataRetentionMonths` | `compliance.dataRetentionMonths` | Debe ser igual |
+| `legalRegime`, `internationalTransferWithoutAdequacy`, `aiDisclosure`, `legalTexts`, `priceDisclaimer`, `agentTone` | — | Sin campo en `InstanceConfig`, que es estricto: la instancia no puede sobrescribirlas |
+
+`compliance.internationalTransfer` no se compara con `internationalTransferWithoutAdequacy`: depende de la decisión de adecuación del destino y es una regla cruzada aparte.
+
 ### `DestinationPack` (`packages/destinations/<iso>`)
 
 | Campo | Tipo y validación |
