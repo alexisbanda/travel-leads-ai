@@ -1,0 +1,25 @@
+{
+  "name": "@tla/markets",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Packs de mercado emisor (un pack por país), validados con el esquema MarketPack de @tla/shared.",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "default": "./index.ts"
+    }
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@tla/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "yaml": "^2.9.1"
+  }
+}
