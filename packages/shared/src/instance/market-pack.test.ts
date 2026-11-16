@@ -1,0 +1,77 @@
+import { describe, expect, it } from "vitest";
+import type { z } from "zod";
+import { MarketPack } from "./market-pack.js";
+
+// Utilidades de test (duplicadas en cada archivo de test para no publicarlas en el build).
+/** Primer valor de una lista de `Intl.supportedValuesOf`, para no escribir valores reales. */
+function firstSupported(kind: "currency" | "timeZone"): string {
+  const value = Intl.supportedValuesOf(kind)[0];
+  if (value === undefined) throw new Error(`Intl no expone valores de ${kind}`);
+  return value;
+}
+
+/** Copia profunda de `base` con `value` en la ruta con puntos `path`. */
+function withValue<T>(base: T, path: string, value: unknown): T {
+  const copy = structuredClone(base);
+  const keys = path.split(".");
+  const last = keys.pop();
+  if (last === undefined) throw new Error("ruta vacía");
+  let node = copy as Record<string, unknown>;
+  for (const key of keys) node = node[key] as Record<string, unknown>;
+  node[last] = value;
+  return copy;
+}
+
+/** Paths (con puntos) de todos los issues de un `safeParse`. */
+function issuePaths(result: z.SafeParseReturnType<unknown, unknown>): string[] {
+  if (result.success) return [];
+  return result.error.issues.map((issue) => issue.path.join("."));
+}
+
+// Pack ficticio: códigos y regiones inventados; moneda y zona horaria tomadas de Intl.
+const validPack = {
+  country: "YY",
+  locale: "xx-YY",
+  currency: firstSupported("currency"),
+  timezone: firstSupported("timeZone"),
+  phoneDefaultRegion: "YY",
+  businessHours: { start: "09:00", end: "21:00", days: [1, 2, 3, 4, 5, 6] },
+  legalRegime: "gdpr",
+  dataRegions: ["area-zone1", "area-zone2"],
+  bigqueryLocation: "ZZ",
+  dataRetentionMonths: 24,
+  internationalTransferWithoutAdequacy: "scc",
+  aiDisclosure: { text: "Aviso ficticio: hablas con un asistente de IA.", version: "draft" },
+  legalTexts: {
+    version: "draft",
+    privacyNotice: "Texto ficticio de privacidad.",
+    commercialConsent: "Texto ficticio de consentimiento.",
+  },
+  priceDisclaimer: "Precios orientativos (texto ficticio).",
+  agentTone: "Cercano (texto ficticio).",
+  locked: ["dataRegions", "bigqueryLocation", "aiDisclosure"],
+};
+
+describe("MarketPack", () => {
+  it("acepta un pack completo", () => {
+    expect(issuePaths(MarketPack.safeParse(validPack))).toEqual([]);
+  });
+
+  it.each([
+    ["country", "yy"],
+    ["currency", "XXXX"],
+    ["dataRegions", []],
+    ["aiDisclosure.text", " "],
+    ["legalTexts.version", ""],
+    ["locked", ["dataRegions", "dataRegions"]],
+    ["businessHours.end", "08:00"],
+  ])("rechaza un %s inválido", (path, value) => {
+    const result = MarketPack.safeParse(withValue(validPack, path, value));
+    expect(issuePaths(result)).toEqual([path]);
+  });
+
+  it("rechaza claves bloqueadas que no existen en el pack", () => {
+    const result = MarketPack.safeParse(withValue(validPack, "locked", ["unknown"]));
+    expect(issuePaths(result)).toEqual(["locked.0"]);
+  });
+});
