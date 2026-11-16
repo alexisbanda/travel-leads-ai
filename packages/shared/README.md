@@ -18,6 +18,7 @@ packages/shared/src/
 │   ├── instance-config.ts   # InstanceConfig (instances/<id>/instance.yaml)
 │   ├── market-pack.ts       # MarketPack (packages/markets/<iso>)
 │   ├── destination-pack.ts  # DestinationPack (packages/destinations/<iso>)
+│   ├── locks.ts             # findLockedOverrides: claves bloqueadas del pack frente a la instancia
 │   └── index.ts
 └── index.ts
 ```
@@ -35,4 +36,16 @@ import { InstanceConfig } from "@tla/shared";
 
 const result = InstanceConfig.safeParse(parsedYaml);
 if (!result.success) console.error(result.error.issues); // cada issue trae el path del campo
+```
+
+## Claves bloqueadas
+
+`findLockedOverrides(market, instance)` (`src/instance/locks.ts`) es una función pura que devuelve un `LockedOverride[]` (`{ key, path, expected, actual, message }`) con cada campo de la instancia que sobrescribe una clave de `market.locked`. Lista vacía = la instancia respeta el pack. Los valores vacíos (`""`) de una instancia en `draft` no cuentan como sobrescritura. Mapeo de claves a campos: [docs/11 · Claves bloqueadas](../../docs/11-instancias-y-configuracion.md#claves-bloqueadas).
+
+```ts
+import { findLockedOverrides } from "@tla/shared";
+import { getMarketPack } from "@tla/markets";
+
+const market = getMarketPack(instance.market.country);
+const overrides = market ? findLockedOverrides(market, instance) : [];
 ```
