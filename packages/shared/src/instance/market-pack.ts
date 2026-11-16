@@ -1,0 +1,125 @@
+import { z } from "zod";
+import {
+  BigQueryLocation,
+  BusinessHours,
+  CountryCode,
+  CurrencyCode,
+  duplicates,
+  GcpRegion,
+  InternationalTransfer,
+  Locale,
+  NonEmptyText,
+  TextVersion,
+  TimeZone,
+} from "./primitives.js";
+
+/**
+ * Régimen de protección de datos del mercado. Enumeración genérica de
+ * regímenes; añadir uno nuevo exige revisión legal del pack que lo use.
+ */
+export const LegalRegime = z.enum(["gdpr", "ccpa", "lgpd", "other"]);
+export type LegalRegime = z.infer<typeof LegalRegime>;
+
+/** Texto con versión, para poder probar qué versión vio el viajero. */
+export const VersionedText = z
+  .object({
+    text: NonEmptyText,
+    version: TextVersion,
+  })
+  .strict();
+export type VersionedText = z.infer<typeof VersionedText>;
+
+/** Textos legales base del mercado, en su idioma, con una versión común. */
+export const MarketLegalTexts = z
+  .object({
+    version: TextVersion,
+    /** Información de privacidad junto al formulario y en el primer mensaje. */
+    privacyNotice: NonEmptyText,
+    /** Consentimiento para el contacto comercial (casilla no premarcada). */
+    commercialConsent: NonEmptyText,
+    /** Consentimiento separado y opcional para marketing posterior. */
+    marketingConsent: NonEmptyText.optional(),
+    /** Texto del banner de cookies. */
+    cookieBanner: NonEmptyText.optional(),
+  })
+  .strict();
+export type MarketLegalTexts = z.infer<typeof MarketLegalTexts>;
+
+/**
+ * Claves del pack de mercado que se pueden declarar como bloqueadas: la
+ * instancia no puede sobrescribirlas al resolver la configuración.
+ */
+export const MarketPackLockableKey = z.enum([
+  "locale",
+  "currency",
+  "timezone",
+  "phoneDefaultRegion",
+  "businessHours",
+  "legalRegime",
+  "dataRegions",
+  "bigqueryLocation",
+  "dataRetentionMonths",
+  "internationalTransferWithoutAdequacy",
+  "aiDisclosure",
+  "legalTexts",
+  "priceDisclaimer",
+  "agentTone",
+]);
+export type MarketPackLockableKey = z.infer<typeof MarketPackLockableKey>;
+
+/** Pack de mercado (`packages/markets/<iso>`): lo que depende del país emisor. */
+export const MarketPack = z
+  .object({
+    /** País del mercado emisor. */
+    country: CountryCode,
+    /** Idioma y variante de los textos para viajeros. */
+    locale: Locale,
+    /** Moneda en la que se muestran los precios orientativos. */
+    currency: CurrencyCode,
+    /** Zona horaria del mercado (horario de atención, envíos). */
+    timezone: TimeZone,
+    /** Región por defecto para interpretar teléfonos sin prefijo. */
+    phoneDefaultRegion: CountryCode,
+    /** Horario de atención por defecto, en la zona horaria del mercado. */
+    businessHours: BusinessHours,
+    /** Régimen de protección de datos aplicable. */
+    legalRegime: LegalRegime,
+    /** Regiones de Google Cloud donde pueden residir los datos de la instancia. */
+    dataRegions: z
+      .array(GcpRegion)
+      .min(1, { message: "indica al menos una región de datos permitida" }),
+    /** Ubicación de BigQuery exigida para la analítica. */
+    bigqueryLocation: BigQueryLocation,
+    /** Conservación por defecto de leads sin venta, en meses. */
+    dataRetentionMonths: z.number().int().positive(),
+    /** Mecanismo de transferencia exigido cuando el destino no tiene decisión de adecuación. */
+    internationalTransferWithoutAdequacy: InternationalTransfer,
+    /** Aviso de que el viajero habla con una IA (primer mensaje, perfil). */
+    aiDisclosure: VersionedText,
+    /** Textos legales base. */
+    legalTexts: MarketLegalTexts,
+    /** Aviso de que los precios son orientativos y no una oferta. */
+    priceDisclaimer: NonEmptyText,
+    /** Descripción del tono del agente para los prompts. */
+    agentTone: NonEmptyText,
+    /** Claves que la instancia no puede sobrescribir. */
+    locked: z.array(MarketPackLockableKey),
+  })
+  .strict()
+  .superRefine((pack, ctx) => {
+    for (const region of duplicates(pack.dataRegions)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["dataRegions"],
+        message: `región de datos repetida: ${region}`,
+      });
+    }
+    for (const key of duplicates(pack.locked)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["locked"],
+        message: `clave bloqueada repetida: ${key}`,
+      });
+    }
+  });
+export type MarketPack = z.infer<typeof MarketPack>;
