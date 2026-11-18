@@ -120,4 +120,4 @@ Las evals siguen el mismo esquema: casos del motor (en cualquier idioma, sobre u
 | Propuestas | Modelo de mayor capacidad; latencia no crítica |
 | Ingesta de PDFs | Modelo con buen manejo de documentos largos; comparar Claude y Gemini con las mismas evals |
 
-Las versiones concretas de modelo se fijan en `config/agents` y se cambian con un PR que incluya resultados de evals.
+Las versiones concretas de modelo se fijarán en `config/agents` (hoy, `pnpm instance:seed` siembra ahí la activación, el modo y la persona de cada agente; doc 02) y se cambian con un PR que incluya resultados de evals.

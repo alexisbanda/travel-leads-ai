@@ -13,7 +13,7 @@ consents/{consentId}
 catalog_tours/{tourId}
   departures/{departureId}
 agent_runs/{runId}          # trazas de ejecución de agentes (sin PII en claro)
-config/{docId}              # SLAs, plantillas, flags
+config/{docId}              # sla, agents, flags (pnpm instance:seed)
 inbox/{deliveryId}          # payloads crudos de webhooks, TTL 7 días (doc 03)
 dedupe/{dedupeKey}          # índice para deduplicar personas en transacción (doc 03)
 ```
@@ -132,6 +132,18 @@ Ver [05-catalogo-y-mcp.md](05-catalogo-y-mcp.md).
 | `createdAt` | |
 
 `outcome` es la señal clave para mejorar los prompts: un borrador editado o rechazado es un caso para las evals.
+
+## `config/{docId}`
+
+Valores operativos que se pueden ajustar sin redesplegar. `pnpm instance:seed <id> <env>` los escribe desde la configuración resuelta (`buildConfigDocs` en `packages/shared/src/instance/config-docs.ts`) con `set(..., { merge: true })`: volver a sembrar es idempotente y no borra campos añadidos a mano. Esquemas Zod: `ConfigSla`, `ConfigAgents`, `ConfigFlags`.
+
+| Documento | Campos | Origen |
+| --- | --- | --- |
+| `config/sla` | `warnAfterMinutes`, `breachAfterMinutes` (enteros > 0), `businessHours` `{ start, end, days }` y `timezone` (IANA) | `sla` de la instancia; horario y zona horaria del mercado resuelto (instancia o pack de mercado) |
+| `config/agents` | `qualification { enabled, mode }`, `proposal { enabled }`, `persona { name }` | `agents` de la instancia |
+| `config/flags` | `mcpCatalog` | `features` de la instancia |
+
+`businessHours` se interpreta en `timezone`. Los modelos de IA concretos (doc 06) se añadirán a `config/agents` cuando existan en el esquema.
 
 ## Exportación a BigQuery
 

@@ -2,7 +2,7 @@
 
 Tipos y esquemas **Zod** compartidos entre landings, functions y el servidor MCP. Es la única fuente de verdad del modelo de datos.
 
-> Estado: `LeadStatus` y los esquemas de configuración (`InstanceConfig`, `MarketPack`, `DestinationPack`) listos; el resto (`attribution`, `consent`, `catalog`, `events`) está pendiente.
+> Estado: `LeadStatus`, los esquemas de configuración (`InstanceConfig`, `MarketPack`, `DestinationPack`), la configuración resuelta (`ResolvedInstanceConfig`) y los documentos `config/*` listos; el resto (`attribution`, `consent`, `catalog`, `events`) está pendiente.
 
 ## Contenido previsto
 
@@ -20,6 +20,9 @@ packages/shared/src/
 │   ├── destination-pack.ts  # DestinationPack (packages/destinations/<iso>)
 │   ├── locks.ts             # findLockedOverrides: claves bloqueadas del pack frente a la instancia
 │   ├── rules.ts             # validateInstanceRules: reglas cruzadas instancia × packs
+│   ├── resolved.ts          # ResolvedInstanceConfig (generated/instance.json), parseResolvedInstance, readResolvedInstance
+│   ├── resolve.ts           # resolveInstance: instancia + packs → configuración resuelta
+│   ├── config-docs.ts       # ConfigSla, ConfigAgents, ConfigFlags y buildConfigDocs (Firestore config/*)
 │   └── index.ts
 └── index.ts
 ```
@@ -54,3 +57,9 @@ const overrides = market ? findLockedOverrides(market, instance) : [];
 ## Reglas cruzadas
 
 `validateInstanceRules(instance, { market, destination })` (`src/instance/rules.ts`) es una función pura que cruza una instancia ya validada con sus packs y devuelve un `RuleIssue[]` (`{ rule, path, message }`); `rule` es un `RuleId`: `pack-missing`, `destination-market-missing`, `data-region`, `locked-override`, `international-transfer`, `ai-disclosure` o `legal-texts-draft`. Los mensajes se construyen con los datos de los packs, nunca con valores fijos. Lista de reglas y precedencia: [docs/11 · Validación](../../docs/11-instancias-y-configuracion.md#validación). El comando `pnpm instance:validate` (`packages/instance-cli`) la usa con los registros de `@tla/markets` y `@tla/destinations`.
+
+## Configuración resuelta
+
+`resolveInstance(instance, { market, destination })` (`src/instance/resolve.ts`) es pura: aplica `validateInstanceRules` (cualquier issue, incluido un override bloqueado, devuelve `{ ok: false, issues }`), exige `infra.region` e `infra.bigqueryLocation` no vacías, rellena desde los packs solo lo que la instancia omite (`market.locale`, `currency`, `timezone`, `phoneDefaultRegion`, `businessHours`; `agency.timezone` desde el destino), sustituye `{brand}` (`BRAND_PLACEHOLDER`) en todos los textos del pack de mercado por `brand.displayName` (o `name` si aún está vacío), reduce `destinationPack.markets` a la entrada del mercado y valida el resultado con `ResolvedInstanceConfig`. `pnpm instance:build` lo serializa en `generated/instance.json`; el código lo lee con `readResolvedInstance(path)`, que pide ejecutar `pnpm instance:build <id>` si falta el archivo y nombra los campos si no valida.
+
+`buildConfigDocs(resolved)` (`src/instance/config-docs.ts`) devuelve los documentos `config/sla`, `config/agents` y `config/flags` que siembra `pnpm instance:seed` (ver [docs/02](../../docs/02-modelo-de-datos.md#configdocid)).
