@@ -29,7 +29,7 @@ dedupe/{dedupeKey}          # índice para deduplicar personas en transacción (
 | `source` | enum | `landing` · `meta_lead_ad` · `whatsapp` · `manual` |
 | `status` | enum | Ver máquina de estados |
 | `contact.name` | string | |
-| `contact.phoneE164` | string? | Normalizado con libphonenumber |
+| `contact.phoneE164` | string? | Normalizado con libphonenumber. Debe haber `phoneE164` o `email` |
 | `contact.email` | string? | En minúsculas |
 | `contact.country` | string | ISO 3166-1 alfa-2 |
 | `contact.language` | string | Por defecto, el `locale` del mercado |
@@ -52,6 +52,8 @@ dedupe/{dedupeKey}          # índice para deduplicar personas en transacción (
 | `retentionUntil` | timestamp | Para borrado automático (ver doc 08) |
 
 ### `attribution`
+
+Todos los campos son opcionales. La landing envía un subconjunto (`AttributionInput`: UTMs, `fbclid`, `fbc`, `fbp`, `gclid`, `eventId`).
 
 | Campo | Notas |
 | --- | --- |
@@ -83,7 +85,7 @@ stateDiagram-v2
   invalid --> [*]
 ```
 
-Cada transición crea un documento en `leads/{id}/events` con `{type, from, to, actor, at}`. Los eventos **no se modifican nunca**.
+Cada transición crea un documento en `leads/{id}/events` con `{type, from, to, actor, at}`. Los eventos **no se modifican nunca**. `type` va en snake_case; `from` y `to` son opcionales porque hay eventos que no son transiciones (p. ej. `created`, `reengaged`).
 
 ## `sales/{saleId}`
 
@@ -95,10 +97,10 @@ Cada transición crea un documento en `leads/{id}/events` con `{type, from, to, 
 | `pax` | |
 | `travelDate` | |
 | `closedAt` | |
-| `commission.rate`, `commission.amount` | Según contrato vigente |
+| `commission.rate`, `commission.amount` | Según contrato vigente. `rate` es una fracción 0–1 |
 | `commission.status` | `pending` · `invoiced` · `paid` |
-| `crmDealId` | |
-| `metaOfflineSentAt` | Cuándo se envió la conversión |
+| `crmDealId` | Opcional |
+| `metaOfflineSentAt` | Opcional. Cuándo se envió la conversión |
 
 ## `consents/{consentId}`
 
@@ -107,12 +109,12 @@ Registro probatorio del consentimiento RGPD.
 | Campo | Notas |
 | --- | --- |
 | `leadId` | |
-| `purposes` | `contact` (obligatorio), `marketing` (opcional) |
+| `purposes` | Lista sin repetidos: `contact` (obligatorio), `marketing` (opcional) |
 | `textVersion` | Versión del texto legal mostrado |
 | `channel` | `landing` · `meta_form` · `whatsapp` |
 | `grantedAt` | |
-| `ipHash`, `userAgent` | Evidencia mínima |
-| `withdrawnAt` | Si se revoca |
+| `ipHash`, `userAgent` | Evidencia mínima. Opcionales (no hay IP en `meta_form` ni `whatsapp`) |
+| `withdrawnAt` | Opcional. Si se revoca |
 
 ## `catalog_tours/{tourId}`
 

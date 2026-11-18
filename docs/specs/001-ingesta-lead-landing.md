@@ -31,7 +31,7 @@ export const LandingLeadInput = z.object({
   pax: z.object({ adults: z.number().int().min(1).max(20), children: z.number().int().min(0).max(10) }).optional(),
   tourIds: z.array(z.string()).max(5).default([]),
   landingSlug: z.string(),
-  attribution: AttributionInput,       // UTMs, fbclid, fbc, fbp, eventId
+  attribution: AttributionInput.default({}), // UTMs, fbclid, fbc, fbp, eventId; todos opcionales
   consent: z.object({
     contact: z.literal(true),
     marketing: z.boolean().default(false),
@@ -53,6 +53,7 @@ Respuesta de error: `400 { error: "validation", fields: [...] }`, `401` sin App 
 | Mismo teléfono, otra landing, 30 días después | Evento `reengaged` con la nueva atribución |
 | Mismo teléfono, lead anterior `lost` | Lead nuevo |
 | Más de 5 envíos por IP en 10 min | `429` |
+| Sin parámetros de tracking (visita directa, bloqueador de anuncios) | Se acepta; `attribution` queda vacía (`{}`) y el lead se crea igual |
 
 ## Seguridad y privacidad
 
