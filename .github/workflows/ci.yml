@@ -45,3 +45,15 @@ jobs:
 
       - name: Validate instances
         run: pnpm instance:validate
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools@15.34.2
+
+      - name: Seed against Firestore emulator
+        run: pnpm test:emulator
