@@ -12,10 +12,11 @@
     "lint": "pnpm -r --if-present run lint",
     "typecheck": "pnpm -r --if-present run typecheck",
     "test": "pnpm -r --if-present run test",
+    "test:emulator": "pnpm --filter @tla/instance-cli test:emulator",
     "evals": "pnpm -r --if-present run evals",
     "instance:validate": "pnpm --filter @tla/instance-cli --silent validate",
-    "instance:build": "echo \"Pendiente (M0): genera generated/instance.json\" && exit 1",
-    "instance:seed": "echo \"Pendiente (M0): siembra config/* en Firestore\" && exit 1",
+    "instance:build": "pnpm --filter @tla/instance-cli --silent instance:build",
+    "instance:seed": "pnpm --filter @tla/instance-cli --silent instance:seed",
     "deploy:instance": "echo \"Pendiente (M0): despliega una instancia\" && exit 1",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

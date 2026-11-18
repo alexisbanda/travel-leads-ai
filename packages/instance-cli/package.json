@@ -3,17 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Comandos instance:* del monorepo: carga instances/<id>/instance.yaml y la valida contra el esquema y sus packs.",
+  "description": "Comandos instance:* del monorepo: valida, resuelve (generated/instance.json) y siembra (Firestore config/*) las instancias de instances/<id>.",
   "scripts": {
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "validate": "tsx src/validate.ts"
+    "test:emulator": "firebase emulators:exec --only firestore --project demo-tla-seed \"vitest run src/seed.emulator.test.ts\"",
+    "validate": "tsx src/validate.ts",
+    "instance:build": "tsx src/build.ts",
+    "instance:seed": "tsx src/seed.ts"
   },
   "dependencies": {
     "@tla/destinations": "workspace:*",
     "@tla/markets": "workspace:*",
     "@tla/shared": "workspace:*",
+    "firebase-admin": "^12.7.0",
     "yaml": "^2.9.1"
   },
   "devDependencies": {
