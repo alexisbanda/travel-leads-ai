@@ -5,7 +5,7 @@ import { parse } from "yaml";
 import { DestinationPack } from "./destination-pack.js";
 import { InstanceConfig } from "./instance-config.js";
 import { MarketPack } from "./market-pack.js";
-import { RuleId, validateInstanceRules } from "./rules.js";
+import { RuleId, validateInstanceRules, type InstancePacks } from "./rules.js";
 
 // Utilidades de test (duplicadas en cada archivo de test para no publicarlas en el build).
 /** Valor de una lista de `Intl.supportedValuesOf`, para no escribir valores reales. */
@@ -88,7 +88,7 @@ function live(status: "pilot" | "active" | "paused"): InstanceConfig {
   return InstanceConfig.parse(instance);
 }
 
-function rules(instance: InstanceConfig, p = packs): string[] {
+function rules(instance: InstanceConfig, p: InstancePacks = packs): string[] {
   return validateInstanceRules(instance, p).map((issue) => `${issue.rule} ${issue.path}`);
 }
 
