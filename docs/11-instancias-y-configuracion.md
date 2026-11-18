@@ -100,7 +100,7 @@ La plantilla completa y comentada está en [`instances/_template/instance.yaml`]
 
 ## Esquemas de configuración
 
-Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan desde `@tla/shared`: `InstanceConfig`, `MarketPack` y `DestinationPack` (cada uno con su tipo TypeScript del mismo nombre). Validan **estructura y formato** de cada capa por separado; las reglas que cruzan capas (región frente a mercado, existencia de packs, `scc` según adecuación, claves bloqueadas) se aplican al resolver la configuración.
+Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan desde `@tla/shared`: `InstanceConfig`, `MarketPack` y `DestinationPack` (cada uno con su tipo TypeScript del mismo nombre). Validan **estructura y formato** de cada capa por separado; las reglas que cruzan capas (región frente a mercado, existencia de packs, `scc` según adecuación, claves bloqueadas) las aplica `validateInstanceRules` (ver [Validación](#validación)).
 
 ### Reglas comunes
 
@@ -218,17 +218,40 @@ Los packs viven en el paquete `@tla/markets` (`packages/markets/<iso>/pack.ts`) 
 
 ## Validación
 
-`packages/shared` define los esquemas Zod `InstanceConfig`, `MarketPack` y `DestinationPack` (ver [Esquemas de configuración](#esquemas-de-configuración)). El comando `pnpm instance:validate [id]` comprueba:
+`pnpm instance:validate [id]` (paquete `packages/instance-cli`) valida una instancia o, sin argumentos, todas las carpetas de `instances/` que tengan `instance.yaml`. Con `--dir <carpeta>` valida una carpeta de instancia fuera de `instances/` (las rutas relativas se resuelven desde la raíz del repositorio; mejor usar rutas absolutas).
 
-- Estructura y tipos (ISO de país, ISO 4217 de moneda, BCP 47 de idioma, zonas horarias IANA).
-- Que existen los packs de mercado y destino referenciados.
-- Reglas cruzadas, por ejemplo:
-  - mercado con régimen RGPD → `infra.region` en Europa y BigQuery en `EU`;
-  - mercado con transferencia a un destino sin decisión de adecuación → `compliance.internationalTransfer: scc`;
-  - agente activo → el pack de mercado aporta texto de aviso de IA en el idioma del mercado.
-- Que ningún secreto aparece en el YAML (solo referencias `secret:NOMBRE`).
+Para cada instancia comprueba, en este orden:
 
-CI valida **todas** las instancias en cada PR.
+1. **YAML** (`[yaml]`): el archivo se puede parsear.
+2. **Esquema** (`[schema]`): `InstanceConfig` (ver [Esquemas de configuración](#esquemas-de-configuración)): estructura y tipos (ISO de país, ISO 4217 de moneda, BCP 47 de idioma, zonas horarias IANA), campos obligatorios fuera de `draft` y secretos solo como referencias `secret:NOMBRE`.
+3. **Carpeta** (`[instance-id]`): `id` coincide con el nombre de la carpeta.
+4. **Reglas cruzadas** con los packs del registro (`@tla/markets`, `@tla/destinations`), con `validateInstanceRules` de `@tla/shared`:
+
+| Regla | Campo | Falla si |
+| --- | --- | --- |
+| `pack-missing` | `market.country` / `destination.country` | No existe el pack referenciado. Las reglas que necesitan ese pack no se evalúan. |
+| `destination-market-missing` | `market.country` | El pack de destino no tiene entrada `markets.<PAÍS>` para el mercado de la instancia. |
+| `data-region` | `infra.region`, `infra.bigqueryLocation` | La región no está en `dataRegions` del pack de mercado, o la ubicación de BigQuery no es igual a su `bigqueryLocation`. Se aplica con cualquier régimen y el mensaje nombra el mercado y su régimen. Vacías se admiten solo en `draft`. |
+| `locked-override` | Según [Claves bloqueadas](#claves-bloqueadas) | La instancia sobrescribe una clave de `locked` (`findLockedOverrides`), salvo `dataRegions` y `bigqueryLocation`. |
+| `international-transfer` | `compliance.internationalTransfer` | El destino no tiene decisión de adecuación para el mercado (`adequacyDecision: false`) y el valor no es igual a `internationalTransferWithoutAdequacy` del pack de mercado. |
+| `ai-disclosure` | `agents.<agente>.enabled` | Hay un agente activo (`qualification` o `proposal`) y el pack de mercado no trae `aiDisclosure.text`. |
+| `legal-texts-draft` | `status` | La instancia no está en `draft` y `legalTexts.version` del pack de mercado es `draft`, o hay un agente activo y `aiDisclosure.version` es `draft`. |
+
+**Precedencia entre `data-region` y `locked-override`.** `infra.region` e `infra.bigqueryLocation` se comprueban siempre con `data-region`, estén o no bloqueadas `dataRegions` y `bigqueryLocation` en el pack; `locked-override` excluye esas dos claves. Así cada campo da un solo error.
+
+**Plantillas.** Las carpetas que empiezan por `_` (p. ej. `_template`) se validan solo contra `InstanceConfig`, sin packs, reglas cruzadas ni comprobación de carpeta, y se informan como `_template: OK (solo esquema)`.
+
+Salida y código de retorno:
+
+```text
+_template: OK (solo esquema)
+ec-es: 1 error
+  [data-region] infra.region: el mercado ES (gdpr) solo permite estas regiones de datos: … (la instancia trae us-central1)
+```
+
+Sale con 0 si todas las instancias son válidas y con 1 si alguna falla, si el id no existe o si los argumentos no son válidos.
+
+CI valida **todas** las instancias en cada PR (paso `Validate instances` de `.github/workflows/ci.yml`).
 
 ## Cómo llega la configuración al código
 

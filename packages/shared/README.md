@@ -19,6 +19,7 @@ packages/shared/src/
 │   ├── market-pack.ts       # MarketPack (packages/markets/<iso>)
 │   ├── destination-pack.ts  # DestinationPack (packages/destinations/<iso>)
 │   ├── locks.ts             # findLockedOverrides: claves bloqueadas del pack frente a la instancia
+│   ├── rules.ts             # validateInstanceRules: reglas cruzadas instancia × packs
 │   └── index.ts
 └── index.ts
 ```
@@ -27,7 +28,7 @@ Regla: si un campo cambia aquí, se actualiza en el mismo PR [docs/02-modelo-de-
 
 ## Esquemas de configuración
 
-`InstanceConfig`, `MarketPack` y `DestinationPack` validan estructura y formato de cada capa por separado. País, moneda, idioma y zona horaria se validan por formato o con la API `Intl`, sin listas de países en el código. Las reglas que cruzan capas (región frente a mercado, claves bloqueadas, `scc` según adecuación) se aplican al resolver la configuración, no aquí.
+`InstanceConfig`, `MarketPack` y `DestinationPack` validan estructura y formato de cada capa por separado. País, moneda, idioma y zona horaria se validan por formato o con la API `Intl`, sin listas de países en el código. Las reglas que cruzan capas (región frente a mercado, claves bloqueadas, `scc` según adecuación) no están en los esquemas: las aplica `validateInstanceRules` (ver [Reglas cruzadas](#reglas-cruzadas)).
 
 Referencia campo a campo y regla de `draft`: [docs/11-instancias-y-configuracion.md](../../docs/11-instancias-y-configuracion.md#esquemas-de-configuración). Si cambias un campo de estos esquemas, actualiza ese documento y `instances/_template/instance.yaml` en el mismo PR.
 
@@ -49,3 +50,7 @@ import { getMarketPack } from "@tla/markets";
 const market = getMarketPack(instance.market.country);
 const overrides = market ? findLockedOverrides(market, instance) : [];
 ```
+
+## Reglas cruzadas
+
+`validateInstanceRules(instance, { market, destination })` (`src/instance/rules.ts`) es una función pura que cruza una instancia ya validada con sus packs y devuelve un `RuleIssue[]` (`{ rule, path, message }`); `rule` es un `RuleId`: `pack-missing`, `destination-market-missing`, `data-region`, `locked-override`, `international-transfer`, `ai-disclosure` o `legal-texts-draft`. Los mensajes se construyen con los datos de los packs, nunca con valores fijos. Lista de reglas y precedencia: [docs/11 · Validación](../../docs/11-instancias-y-configuracion.md#validación). El comando `pnpm instance:validate` (`packages/instance-cli`) la usa con los registros de `@tla/markets` y `@tla/destinations`.

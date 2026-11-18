@@ -122,7 +122,7 @@ nvm use                                    # usa la versión de .nvmrc (Node 22)
 corepack enable
 pnpm install
 cp .env.example .env.local                 # solo valores de desarrollo
-# pnpm instance:validate ec-es              # pendiente (épica Configuración de instancias)
+pnpm instance:validate ec-es               # valida la instancia contra el esquema y sus packs
 # pnpm instance:build ec-es                 # pendiente (épica Configuración de instancias): genera generated/instance.json
 firebase use ec-es-dev
 pnpm --filter functions run build          # el emulador de Functions carga functions/lib/
@@ -143,7 +143,7 @@ firebase emulators:start                   # Functions + Firestore + UI en :4000
 | `pnpm format` / `pnpm format:check` | Formato con Prettier |
 | `pnpm evals` | Evaluaciones de los agentes (motor + casos de la instancia) |
 
-> Los comandos `instance:*`, `deploy:instance` y `pnpm dev` (landings) se implementan en las épicas de Configuración de instancias y Landings (ver roadmap). Mientras tanto, `firebase emulators:start` funciona sin ellos.
+> `pnpm instance:validate` ya está disponible (`packages/instance-cli`). Los comandos `instance:build`, `instance:seed`, `deploy:instance` y `pnpm dev` (landings) se implementan en las épicas de Configuración de instancias y Landings (ver roadmap). Mientras tanto, `firebase emulators:start` funciona sin ellos.
 
 ## Entornos
 
