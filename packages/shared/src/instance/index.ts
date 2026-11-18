@@ -4,3 +4,6 @@ export * from "./destination-pack.js";
 export * from "./instance-config.js";
 export * from "./locks.js";
 export * from "./rules.js";
+export * from "./resolved.js";
+export * from "./resolve.js";
+export * from "./config-docs.js";

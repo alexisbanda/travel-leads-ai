@@ -72,7 +72,7 @@ Para cada lead nuevo (y en transiciones relevantes), se encolan tareas independi
 | Tras `sla.breachAfterMinutes` | Aviso a la agencia + marca `sla.breachedAt` |
 | Fuera de horario | El agente envía un mensaje de acuse (si hay consentimiento y ventana de 24 h abierta) y se mide desde la apertura del horario |
 
-Horario y zona horaria salen de la configuración de la instancia (en `ec-es`: 9–21 h, `Europe/Madrid`, avisos a los 10 y 30 min). Los umbrales se siembran en `config/sla` para poder cambiarlos sin desplegar.
+Horario y zona horaria salen de la configuración de la instancia (en `ec-es`: 9–21 h, `Europe/Madrid`, avisos a los 10 y 30 min). Los umbrales, el horario y su zona horaria se siembran en `config/sla` con `pnpm instance:seed <id> <env>` para poder cambiarlos sin desplegar (doc 02).
 
 ## Pruebas
 

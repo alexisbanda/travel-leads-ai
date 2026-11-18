@@ -258,8 +258,26 @@ CI valida **todas** las instancias en cada PR (paso `Validate instances` de `.gi
 | Momento | Mecanismo |
 | --- | --- |
 | Build | `pnpm instance:build <id>` resuelve las tres capas y genera `generated/instance.json` para landings, functions y MCP. El código lee siempre de ahí, nunca de constantes. |
-| Runtime | Valores operativos (umbrales de SLA, modelos de IA, flags) se siembran en Firestore `config/*` con `pnpm instance:seed <id> <env>` y se pueden ajustar sin redesplegar. |
+| Runtime | Valores operativos (umbrales de SLA, horario, agentes, flags) se siembran en Firestore `config/*` con `pnpm instance:seed <id> local\|dev` y se pueden ajustar sin redesplegar. |
 | Secretos | Secret Manager del proyecto de la instancia. El YAML solo los nombra. |
+
+### Configuración resuelta (`generated/instance.json`)
+
+`pnpm instance:build <id> [--out <ruta>]` carga `instances/<id>/instance.yaml`, aplica las reglas de [Validación](#validación) y, si no hay ningún error, resuelve la instancia con `resolveInstance` (`packages/shared`):
+
+1. Los campos opcionales de `market` (`locale`, `currency`, `timezone`, `phoneDefaultRegion`, `businessHours`) toman el valor de la instancia si lo trae y, si no, el del pack de mercado. Un override de una clave bloqueada hace fallar el build (`locked-override`).
+2. `agency.timezone` vacía u omitida toma la zona horaria del pack de destino.
+3. `infra.region` e `infra.bigqueryLocation` son obligatorias para resolver, también en `draft` (`data-region`).
+4. El marcador `{brand}` se sustituye en todos los textos del pack de mercado (aviso de IA incluido) por `brand.displayName` o, mientras esté vacío, por `name`.
+5. Se añaden `marketPack` (completo, ya con la marca) y `destinationPack` con `markets` reducido a la entrada del mercado de la instancia.
+
+El resultado cumple el esquema `ResolvedInstanceConfig`: la forma de `InstanceConfig` con esos campos ya obligatorios, más `marketPack: MarketPack` y `destinationPack: DestinationPack`. Se escribe con claves ordenadas, 2 espacios y sin marcas de tiempo, de modo que dos builds de la misma entrada son idénticos byte a byte. Si algo falla, sale con 1, lista los errores como `instance:validate` y no escribe nada.
+
+El código lo lee con `readResolvedInstance(path)`; functions usa `TLA_INSTANCE_CONFIG` o, por defecto, `generated/instance.json` de la raíz, y toma de ahí la región (`setGlobalOptions`). `generated/` no se versiona.
+
+### Configuración operativa (`config/*`)
+
+`pnpm instance:seed <id> <env>` resuelve la instancia en memoria y escribe `config/sla`, `config/agents` y `config/flags` (campos en [doc 02](02-modelo-de-datos.md#configdocid)). `env` es `local` (emulador, `FIRESTORE_EMULATOR_HOST` o `127.0.0.1:8080`) o `dev` (proyecto `infra.firebaseProjects.dev` con ADC; se niega si `FIRESTORE_EMULATOR_HOST` está definida). `prod` está prohibido: sale con 1 antes de crear ningún cliente, y el comando también se niega si el proyecto final coincide con `infra.firebaseProjects.prod`. La escritura es `set` con `merge`: idempotente y conserva los campos añadidos a mano. CI ejecuta los tests de integración contra el emulador (`pnpm test:emulator`).
 
 ## Despliegue
 
@@ -282,7 +300,7 @@ En `apps/`, `functions/` y `packages/shared` no puede aparecer ningún valor pro
 1. `cp -r instances/_template instances/<id>` y rellenar `instance.yaml`.
 2. Si el mercado o el destino no tienen pack, crearlo primero (PR al motor, con revisión legal para mercados nuevos).
 3. Crear los proyectos de Firebase en la región que indique el pack de mercado.
-4. `pnpm instance:validate <id>` y `pnpm instance:seed <id> dev`.
+4. `pnpm instance:validate <id>`, `pnpm instance:build <id>` y `pnpm instance:seed <id> dev`.
 5. Cargar el catálogo de la agencia (doc 05) y el contenido de las landings.
 6. Ejecutar la prueba de punta a punta ([spec 002](specs/002-prueba-punta-a-punta.md)).
 

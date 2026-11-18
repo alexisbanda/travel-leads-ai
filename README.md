@@ -123,10 +123,11 @@ corepack enable
 pnpm install
 cp .env.example .env.local                 # solo valores de desarrollo
 pnpm instance:validate ec-es               # valida la instancia contra el esquema y sus packs
-# pnpm instance:build ec-es                 # pendiente (épica Configuración de instancias): genera generated/instance.json
+pnpm instance:build ec-es                  # genera generated/instance.json (lo leen functions, landings y MCP)
 firebase use ec-es-dev
 pnpm --filter functions run build          # el emulador de Functions carga functions/lib/
 firebase emulators:start                   # Functions + Firestore + UI en :4000
+pnpm instance:seed ec-es local             # en otra terminal: siembra config/* en el emulador
 # INSTANCE=ec-es pnpm dev                   # pendiente (épica Landings)
 ```
 
@@ -136,14 +137,36 @@ firebase emulators:start                   # Functions + Firestore + UI en :4000
 | --- | --- |
 | `pnpm instance:validate [id]` | Valida una instancia (o todas) contra el esquema y los packs |
 | `pnpm instance:build <id>` | Resuelve mercado + destino + instancia en `generated/instance.json` |
-| `pnpm instance:seed <id> <env>` | Siembra la configuración operativa en Firestore `config/*` |
+| `pnpm instance:seed <id> local\|dev` | Siembra la configuración operativa en Firestore `config/*` (`prod` no está permitido) |
+| `pnpm test:emulator` | Tests de `instance:seed` contra el emulador de Firestore (necesita Firebase CLI y Java) |
 | `pnpm deploy:instance <id> <env>` | Despliega una instancia |
 | `pnpm dev` | Arranca los paquetes en modo desarrollo (requiere `INSTANCE`) |
 | `pnpm lint` / `pnpm typecheck` / `pnpm test` | Calidad estática y tests |
 | `pnpm format` / `pnpm format:check` | Formato con Prettier |
 | `pnpm evals` | Evaluaciones de los agentes (motor + casos de la instancia) |
 
-> `pnpm instance:validate` ya está disponible (`packages/instance-cli`). Los comandos `instance:build`, `instance:seed`, `deploy:instance` y `pnpm dev` (landings) se implementan en las épicas de Configuración de instancias y Landings (ver roadmap). Mientras tanto, `firebase emulators:start` funciona sin ellos.
+> `instance:validate`, `instance:build` e `instance:seed` ya están disponibles (`packages/instance-cli`). `deploy:instance` y `pnpm dev` (landings) se implementan en las épicas de Configuración de instancias y Landings (ver roadmap).
+
+### Configuración resuelta (`instance:build`)
+
+Ejecuta `pnpm instance:build <id>` después de clonar, al cambiar de instancia y cada vez que cambien `instances/<id>/instance.yaml` o los packs de mercado o destino. Resuelve las tres capas (pack de mercado → pack de destino → instancia, que gana) y escribe `generated/instance.json`; functions, landings y MCP leen de ahí (functions falla al arrancar si no existe). Si la instancia incumple una regla de `instance:validate` (p. ej. sobrescribe una clave bloqueada), sale con 1 y no escribe nada. La salida es determinista (claves ordenadas, sin marcas de tiempo) y `--out <ruta>` cambia el destino.
+
+`generated/` **no se versiona** (está en `.gitignore`): es un artefacto de cada máquina y de cada despliegue.
+
+### Configuración operativa (`instance:seed`)
+
+`pnpm instance:seed <id> <env>` escribe `config/sla`, `config/agents` y `config/flags` en Firestore a partir de la configuración resuelta (la calcula en memoria; no lee `generated/`). Es idempotente y conserva los campos añadidos a mano (`set` con `merge`).
+
+| Entorno | Destino | Credenciales |
+| --- | --- | --- |
+| `local` | Emulador de Firestore (`FIRESTORE_EMULATOR_HOST`, por defecto `127.0.0.1:8080`) con el id del proyecto dev | Ninguna |
+| `dev` | Proyecto `infra.firebaseProjects.dev` (`tla-ec-es-dev` en ec-es). Se niega si `FIRESTORE_EMULATOR_HOST` está definida | ADC: `gcloud auth application-default login` con una cuenta con acceso a `tla-ec-es-dev` |
+| `prod` | **Prohibido**: sale con 1 sin conectar a nada. Producción se siembra solo desde el pipeline de despliegue | — |
+
+```bash
+firebase emulators:exec --only firestore "pnpm instance:seed ec-es local"   # contra el emulador
+gcloud auth application-default login && pnpm instance:seed ec-es dev       # contra dev
+```
 
 ## Entornos
 
