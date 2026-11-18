@@ -42,8 +42,11 @@ export const BudgetRange = z.string().regex(/^(<[0-9]+|[0-9]+-[0-9]+|>[0-9]+)$/,
 
 const REQUIRED_OUTSIDE_DRAFT = "obligatorio cuando status no es draft";
 
-/** Configuración de una instancia (`instances/<id>/instance.yaml`). */
-export const InstanceConfig = z
+/**
+ * Forma de `InstanceConfig` sin las comprobaciones entre campos; sirve de
+ * base a `ResolvedInstanceConfig`. Valida siempre con `InstanceConfig`.
+ */
+export const InstanceConfigObject = z
   .object({
     id: InstanceId,
     name: NonEmptyText,
@@ -184,42 +187,53 @@ export const InstanceConfig = z
       .strict(),
     features: z.object({ mcpCatalog: z.boolean() }).strict(),
   })
-  .strict()
-  .superRefine((config, ctx) => {
-    for (const id of duplicates(config.segments.map((segment) => segment.id))) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["segments"],
-        message: `id de segmento repetido: ${id}`,
-      });
-    }
+  .strict();
 
-    if (config.sla.breachAfterMinutes <= config.sla.warnAfterMinutes) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["sla", "breachAfterMinutes"],
-        message: "breachAfterMinutes debe ser mayor que warnAfterMinutes",
-      });
-    }
+/** Campos que `refineInstanceConfig` comprueba (comunes a la instancia y a la configuración resuelta). */
+type RefinableInstance = Pick<
+  z.infer<typeof InstanceConfigObject>,
+  "status" | "segments" | "sla" | "agency" | "partner" | "channels" | "commission"
+>;
 
-    if (config.status === "draft") return;
+/** Comprobaciones entre campos de la instancia: ids únicos, SLA coherente y obligatorios fuera de draft. */
+export function refineInstanceConfig(config: RefinableInstance, ctx: z.RefinementCtx): void {
+  for (const id of duplicates(config.segments.map((segment) => segment.id))) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["segments"],
+      message: `id de segmento repetido: ${id}`,
+    });
+  }
 
-    const required: Array<[path: (string | number)[], missing: boolean]> = [
-      [["agency", "legalName"], config.agency.legalName.trim() === ""],
-      [["partner", "legalName"], config.partner.legalName.trim() === ""],
-      [["channels", "whatsapp", "number"], config.channels.whatsapp.number === ""],
-      [["commission", "rate"], !(config.commission.rate > 0)],
-    ];
-    for (const [path, missing] of required) {
-      if (!missing) continue;
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path,
-        message:
-          path[0] === "commission"
-            ? `debe ser mayor que 0: ${REQUIRED_OUTSIDE_DRAFT}`
-            : REQUIRED_OUTSIDE_DRAFT,
-      });
-    }
-  });
+  if (config.sla.breachAfterMinutes <= config.sla.warnAfterMinutes) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["sla", "breachAfterMinutes"],
+      message: "breachAfterMinutes debe ser mayor que warnAfterMinutes",
+    });
+  }
+
+  if (config.status === "draft") return;
+
+  const required: Array<[path: (string | number)[], missing: boolean]> = [
+    [["agency", "legalName"], config.agency.legalName.trim() === ""],
+    [["partner", "legalName"], config.partner.legalName.trim() === ""],
+    [["channels", "whatsapp", "number"], config.channels.whatsapp.number === ""],
+    [["commission", "rate"], !(config.commission.rate > 0)],
+  ];
+  for (const [path, missing] of required) {
+    if (!missing) continue;
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path,
+      message:
+        path[0] === "commission"
+          ? `debe ser mayor que 0: ${REQUIRED_OUTSIDE_DRAFT}`
+          : REQUIRED_OUTSIDE_DRAFT,
+    });
+  }
+}
+
+/** Configuración de una instancia (`instances/<id>/instance.yaml`). */
+export const InstanceConfig = InstanceConfigObject.superRefine(refineInstanceConfig);
 export type InstanceConfig = z.infer<typeof InstanceConfig>;

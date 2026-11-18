@@ -1,4 +1,4 @@
-import type { MarketPack } from "@tla/shared";
+import { BRAND_PLACEHOLDER, type MarketPack } from "@tla/shared";
 import { es } from "./es/pack.js";
 
 export { es };
@@ -7,7 +7,7 @@ export { es };
  * Marcador de plantilla de `aiDisclosure.text`: se sustituye por
  * `brand.displayName` de la instancia al resolver la configuración.
  */
-export const AI_DISCLOSURE_BRAND_PLACEHOLDER = "{brand}";
+export const AI_DISCLOSURE_BRAND_PLACEHOLDER = BRAND_PLACEHOLDER;
 
 /**
  * Registro de packs de mercado, indexado por código ISO 3166-1 alfa-2 en
