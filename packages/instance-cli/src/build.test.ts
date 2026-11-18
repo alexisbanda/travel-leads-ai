@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, relative } from "node:path";
+import { join } from "node:path";
 import { getMarketPack } from "@tla/markets";
 import { BRAND_PLACEHOLDER, ResolvedInstanceConfig } from "@tla/shared";
 import { afterAll, describe, expect, it } from "vitest";
@@ -54,13 +54,25 @@ function readJson(file: string): unknown {
 describe("instance:build", () => {
   it("escribe por defecto en generated/instance.json de la raíz", () => {
     expect(DEFAULT_OUT_FILE).toBe(join(REPO_ROOT, "generated", "instance.json"));
+    const defaultOut = join(tempDir(), "generated", "instance.json");
+    const stdout: string[] = [];
+    const code = runBuild(["ec-es"], {
+      cwd: join(defaultOut, "..", ".."),
+      defaultOut,
+      stdout: (line) => stdout.push(line),
+    });
+    expect(code).toBe(0);
+    expect(stdout).toEqual([
+      `ec-es: configuración resuelta en ${join("generated", "instance.json")}`,
+    ]);
+    expect(existsSync(defaultOut)).toBe(true);
   });
 
   it("ec-es genera una configuración válida con la instancia por encima de los packs", () => {
     const out = join(tempDir(), "nested", "instance.json");
     const { code, stdout } = run(["ec-es", "--out", out]);
     expect(code).toBe(0);
-    expect(stdout).toEqual([`ec-es: configuración resuelta en ${relative(REPO_ROOT, out)}`]);
+    expect(stdout).toEqual([`ec-es: configuración resuelta en ${out}`]);
     const config = ResolvedInstanceConfig.parse(readJson(out));
     const pack = getMarketPack("ES");
     const loaded = loadInstance(SOURCE);

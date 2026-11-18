@@ -1,5 +1,5 @@
 import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { RESOLVED_INSTANCE_FILE, type ResolvedInstanceConfig } from "@tla/shared";
 import { isEntryPoint, REPO_ROOT, resolveInstanceById, stripDashDash } from "./cli.js";
 import { DEFAULT_INSTANCES_DIR, defaultPackRegistry, type PackRegistry } from "./load.js";
@@ -107,7 +107,10 @@ export function runBuild(argv: string[], options: BuildOptions = {}): number {
     args.out === undefined ? (options.defaultOut ?? DEFAULT_OUT_FILE) : resolve(cwd, args.out);
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, serializeResolved(result.config));
-  stdout(`${args.id}: configuración resuelta en ${relative(cwd, out) || out}`);
+  const shown = relative(cwd, out);
+  stdout(
+    `${args.id}: configuración resuelta en ${shown === "" || shown.startsWith("..") || isAbsolute(shown) ? out : shown}`,
+  );
   return 0;
 }
 
