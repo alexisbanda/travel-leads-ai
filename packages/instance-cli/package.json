@@ -1,0 +1,22 @@
+{
+  "name": "@tla/instance-cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Comandos instance:* del monorepo: carga instances/<id>/instance.yaml y la valida contra el esquema y sus packs.",
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "validate": "tsx src/validate.ts"
+  },
+  "dependencies": {
+    "@tla/destinations": "workspace:*",
+    "@tla/markets": "workspace:*",
+    "@tla/shared": "workspace:*",
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
+  }
+}
