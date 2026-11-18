@@ -43,5 +43,5 @@ jobs:
       - name: Test check-hardcoding script
         run: ./scripts/test-check-hardcoding.sh
 
-      # pnpm instance:validate queda fuera de alcance de este ticket (cimientos
-      # del monorepo); se añadirá a CI en la épica de configuración de instancias.
+      - name: Validate instances
+        run: pnpm instance:validate
