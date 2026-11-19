@@ -2,6 +2,7 @@
 // Cada tarea lleva un ID de idempotencia: si ya existe, el encolado cuenta como éxito.
 import { getApps, initializeApp, type App, type AppOptions } from "firebase-admin/app";
 import { getFunctions } from "firebase-admin/functions";
+import { defaultAdminApp } from "./firebase-app.js";
 
 /** Nombre de la app de admin usada solo para encolar contra el emulador de Cloud Tasks. */
 const EMULATOR_APP_NAME = "tla-tasks-emulator";
@@ -92,8 +93,7 @@ export function createCloudTaskEnqueuer(region: string): TaskEnqueuer {
   return createTaskQueueEnqueuer((name) => {
     const emulatorOptions = taskQueueAppOptions();
     if (emulatorOptions === null) {
-      if (getApps().length === 0) initializeApp();
-      return getFunctions().taskQueue(name);
+      return getFunctions(defaultAdminApp()).taskQueue(name);
     }
     const existing = getApps().find((app) => app.name === EMULATOR_APP_NAME);
     const app: App = existing ?? initializeApp(emulatorOptions, EMULATOR_APP_NAME);

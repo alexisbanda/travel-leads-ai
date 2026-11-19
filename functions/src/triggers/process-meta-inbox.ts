@@ -5,7 +5,6 @@
 //
 // Logs: solo `inboxId`, `leadId`, resultado, código y nombre del error, y claves de
 // preguntas descartadas. Nunca nombre, teléfono, email ni respuestas de la Graph API.
-import { getApps, initializeApp } from "firebase-admin/app";
 import { FieldValue, getFirestore, type Firestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { defineSecret } from "firebase-functions/params";
@@ -13,6 +12,7 @@ import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import type { ResolvedInstanceConfig } from "@tla/shared";
 import { buildMetaLeadIngest, type MetaLeadSettings } from "../domain/meta-lead.js";
 import { ulid } from "../domain/ulid.js";
+import { defaultAdminApp } from "../integrations/firebase-app.js";
 import { INBOX_COLLECTION, META_INBOX_PREFIX } from "../http/meta-lead-webhook.js";
 import {
   createRunIngestTransaction,
@@ -159,8 +159,8 @@ export function createProcessMetaInboxHandler(deps: ProcessMetaInboxDeps) {
   };
 }
 
-/** `markInboxError` sobre Firestore. */
-export function createFirestoreInboxErrorMarker(db: () => Firestore) {
+/** `markInboxError` sobre Firestore (por defecto, la app de admin por defecto). */
+export function createFirestoreInboxErrorMarker(db: () => Firestore = defaultDb) {
   return async (inboxId: string, error: string, at: Date): Promise<void> => {
     await db()
       .collection(INBOX_COLLECTION)
@@ -192,7 +192,7 @@ export function metaLeadSettingsFrom(config: ResolvedInstanceConfig): MetaLeadSe
 }
 
 function defaultDb(): Firestore {
-  return getFirestore(getApps()[0] ?? initializeApp());
+  return getFirestore(defaultAdminApp());
 }
 
 /**
@@ -211,7 +211,7 @@ export function createProcessMetaInboxFunction(config: ResolvedInstanceConfig) {
     newId: () => ulid(),
     now: () => new Date(),
     runIngestTransaction: createRunIngestTransaction(),
-    markInboxError: createFirestoreInboxErrorMarker(defaultDb),
+    markInboxError: createFirestoreInboxErrorMarker(),
     // Acceso perezoso a `logger`: no se resuelve al definir la función.
     log: {
       info: (message, fields) => logger.info(message, fields),

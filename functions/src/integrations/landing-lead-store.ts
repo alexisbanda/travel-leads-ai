@@ -1,10 +1,10 @@
 // Persistencia de la ingesta de leads (landing, spec 001; Meta Lead Ads, spec 004): una
 // sola transacción de Firestore que decide entre reutilizar el lead (evento `reengaged`)
 // o crear lead, consentimiento, entrada de `dedupe` y evento `created`.
-import { getApps, initializeApp } from "firebase-admin/app";
 import { FieldValue, getFirestore, Timestamp, type Firestore } from "firebase-admin/firestore";
 import { LeadStatus, type LeadEvent } from "@tla/shared";
 import { isReengageable, type NewLeadDocs } from "../domain/landing-lead.js";
+import { defaultAdminApp } from "./firebase-app.js";
 
 export const LEADS_COLLECTION = "leads";
 export const LEAD_EVENTS_SUBCOLLECTION = "events";
@@ -115,8 +115,7 @@ export async function runIngestTransaction(
 }
 
 function defaultDb(): Firestore {
-  if (getApps().length === 0) initializeApp();
-  return getFirestore();
+  return getFirestore(defaultAdminApp());
 }
 
 /** `runIngestTransaction` sobre la app por defecto (inicializada de forma perezosa). */

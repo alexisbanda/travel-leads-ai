@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { deleteApp, initializeApp, type App } from "firebase-admin/app";
+import { deleteApp, getApps, initializeApp, type App } from "firebase-admin/app";
 import { getFirestore, Timestamp, type Firestore } from "firebase-admin/firestore";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { MetaLeadSettings } from "../domain/meta-lead.js";
@@ -10,6 +10,7 @@ import {
   CONSENTS_COLLECTION,
   DEDUPE_COLLECTION,
   LEAD_EVENTS_SUBCOLLECTION,
+  createRunIngestTransaction,
   LEADS_COLLECTION,
   runIngestTransaction,
 } from "../integrations/landing-lead-store.js";
@@ -270,5 +271,41 @@ describe.skipIf(EMULATOR_HOST === "")("processMetaInbox contra el emulador de Fi
     expect(processed.error).toBeUndefined();
     expect(await count(LEADS_COLLECTION)).toBe(1);
     expect(processed.leadId).toEqual((await db.collection(LEADS_COLLECTION).get()).docs[0]?.id);
+  });
+
+  it("las dependencias por defecto usan la app [DEFAULT] aunque exista la app del SDK de functions", async () => {
+    // En un trigger de Firestore, firebase-functions crea esta app antes de llamar al handler.
+    const sdkApp = initializeApp({ projectId: PROJECT_ID }, "__FIREBASE_FUNCTIONS_SDK__");
+    try {
+      const defaultsHandler = createProcessMetaInboxHandler({
+        settings: () => SETTINGS,
+        fetchLead: (leadgenId) => {
+          graph.calls.push(leadgenId);
+          return graph.response();
+        },
+        newId: () => ulid(),
+        now: () => clock.now,
+        runIngestTransaction: createRunIngestTransaction(),
+        markInboxError: createFirestoreInboxErrorMarker(),
+        log: silent,
+      });
+
+      const write = await deliver("000000000000001");
+      await expect(defaultsHandler(write)).resolves.toBe("created");
+      expect(await inbox(write.inboxId)).toMatchObject({ status: "processed" });
+      expect(await count(LEADS_COLLECTION)).toBe(1);
+
+      const broken = await deliver("000000000000002");
+      await expect(
+        defaultsHandler({ inboxId: broken.inboxId, after: { source: "meta", payload: {} } }),
+      ).resolves.toBe("error");
+      expect(await inbox(broken.inboxId)).toMatchObject({
+        status: "error",
+        error: "missing_leadgen_id",
+      });
+    } finally {
+      const defaultApp = getApps().find((a) => a.name === "[DEFAULT]");
+      await Promise.all([sdkApp, ...(defaultApp ? [defaultApp] : [])].map((a) => deleteApp(a)));
+    }
   });
 });
