@@ -4,7 +4,6 @@
 //
 // Los logs solo llevan `leadId` y `landingSlug` (y, en un 400, los nombres de los
 // campos inválidos): nunca nombre, teléfono, email ni IP.
-import { getApps, initializeApp } from "firebase-admin/app";
 import { getAppCheck } from "firebase-admin/app-check";
 import { logger } from "firebase-functions";
 import { defineSecret } from "firebase-functions/params";
@@ -15,6 +14,7 @@ import { dedupeKey } from "../domain/dedupe-key.js";
 import { buildNewLandingLead, buildReengagedEvent, hashIp } from "../domain/landing-lead.js";
 import { matchesVerifyToken } from "../domain/meta-signature.js";
 import { ulid } from "../domain/ulid.js";
+import { defaultAdminApp } from "../integrations/firebase-app.js";
 import {
   createRunIngestTransaction,
   type IngestOutcome,
@@ -236,10 +236,6 @@ export function createAppCheckVerifier(options: AppCheckVerifierOptions) {
   };
 }
 
-function adminApp() {
-  return getApps()[0] ?? initializeApp();
-}
-
 /** Valores de la instancia que necesita la ingesta. */
 export function ingestSettingsFrom(config: ResolvedInstanceConfig): IngestLandingLeadSettings {
   return {
@@ -263,7 +259,7 @@ export function createIngestLandingLeadFunction(config: ResolvedInstanceConfig) 
     createIngestLandingLeadHandler({
       settings: () => (settings ??= ingestSettingsFrom(config)),
       verifyAppCheck: createAppCheckVerifier({
-        verifyToken: (token) => getAppCheck(adminApp()).verifyToken(token),
+        verifyToken: (token) => getAppCheck(defaultAdminApp()).verifyToken(token),
       }),
       ipHashSalt: () => IP_HASH_SALT.value(),
       newId: () => ulid(),

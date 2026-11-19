@@ -52,7 +52,7 @@ infra:
 
 channels:
   crm:
-    provider: hubspot           # hubspot | pipedrive
+    provider: hubspot           # hubspot | pipedrive | memory (memory: solo desarrollo)
     tokenSecret: secret:CRM_API_TOKEN
   whatsapp:
     bsp: respond_io             # respond_io | 360dialog | other
@@ -63,6 +63,16 @@ channels:
     adAccountId: ""
     pageId: ""
     capiTokenSecret: secret:META_CAPI_ACCESS_TOKEN
+    pageTokenSecret: secret:META_PAGE_ACCESS_TOKEN  # token de página para leer los leads (Graph API)
+    # Opcional: preguntas personalizadas del formulario de Lead Ads → campos del lead.
+    # Destinos: travelMonth | paxAdults | paxChildren | budgetRange | segment | notes | marketingConsent
+    # leadForm:
+    #   fieldMap:
+    #     clave_de_la_pregunta: notes          # la respuesta se usa tal cual
+    #     otra_pregunta:                       # opción múltiple: respuesta → valor
+    #       field: travelMonth
+    #       values:
+    #         clave_de_respuesta: "AAAA-MM"
   gtmId: ""
   ga4MeasurementId: ""
 

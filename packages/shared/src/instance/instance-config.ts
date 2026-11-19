@@ -44,6 +44,66 @@ export const BudgetRange = z.string().regex(/^(<[0-9]+|[0-9]+-[0-9]+|>[0-9]+)$/,
 const REQUIRED_OUTSIDE_DRAFT = "obligatorio cuando status no es draft";
 
 /**
+ * Campos del lead a los que se puede mapear una pregunta personalizada del formulario
+ * de Meta Lead Ads (`channels.meta.leadForm.fieldMap`, docs/specs/004-meta-lead-ads-ingesta.md).
+ */
+export const LeadFormField = z.enum([
+  "travelMonth",
+  "paxAdults",
+  "paxChildren",
+  "budgetRange",
+  "segment",
+  "notes",
+  "marketingConsent",
+]);
+export type LeadFormField = z.infer<typeof LeadFormField>;
+
+/**
+ * Valor válido para cada campo destino. Repite `TravelMonth` y `LeadSegment` de
+ * `lead.ts` porque `lead.ts` importa este módulo (un import circular rompería la
+ * carga); un test comprueba que siguen coincidiendo.
+ */
+export const LeadFormFieldValue = {
+  travelMonth: z.string().regex(/^\d{4}-\d{2}$/, { message: "mes inválido: usa AAAA-MM" }),
+  paxAdults: z.number().int().min(1),
+  paxChildren: z.number().int().min(0),
+  budgetRange: BudgetRange,
+  segment: z.enum(["adventure", "couple", "senior", "diaspora", "other"]),
+  notes: z.string().trim().min(1),
+  marketingConsent: z.boolean(),
+} satisfies Record<LeadFormField, z.ZodTypeAny>;
+
+/**
+ * Cómo se mapea una pregunta: el nombre del campo destino (la respuesta se usa tal
+ * cual) o `{ field, values }` para preguntas de opción múltiple (respuesta → valor).
+ */
+export const LeadFormFieldMapping = z.union([
+  LeadFormField,
+  z
+    .object({
+      field: LeadFormField,
+      values: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])),
+    })
+    .strict()
+    .superRefine((mapping, ctx) => {
+      const schema = LeadFormFieldValue[mapping.field];
+      for (const [answer, value] of Object.entries(mapping.values)) {
+        if (schema.safeParse(value).success) continue;
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["values", answer],
+          message: `valor inválido para ${mapping.field}`,
+        });
+      }
+    }),
+]);
+export type LeadFormFieldMapping = z.infer<typeof LeadFormFieldMapping>;
+
+/** Mapa de preguntas personalizadas del formulario de Meta: clave de la pregunta → mapeo. */
+export const LeadFormFieldMap = z.record(z.string().min(1), LeadFormFieldMapping);
+export type LeadFormFieldMap = z.infer<typeof LeadFormFieldMap>;
+
+/**
  * Forma de `InstanceConfig` sin las comprobaciones entre campos; sirve de
  * base a `ResolvedInstanceConfig`. Valida siempre con `InstanceConfig`.
  */
@@ -133,6 +193,14 @@ export const InstanceConfigObject = z
             ),
             pageId: emptyOr(z.string().regex(/^[0-9]+$/, { message: "ID de página inválido" })),
             capiTokenSecret: SecretRef,
+            /** Token de página para leer los leads de la Graph API. */
+            pageTokenSecret: SecretRef,
+            leadForm: z
+              .object({
+                fieldMap: LeadFormFieldMap.default({}),
+              })
+              .strict()
+              .optional(),
           })
           .strict(),
         gtmId: emptyOr(z.string().regex(/^GTM-[A-Z0-9]+$/, { message: "ID de GTM inválido" })),

@@ -10,6 +10,7 @@ Backend en **Cloud Functions for Firebase (2ª gen) con Node 22 + TypeScript**. 
 | --- | --- | --- |
 | `ingestLandingLead` | HTTPS (callable o onRequest + App Check) | Recibe formularios de las landings |
 | `metaLeadWebhook` | HTTPS onRequest | Webhook de Meta Lead Ads (verificación + firma) |
+| `processMetaInbox` | Trigger Firestore (`inbox/{inboxId}`) | Lee el lead de la Graph API (token `channels.meta.pageTokenSecret`), lo mapea y crea o reengancha el lead `meta_lead_ad`. Los errores quedan en el inbox (`status: "error"`); se reintenta volviendo a `pending` ([spec 004](../docs/specs/004-meta-lead-ads-ingesta.md)). En el emulador, `META_GRAPH_API_BASE_URL` apunta la Graph API a un _stub_ local |
 | `whatsappWebhook` | HTTPS onRequest | Webhook del proveedor de WhatsApp (BSP) |
 | `onLeadCreated` | Trigger Firestore | Encola una tarea por acción activa con ID de idempotencia ([spec 003](../docs/specs/003-on-lead-created.md)) |
 | `crmUpsertTask` · `agencyNotifyTask` · `metaCapiLeadTask` | Cloud Tasks (`onTaskDispatched`) | Alta en el CRM (`CrmAdapter`), aviso a la agencia (`Notifier`) y evento CAPI, cada una con sus reintentos. El nombre de la función es el de su cola |

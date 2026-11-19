@@ -3,11 +3,11 @@
 // - POST: firma `X-Hub-Signature-256` con `META_APP_SECRET` y guardado idempotente
 //   de cada `leadgen_id` en `inbox/meta_{leadgen_id}`. El procesamiento lo hace
 //   después un trigger sobre `inbox`.
-import { getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { onRequest } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
+import { defaultAdminApp } from "../integrations/firebase-app.js";
 import {
   extractLeadgenChanges,
   isValidMetaSignature,
@@ -138,8 +138,7 @@ export function createMetaLeadWebhookHandler(deps: MetaLeadWebhookDeps) {
 const GRPC_ALREADY_EXISTS = 6;
 
 function db() {
-  if (getApps().length === 0) initializeApp();
-  return getFirestore();
+  return getFirestore(defaultAdminApp());
 }
 
 export async function saveInboxIfAbsent(

@@ -9,6 +9,7 @@ import {
   createMetaCapiLeadTaskFunction,
 } from "./tasks/lead-task-functions.js";
 import { createOnLeadCreatedFunction } from "./triggers/on-lead-created.js";
+import { createProcessMetaInboxFunction } from "./triggers/process-meta-inbox.js";
 
 // La región sale de la configuración resuelta de la instancia
 // (`pnpm instance:build <id>`), nunca de constantes.
@@ -19,6 +20,8 @@ setGlobalOptions({ region: config.infra.region });
 // las opciones globales en el momento de definirse.
 export const metaLeadWebhook = createMetaLeadWebhookFunction();
 export const ingestLandingLead = createIngestLandingLeadFunction(config);
+// Entregas de Meta Lead Ads en `inbox/` → lead (docs/specs/004-meta-lead-ads-ingesta.md).
+export const processMetaInbox = createProcessMetaInboxFunction(config);
 
 // Orquestación tras crear un lead (docs/specs/003-on-lead-created.md). Los nombres de
 // las tareas son los de sus colas: deben coincidir con `LEAD_TASK_FUNCTIONS`.

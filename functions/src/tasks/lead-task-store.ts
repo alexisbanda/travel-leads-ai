@@ -1,8 +1,8 @@
 // Persistencia de las tareas de un lead: lectura del lead y eventos en `leads/{leadId}/events`.
-import { getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import type { LeadEvent } from "@tla/shared";
 import type { CrmUpsertResult } from "../integrations/crm/index.js";
+import { defaultAdminApp } from "../integrations/firebase-app.js";
 import { LEAD_EVENTS_SUBCOLLECTION, LEADS_COLLECTION } from "../integrations/landing-lead-store.js";
 
 export interface LeadTaskStore {
@@ -20,8 +20,7 @@ export interface LeadTaskStore {
 }
 
 function defaultDb(): Firestore {
-  if (getApps().length === 0) initializeApp();
-  return getFirestore();
+  return getFirestore(defaultAdminApp());
 }
 
 export function createFirestoreLeadTaskStore(db: () => Firestore = defaultDb): LeadTaskStore {
