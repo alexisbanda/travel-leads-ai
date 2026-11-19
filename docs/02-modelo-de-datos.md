@@ -94,6 +94,11 @@ Cada transición crea un documento en `leads/{id}/events` con `{type, from, to, 
 | `created` | Alta del lead | — |
 | `reengaged` | La misma persona vuelve con el lead abierto y creado hace menos de 90 días (doc 03) | `attribution`: atribución del nuevo envío (mismo esquema que la del lead). La del lead no se toca |
 | `status_changed` | Transición de la máquina de estados | `from`, `to` |
+| `crm.upsert.{succeeded,failed,skipped}` | Ejecución de la tarea de alta o actualización en el CRM (spec 003). `succeeded` guarda además `crm.contactId` y `crm.dealId` en el lead | `detail` (opcional) |
+| `agency.notify.{succeeded,failed,skipped}` | Ejecución de la tarea de aviso a la agencia (spec 003) | `detail` (opcional) |
+| `meta.capi.lead.{succeeded,failed,skipped}` | Ejecución de la tarea del evento `Lead` a Meta CAPI (spec 003) | `detail` (opcional) |
+
+`detail` es un código corto sin datos personales (letras, dígitos, `_`, `.` y `-`; máx. 100): el motivo de un `skipped` (`not_implemented`, `no_channel`), `invalid_lead` o el nombre del error de un `failed`. Los eventos de tareas usan `actor: "system"`.
 
 ## `sales/{saleId}`
 
