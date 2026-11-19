@@ -31,7 +31,7 @@ dedupe/{dedupeKey}          # índice para deduplicar personas en transacción (
 | `contact.name` | string | |
 | `contact.phoneE164` | string? | Normalizado con libphonenumber. Debe haber `phoneE164` o `email` |
 | `contact.email` | string? | En minúsculas |
-| `contact.country` | string | ISO 3166-1 alfa-2 |
+| `contact.country` | string | ISO 3166-1 alfa-2. En la landing, el del teléfono; si no se deduce, `market.country` |
 | `contact.language` | string | Por defecto, el `locale` del mercado |
 | `segment` | enum? | `adventure` · `couple` · `senior` · `diaspora` · `other` |
 | `interest.tourIds` | string[] | Referencias a `catalog_tours` |
@@ -49,7 +49,7 @@ dedupe/{dedupeKey}          # índice para deduplicar personas en transacción (
 | `qualification.score` | number? | 0–100, generado por el agente |
 | `qualification.summary` | string? | Resumen para el vendedor |
 | `createdAt` / `updatedAt` | timestamp | Servidor |
-| `retentionUntil` | timestamp | Para borrado automático (ver doc 08) |
+| `retentionUntil` | timestamp | Para borrado automático (ver doc 08). `createdAt` + `compliance.dataRetentionMonths` de la instancia (fijado por el pack de mercado) |
 
 ### `attribution`
 
@@ -64,7 +64,7 @@ Todos los campos son opcionales. La landing envía un subconjunto (`AttributionI
 | `landingSlug` | |
 | `metaAdId`, `metaAdsetId`, `metaCampaignId` | Cuando lleguen por Lead Ads o referral |
 | `eventId` | Compartido entre Pixel y CAPI para deduplicar |
-| `firstTouchAt` | |
+| `firstTouchAt` | En la landing, la fecha de alta del lead |
 
 ### Máquina de estados
 
@@ -85,7 +85,15 @@ stateDiagram-v2
   invalid --> [*]
 ```
 
-Cada transición crea un documento en `leads/{id}/events` con `{type, from, to, actor, at}`. Los eventos **no se modifican nunca**. `type` va en snake_case; `from` y `to` son opcionales porque hay eventos que no son transiciones (p. ej. `created`, `reengaged`).
+Cada transición crea un documento en `leads/{id}/events` con `{type, from, to, actor, at}`. Los eventos **no se modifican nunca**. `from` y `to` son opcionales porque hay eventos que no son transiciones (p. ej. `created`, `reengaged`).
+
+`type` es una lista cerrada (`LeadEventType`); un tipo nuevo se añade al esquema y a esta tabla en el mismo PR:
+
+| `type` | Cuándo | Campos propios |
+| --- | --- | --- |
+| `created` | Alta del lead | — |
+| `reengaged` | La misma persona vuelve con el lead abierto y creado hace menos de 90 días (doc 03) | `attribution`: atribución del nuevo envío (mismo esquema que la del lead). La del lead no se toca |
+| `status_changed` | Transición de la máquina de estados | `from`, `to` |
 
 ## `sales/{saleId}`
 
@@ -113,8 +121,19 @@ Registro probatorio del consentimiento RGPD.
 | `textVersion` | Versión del texto legal mostrado |
 | `channel` | `landing` · `meta_form` · `whatsapp` |
 | `grantedAt` | |
-| `ipHash`, `userAgent` | Evidencia mínima. Opcionales (no hay IP en `meta_form` ni `whatsapp`) |
+| `ipHash`, `userAgent` | Evidencia mínima. Opcionales (no hay IP en `meta_form` ni `whatsapp`). `ipHash` = SHA-256 (hex) de la IP seguida del *salt* `IP_HASH_SALT` (Secret Manager); la IP en claro no se guarda ni se registra. `userAgent` se recorta a 500 caracteres |
 | `withdrawnAt` | Opcional. Si se revoca |
+
+## `dedupe/{dedupeKey}`
+
+Índice para deduplicar personas dentro de la transacción de ingesta (doc 03). El ID es el `dedupeKey` del lead.
+
+| Campo | Notas |
+| --- | --- |
+| `leadId` | Último lead creado para esa persona |
+| `createdAt` | Fecha de alta de ese lead |
+
+Si el lead apuntado sigue abierto y se creó hace menos de 90 días, un nuevo envío añade un evento `reengaged`; si no, se crea un lead nuevo y este documento pasa a apuntar a él.
 
 ## `catalog_tours/{tourId}`
 

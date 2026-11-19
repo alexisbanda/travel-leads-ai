@@ -1,0 +1,18 @@
+{
+  "name": "  Prueba   QA  ",
+  "phone": "600 00 00 00",
+  "email": "Prueba.QA@Example.com",
+  "travelMonth": "2031-03",
+  "pax": { "adults": 2, "children": 0 },
+  "tourIds": ["tour-ficticio-1"],
+  "landingSlug": "landing-qa-1",
+  "attribution": {
+    "utmSource": "facebook",
+    "utmMedium": "paid",
+    "utmCampaign": "campana-de-prueba",
+    "fbclid": "fbclid-de-prueba",
+    "eventId": "evento-de-prueba-1"
+  },
+  "consent": { "contact": true, "marketing": true, "textVersion": "1.0.0" },
+  "website": ""
+}

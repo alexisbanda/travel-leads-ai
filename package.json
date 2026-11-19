@@ -12,7 +12,7 @@
     "lint": "pnpm -r --if-present run lint",
     "typecheck": "pnpm -r --if-present run typecheck",
     "test": "pnpm -r --if-present run test",
-    "test:emulator": "pnpm --filter @tla/instance-cli test:emulator",
+    "test:emulator": "pnpm -r --if-present run test:emulator",
     "evals": "pnpm -r --if-present run evals",
     "instance:validate": "pnpm --filter @tla/instance-cli --silent validate",
     "instance:build": "pnpm --filter @tla/instance-cli --silent instance:build",
