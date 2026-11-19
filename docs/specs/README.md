@@ -6,5 +6,6 @@ Los flujos con varias piezas (p. ej. webhook → inbox → lead → tareas) empi
 | --- | --- | --- |
 | [001](001-ingesta-lead-landing.md) | Ingesta de leads desde landing | Borrador |
 | [002](002-prueba-punta-a-punta.md) | Prueba de punta a punta antes de lanzar | Aprobada |
+| [003](003-on-lead-created.md) | Orquestación tras crear un lead (`onLeadCreated`) | Aprobada |
 
-Próximas: `onLeadCreated` (orquestación), webhook de Meta Lead Ads, webhook de WhatsApp, `slaWatchdog`, plantilla de landings, agente de calificación, ingesta del catálogo.
+Próximas: webhook de Meta Lead Ads, webhook de WhatsApp, `slaWatchdog`, plantilla de landings, agente de calificación, ingesta del catálogo.
