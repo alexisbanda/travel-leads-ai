@@ -17,6 +17,7 @@ const FAKE_REGION = "region-sintetica";
 vi.mock("../config.js", () => ({
   loadInstanceConfig: () => ({
     infra: { region: FAKE_REGION },
+    agency: {},
     channels: { meta: { pageTokenSecret: "secret:PAGINA_DE_PRUEBA" } },
   }),
 }));

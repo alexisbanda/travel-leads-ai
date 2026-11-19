@@ -46,6 +46,7 @@ const TaskLead = Lead.pick({
   source: true,
   contact: true,
   interest: true,
+  crm: true,
 });
 
 function leadIdFrom(payload: unknown): string | undefined {
@@ -153,11 +154,21 @@ export function createAgencyNotifyHandler(
     const lead = TaskLead.safeParse(data);
     if (!lead.success) return run.record(leadId, "failed", "invalid_lead");
 
+    let result;
     try {
-      await resolution.notifier.notify(lead.data);
+      result = await resolution.notifier.notify({ kind: "lead_created", lead: lead.data });
     } catch (error) {
       await run.record(leadId, "failed", errorDetail(error));
       throw error;
+    }
+    if (result.status === "skipped") {
+      // Sin datos personales ni destinatarios: solo el motivo.
+      deps.log.warn("agency.notify: aviso omitido", {
+        action: "agency.notify",
+        leadId,
+        detail: result.reason,
+      });
+      return run.record(leadId, "skipped", result.reason);
     }
     await run.record(leadId, "succeeded");
   };
