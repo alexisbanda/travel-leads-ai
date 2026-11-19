@@ -13,6 +13,7 @@ import type { ResolvedInstanceConfig } from "@tla/shared";
 import { buildMetaLeadIngest, type MetaLeadSettings } from "../domain/meta-lead.js";
 import { ulid } from "../domain/ulid.js";
 import { defaultAdminApp } from "../integrations/firebase-app.js";
+import { secretName } from "../integrations/secrets.js";
 import { INBOX_COLLECTION, META_INBOX_PREFIX } from "../http/meta-lead-webhook.js";
 import {
   createRunIngestTransaction,
@@ -174,10 +175,6 @@ export function createFirestoreInboxErrorMarker(db: () => Firestore = defaultDb)
   };
 }
 
-/** Nombre del secreto de una referencia `secret:NOMBRE`. */
-export function secretName(ref: string): string {
-  return ref.replace(/^secret:/, "");
-}
 
 /** Valores de la instancia que usa el mapeo. */
 export function metaLeadSettingsFrom(config: ResolvedInstanceConfig): MetaLeadSettings {

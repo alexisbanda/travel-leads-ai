@@ -7,6 +7,7 @@ import { onTaskDispatched, type TaskQueueOptions } from "firebase-functions/v2/t
 import { ulid } from "../domain/ulid.js";
 import { crmAdapterFor, type CrmConfig } from "../integrations/crm/index.js";
 import { notifierFor, type NotifierConfig } from "../integrations/notifier/index.js";
+import { secretName } from "../integrations/secrets.js";
 import {
   createAgencyNotifyHandler,
   createCrmUpsertHandler,
@@ -14,7 +15,6 @@ import {
   type LeadTaskDeps,
   type LeadTaskHandler,
 } from "./handlers.js";
-import { secretName } from "../triggers/process-meta-inbox.js";
 import { createFirestoreLeadTaskStore } from "./lead-task-store.js";
 
 /** Reintentos de Cloud Tasks: 5 intentos con *backoff* exponencial de 10 s a 5 min. */
