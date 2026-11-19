@@ -1,7 +1,10 @@
 // Encolado en Cloud Tasks con `firebase-admin/functions` (docs/specs/003-on-lead-created.md).
 // Cada tarea lleva un ID de idempotencia: si ya existe, el encolado cuenta como éxito.
-import { getApps, initializeApp } from "firebase-admin/app";
+import { getApps, initializeApp, type App, type AppOptions } from "firebase-admin/app";
 import { getFunctions } from "firebase-admin/functions";
+
+/** Nombre de la app de admin usada solo para encolar contra el emulador de Cloud Tasks. */
+const EMULATOR_APP_NAME = "tla-tasks-emulator";
 
 /** Payload de las tareas de un lead: solo el ID, los datos se leen en el servidor. */
 export interface LeadTaskPayload {
@@ -60,10 +63,40 @@ export function createTaskQueueEnqueuer(
   };
 }
 
+/**
+ * Opciones de la app de admin usada para encolar. Fuera del emulador, `null`
+ * (se usa la app por defecto). Dentro del emulador (`FUNCTIONS_EMULATOR === "true"`),
+ * una credencial ficticia: el emulador de Cloud Tasks no valida tokens de Google, pero
+ * el SDK de admin exige poder resolver un `serviceAccountId` y un token de acceso antes
+ * de llamar a `taskQueue().enqueue()` (si no, falla con `app/invalid-credential`).
+ */
+export function taskQueueAppOptions(
+  env: NodeJS.ProcessEnv = process.env,
+): AppOptions | null {
+  if (env.FUNCTIONS_EMULATOR !== "true") return null;
+  const projectId = env.GCLOUD_PROJECT ?? "demo-project";
+  return {
+    projectId,
+    credential: {
+      getAccessToken: async () => ({
+        access_token: "emulator-access-token",
+        expires_in: 3600,
+      }),
+    },
+    serviceAccountId: `tasks-emulator@${projectId}.iam.gserviceaccount.com`,
+  };
+}
+
 /** `TaskEnqueuer` real sobre Cloud Tasks (app por defecto, inicializada de forma perezosa). */
 export function createCloudTaskEnqueuer(region: string): TaskEnqueuer {
   return createTaskQueueEnqueuer((name) => {
-    if (getApps().length === 0) initializeApp();
-    return getFunctions().taskQueue(name);
+    const emulatorOptions = taskQueueAppOptions();
+    if (emulatorOptions === null) {
+      if (getApps().length === 0) initializeApp();
+      return getFunctions().taskQueue(name);
+    }
+    const existing = getApps().find((app) => app.name === EMULATOR_APP_NAME);
+    const app: App = existing ?? initializeApp(emulatorOptions, EMULATOR_APP_NAME);
+    return getFunctions(app).taskQueue(name);
   }, region);
 }
