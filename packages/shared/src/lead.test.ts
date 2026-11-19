@@ -296,13 +296,20 @@ describe("LeadEvent", () => {
   });
 
   it("acepta un evento de tarea con detail", () => {
-    const event = { type: "crm.upsert.skipped", actor: "system", at: AT, detail: "not_implemented" };
+    const event = {
+      type: "crm.upsert.skipped",
+      actor: "system",
+      at: AT,
+      detail: "not_implemented",
+    };
     expect(issuePaths(LeadEvent, event)).toEqual([]);
   });
 
   it("rechaza un detail con texto libre o demasiado largo", () => {
     const base = { type: "crm.upsert.failed", actor: "system", at: AT };
-    expect(issuePaths(LeadEvent, { ...base, detail: "texto libre con espacios" })).toEqual(["detail"]);
+    expect(issuePaths(LeadEvent, { ...base, detail: "texto libre con espacios" })).toEqual([
+      "detail",
+    ]);
     expect(issuePaths(LeadEvent, { ...base, detail: "a".repeat(101) })).toEqual(["detail"]);
     expect(issuePaths(LeadEvent, { ...base, detail: "" })).toEqual(["detail"]);
   });
