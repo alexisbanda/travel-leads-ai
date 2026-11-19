@@ -57,7 +57,7 @@ Respuesta de error: `400 { error: "validation", fields: [...] }`, `401` sin App 
 
 ## Seguridad y privacidad
 
-- App Check obligatorio (`enforceAppCheck: true`).
+- App Check obligatorio: `onRequest` no admite `enforceAppCheck` (solo callables), así que la función verifica `X-Firebase-AppCheck` con el Admin SDK; en el emulador acepta además el token de depuración `APP_CHECK_EMULATOR_TOKEN`.
 - Logs solo con `leadId` y `landingSlug`.
 - `ipHash` = SHA-256 de la IP con *salt* en Secret Manager; la IP en claro no se guarda.
 - `retentionUntil` = `createdAt` + 24 meses.
