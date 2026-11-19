@@ -16,4 +16,43 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   eslintConfigPrettier,
+  {
+    // domain/ es lógica pura (AGENTS.md): sin Firebase, SDKs ni clientes HTTP.
+    files: ["functions/src/domain/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "firebase",
+                "firebase/*",
+                "firebase-admin",
+                "firebase-admin/*",
+                "firebase-functions",
+                "firebase-functions/*",
+                "@firebase/*",
+                "@google-cloud/*",
+                "@anthropic-ai/*",
+                "@google/genai",
+                "@google/genai/*",
+                "@google/generative-ai",
+                "googleapis",
+                "googleapis/*",
+                "google-auth-library",
+                "axios",
+                "node-fetch",
+                "got",
+                "undici",
+                "ky",
+                "superagent",
+              ],
+              message: "domain/ es lógica pura: sin Firebase ni SDKs",
+            },
+          ],
+        },
+      ],
+    },
+  },
 );
