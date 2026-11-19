@@ -106,7 +106,7 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 
 - **Objetos cerrados.** Una clave desconocida (por ejemplo, una errata) es un error.
 - **Formatos sin listas de países.** País: ISO 3166-1 alfa-2 por formato (dos letras mayúsculas, sin lista cerrada, así que `XX`/`YY` de la plantilla son válidos). Moneda: ISO 4217, idioma: BCP 47 y zona horaria: IANA, comprobados con la API `Intl` del entorno de ejecución. Cada error indica el campo (`market.country`) y el estándar incumplido.
-- **Secretos.** `agency.notify.target`, `channels.crm.tokenSecret`, `channels.whatsapp.webhookSecret` y `channels.meta.capiTokenSecret` deben ser `secret:NOMBRE` (mayúsculas, dígitos y `_`). Un valor en claro se rechaza.
+- **Secretos.** `agency.notify.target`, `channels.crm.tokenSecret`, `channels.whatsapp.webhookSecret`, `channels.meta.capiTokenSecret` y `channels.meta.pageTokenSecret` deben ser `secret:NOMBRE` (mayúsculas, dígitos y `_`). Un valor en claro se rechaza.
 - **Campos pendientes.** Los campos de texto que la plantilla deja en `""` admiten la cadena vacía en cualquier `status`; si traen valor, se valida su formato. Excepción: fuera de `draft` (es decir, en `pilot`, `active` y `paused`) son obligatorios `agency.legalName`, `partner.legalName`, `channels.whatsapp.number` (E.164) y `commission.rate > 0`, con un error por cada campo que falte.
 
 ### `InstanceConfig` (`instances/<id>/instance.yaml`)
@@ -148,6 +148,8 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 | `channels.meta.pixelId` / `.pageId` | Dígitos | Sí |
 | `channels.meta.adAccountId` | Dígitos, con prefijo `act_` opcional | Sí |
 | `channels.meta.capiTokenSecret` | `secret:NOMBRE` | No |
+| `channels.meta.pageTokenSecret` | `secret:NOMBRE`: token de página con el que `processMetaInbox` lee los leads de la Graph API ([spec 004](specs/004-meta-lead-ads-ingesta.md)) | No |
+| `channels.meta.leadForm.fieldMap` | Opcional (por defecto `{}`). Clave de la pregunta personalizada del formulario de Lead Ads → campo destino (`travelMonth` · `paxAdults` · `paxChildren` · `budgetRange` · `segment` · `notes` · `marketingConsent`) o `{ field, values }` para opción múltiple (respuesta → valor). Se rechazan destinos desconocidos y valores de `values` que no validen contra su destino (p. ej. `travelMonth` en `AAAA-MM`) | Sí |
 | `channels.gtmId` | `GTM-…` | Sí |
 | `channels.ga4MeasurementId` | `G-…` | Sí |
 | `segments[]` | Lista no vacía de objetos `{ id, label }`; `id` es un identificador único en la lista; `label` en el idioma del mercado | `label`: sí |

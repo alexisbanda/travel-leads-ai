@@ -3,7 +3,8 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import type { z } from "zod";
 import { parse } from "yaml";
-import { InstanceConfig } from "./instance-config.js";
+import { LeadSegment, TravelMonth } from "../lead.js";
+import { InstanceConfig, LeadFormField, LeadFormFieldValue } from "./instance-config.js";
 
 // Utilidades de test (duplicadas en cada archivo de test para no publicarlas en el build).
 /** Primer valor de una lista de `Intl.supportedValuesOf`, para no escribir valores reales. */
@@ -60,6 +61,7 @@ const SECRET_FIELDS = [
   "channels.crm.tokenSecret",
   "channels.whatsapp.webhookSecret",
   "channels.meta.capiTokenSecret",
+  "channels.meta.pageTokenSecret",
 ];
 
 describe("InstanceConfig con los YAML del repositorio", () => {
@@ -170,5 +172,74 @@ describe("InstanceConfig: campos obligatorios según status", () => {
       withValue(ecEs, "channels.whatsapp.number", "600 000 000"),
     );
     expect(issuePaths(result)).toEqual(["channels.whatsapp.number"]);
+  });
+});
+
+describe("InstanceConfig: mapa de preguntas del formulario de Meta", () => {
+  const FIELD_MAP = "channels.meta.leadForm.fieldMap";
+
+  it("ec-es mapea «¿Cuándo quieres viajar?» a travelMonth", () => {
+    const result = InstanceConfig.safeParse(ecEs);
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    const mapping = result.data.channels.meta.leadForm?.fieldMap.cuando_quieres_viajar;
+    expect(mapping).toMatchObject({ field: "travelMonth" });
+  });
+
+  it("leadForm es opcional y fieldMap vale {} por defecto", () => {
+    const sinLeadForm = withValue(ecEs, "channels.meta.leadForm", undefined);
+    expect(InstanceConfig.safeParse(sinLeadForm).success).toBe(true);
+    const result = InstanceConfig.safeParse(withValue(ecEs, "channels.meta.leadForm", {}));
+    expect(result.success && result.data.channels.meta.leadForm?.fieldMap).toEqual({});
+  });
+
+  it("acepta la forma corta y la forma con values para cada destino", () => {
+    const fieldMap = {
+      comentarios: "notes",
+      adultos: "paxAdults",
+      ninos: { field: "paxChildren", values: { ninguno: 0, dos: 2 } },
+      presupuesto: { field: "budgetRange", values: { bajo: "<1000", medio: "1000-2000" } },
+      tipo_viaje: { field: "segment", values: { pareja: "couple" } },
+      ofertas: { field: "marketingConsent", values: { si: true, no: false } },
+    };
+    expect(InstanceConfig.safeParse(withValue(ecEs, FIELD_MAP, fieldMap)).success).toBe(true);
+  });
+
+  it("rechaza un campo destino desconocido", () => {
+    const result = InstanceConfig.safeParse(withValue(ecEs, FIELD_MAP, { pregunta: "telefono" }));
+    expect(result.success).toBe(false);
+    expect(issuePaths(result).some((path) => path.startsWith(`${FIELD_MAP}.pregunta`))).toBe(true);
+  });
+
+  it.each([
+    ["travelMonth", "marzo"],
+    ["paxAdults", 0],
+    ["paxChildren", 1.5],
+    ["budgetRange", "barato"],
+    ["segment", "familia"],
+    ["notes", "  "],
+    ["marketingConsent", "si"],
+  ])("rechaza en values un valor inválido para %s", (field, value) => {
+    const raw = withValue(ecEs, FIELD_MAP, { pregunta: { field, values: { respuesta: value } } });
+    const result = InstanceConfig.safeParse(raw);
+    expect(result.success).toBe(false);
+    expect(issuePaths(result)).toContain(`${FIELD_MAP}.pregunta.values.respuesta`);
+  });
+
+  it("rechaza claves desconocidas en el mapeo con values", () => {
+    const raw = withValue(ecEs, FIELD_MAP, {
+      pregunta: { field: "notes", values: {}, extra: true },
+    });
+    expect(InstanceConfig.safeParse(raw).success).toBe(false);
+  });
+
+  it("los valores de travelMonth y segment coinciden con los esquemas del lead", () => {
+    expect(LeadFormFieldValue.segment.options).toEqual(LeadSegment.options);
+    for (const sample of ["2027-03", "2027-3", "marzo", "2027-03-01"]) {
+      expect(LeadFormFieldValue.travelMonth.safeParse(sample).success).toBe(
+        TravelMonth.safeParse(sample).success,
+      );
+    }
+    expect(Object.keys(LeadFormFieldValue).sort()).toEqual([...LeadFormField.options].sort());
   });
 });

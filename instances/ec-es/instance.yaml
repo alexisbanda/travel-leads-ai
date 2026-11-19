@@ -55,6 +55,15 @@ channels:
     adAccountId: ""
     pageId: ""
     capiTokenSecret: secret:META_CAPI_ACCESS_TOKEN
+    pageTokenSecret: secret:META_PAGE_ACCESS_TOKEN
+    leadForm:
+      fieldMap:
+        cuando_quieres_viajar:  # «¿Cuándo quieres viajar?» (ejemplo; ajustar al formulario real)
+          field: travelMonth
+          values:
+            marzo_2027: "2027-03"
+            abril_2027: "2027-04"
+            mayo_2027: "2027-05"
   gtmId: ""
   ga4MeasurementId: ""
 
