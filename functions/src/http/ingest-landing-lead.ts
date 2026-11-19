@@ -27,10 +27,12 @@ type Secret = ReturnType<typeof defineSecret>;
 /** *Salt* de `ipHash` (Secret Manager). */
 export const IP_HASH_SALT: Secret = defineSecret("IP_HASH_SALT");
 /**
- * Token de depuración de App Check, aceptado **solo** con `FUNCTIONS_EMULATOR=true`
- * (en local, `functions/.secret.local`). Fuera del emulador no se lee.
+ * Variable de entorno con el token de depuración de App Check, aceptado **solo** con
+ * `FUNCTIONS_EMULATOR=true`. En local va en `functions/.env.local` (solo lo carga el
+ * emulador; ignorado por git). No es un secreto de Secret Manager: así ningún proyecto
+ * desplegado necesita crearlo.
  */
-export const APP_CHECK_EMULATOR_TOKEN: Secret = defineSecret("APP_CHECK_EMULATOR_TOKEN");
+export const APP_CHECK_EMULATOR_TOKEN_ENV = "APP_CHECK_EMULATOR_TOKEN";
 
 /** Cabecera con el token de App Check que envía la landing. */
 export const APP_CHECK_HEADER = "X-Firebase-AppCheck";
@@ -205,8 +207,7 @@ export function createIngestLandingLeadHandler(deps: IngestLandingLeadDeps) {
 export interface AppCheckVerifierOptions {
   /** Verificación real; debe rechazar (lanzar) si el token no es válido. */
   verifyToken(token: string): Promise<unknown>;
-  /** Token de depuración; solo se consulta dentro del emulador. */
-  emulatorToken(): string;
+  /** Entorno (por defecto `process.env`): `FUNCTIONS_EMULATOR` y `APP_CHECK_EMULATOR_TOKEN`. */
   env?: NodeJS.ProcessEnv;
 }
 
@@ -214,14 +215,17 @@ export interface AppCheckVerifierOptions {
  * Verificador de App Check. `onRequest` no admite `enforceAppCheck` (es de las
  * funciones callable), así que el token de `X-Firebase-AppCheck` se verifica aquí.
  * Dentro del emulador (`FUNCTIONS_EMULATOR === "true"`) acepta además el token de
- * depuración `APP_CHECK_EMULATOR_TOKEN`, comparado en tiempo constante. Fuera del
- * emulador ese camino no existe.
+ * depuración de `process.env.APP_CHECK_EMULATOR_TOKEN` (si existe y no está vacío),
+ * comparado en tiempo constante. Fuera del emulador ese camino no existe.
  */
 export function createAppCheckVerifier(options: AppCheckVerifierOptions) {
   const env = options.env ?? process.env;
   return async function verifyAppCheck(token: string): Promise<boolean> {
-    if (env.FUNCTIONS_EMULATOR === "true" && matchesVerifyToken(token, options.emulatorToken())) {
-      return true;
+    if (env.FUNCTIONS_EMULATOR === "true") {
+      const debugToken = env[APP_CHECK_EMULATOR_TOKEN_ENV];
+      if (debugToken !== undefined && debugToken !== "" && matchesVerifyToken(token, debugToken)) {
+        return true;
+      }
     }
     try {
       await options.verifyToken(token);
@@ -255,12 +259,11 @@ export function ingestSettingsFrom(config: ResolvedInstanceConfig): IngestLandin
 export function createIngestLandingLeadFunction(config: ResolvedInstanceConfig) {
   let settings: IngestLandingLeadSettings | undefined;
   return onRequest(
-    { cors: true, secrets: [IP_HASH_SALT, APP_CHECK_EMULATOR_TOKEN] },
+    { cors: true, secrets: [IP_HASH_SALT] },
     createIngestLandingLeadHandler({
       settings: () => (settings ??= ingestSettingsFrom(config)),
       verifyAppCheck: createAppCheckVerifier({
         verifyToken: (token) => getAppCheck(adminApp()).verifyToken(token),
-        emulatorToken: () => APP_CHECK_EMULATOR_TOKEN.value(),
       }),
       ipHashSalt: () => IP_HASH_SALT.value(),
       newId: () => ulid(),

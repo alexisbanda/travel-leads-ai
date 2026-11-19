@@ -9,6 +9,7 @@ import type {
   IngestTransactionRequest,
 } from "../integrations/landing-lead-store.js";
 import {
+  APP_CHECK_EMULATOR_TOKEN_ENV,
   APP_CHECK_HEADER,
   createAppCheckVerifier,
   createIngestLandingLeadHandler,
@@ -237,17 +238,15 @@ describe("createAppCheckVerifier", () => {
   it("acepta un token que verifica App Check", async () => {
     const verify = createAppCheckVerifier({
       verifyToken: async () => ({ appId: "app" }),
-      emulatorToken: () => DEBUG_TOKEN,
       env: {},
     });
     expect(await verify("cualquiera")).toBe(true);
   });
 
-  it("en el emulador acepta el token de depuración y rechaza otro", async () => {
+  it("en el emulador acepta el token de depuración del env y rechaza otro", async () => {
     const verify = createAppCheckVerifier({
       verifyToken: rejectAll,
-      emulatorToken: () => DEBUG_TOKEN,
-      env: { FUNCTIONS_EMULATOR: "true" },
+      env: { FUNCTIONS_EMULATOR: "true", [APP_CHECK_EMULATOR_TOKEN_ENV]: DEBUG_TOKEN },
     });
     expect(await verify(DEBUG_TOKEN)).toBe(true);
     expect(await verify("otro-token")).toBe(false);
@@ -256,27 +255,39 @@ describe("createAppCheckVerifier", () => {
   it.each([{}, { FUNCTIONS_EMULATOR: "false" }, { FUNCTIONS_EMULATOR: "1" }])(
     "fuera del emulador (%o) el token de depuración da 401",
     async (env) => {
-      const emulatorToken = vi.fn(() => DEBUG_TOKEN);
       const verifyAppCheck = createAppCheckVerifier({
         verifyToken: rejectAll,
-        emulatorToken,
-        env,
+        env: { ...env, [APP_CHECK_EMULATOR_TOKEN_ENV]: DEBUG_TOKEN },
       });
       const { handler, store } = setup({ verifyAppCheck });
       const res = await send(handler, req(fixture(), { token: DEBUG_TOKEN }));
       expect(res.statusCode).toBe(401);
-      expect(emulatorToken).not.toHaveBeenCalled();
       expect(store.writes()).toBe(0);
     },
   );
 
-  it("en el emulador, con el token de depuración vacío, no acepta nada", async () => {
-    const verify = createAppCheckVerifier({
-      verifyToken: rejectAll,
-      emulatorToken: () => "",
+  it("en el emulador sin token de depuración en el env, decide verifyToken (rechazo → 401)", async () => {
+    const verifyToken = vi.fn(async () => {
+      throw new Error("token de App Check no válido");
+    });
+    const verifyAppCheck = createAppCheckVerifier({
+      verifyToken,
       env: { FUNCTIONS_EMULATOR: "true" },
     });
+    const { handler, store } = setup({ verifyAppCheck });
+    const res = await send(handler, req(fixture(), { token: "token-cualquiera" }));
+    expect(verifyToken).toHaveBeenCalledWith("token-cualquiera");
+    expect(res.statusCode).toBe(401);
+    expect(store.writes()).toBe(0);
+  });
+
+  it("en el emulador, con el token de depuración vacío en el env, no acepta nada", async () => {
+    const verify = createAppCheckVerifier({
+      verifyToken: rejectAll,
+      env: { FUNCTIONS_EMULATOR: "true", [APP_CHECK_EMULATOR_TOKEN_ENV]: "" },
+    });
     expect(await verify("")).toBe(false);
+    expect(await verify(DEBUG_TOKEN)).toBe(false);
   });
 });
 
