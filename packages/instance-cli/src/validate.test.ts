@@ -55,6 +55,7 @@ const LIVE_FIELDS = {
   "partner.legalName": "Socio de prueba",
   "channels.whatsapp.number": `+${"1".repeat(10)}`,
   "commission.rate": 0.1,
+  "channels.email.from": "avisos@example.test",
 };
 
 describe("instance:validate sobre el repositorio", () => {

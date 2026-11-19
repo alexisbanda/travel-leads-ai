@@ -13,14 +13,18 @@ agency:
   country: XX                   # normalmente igual que destination.country
   timezone: ""                  # IANA, p. ej. America/Lima. Por defecto: el del pack de destino
   website: ""
+  # locale: xx-XX               # idioma de los avisos internos; omitido: el del mercado
   notify:
     channel: whatsapp_group     # whatsapp_group | email | slack
-    target: secret:AGENCY_NOTIFY_TARGET
+    target: secret:AGENCY_NOTIFY_TARGET   # con email: direcciones separadas por comas
 
 # Socio de marketing en el mercado emisor.
 partner:
   legalName: ""
   country: YY
+  # notify:                     # aviso al socio (SLA); mismo formato que agency.notify
+  #   channel: email
+  #   target: secret:PARTNER_NOTIFY_TARGET
 
 destination:
   country: XX                   # debe existir packages/destinations/<xx>
@@ -58,6 +62,9 @@ channels:
     bsp: respond_io             # respond_io | 360dialog | other
     number: ""                  # número del mercado en E.164
     webhookSecret: secret:WHATSAPP_BSP_WEBHOOK_SECRET
+  # email:                      # obligatorio si algún notify usa el canal email
+  #   from: ""                  # remitente; obligatorio fuera de draft
+  #   smtpSecret: secret:SMTP_CONNECTION_URI   # credencial SMTP de la extensión Trigger Email
   meta:
     pixelId: ""
     adAccountId: ""

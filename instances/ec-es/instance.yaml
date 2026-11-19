@@ -12,8 +12,8 @@ agency:
   country: EC
   website: ""                   # TODO
   notify:
-    channel: whatsapp_group
-    target: secret:AGENCY_NOTIFY_TARGET
+    channel: email
+    target: secret:AGENCY_NOTIFY_TARGET   # direcciones de los destinatarios, separadas por comas
 
 partner:
   legalName: ""                 # TODO: autónomo del socio en España
@@ -50,6 +50,9 @@ channels:
     bsp: respond_io             # TODO: confirmar (ADR pendiente)
     number: ""                  # TODO: línea española dedicada (+34)
     webhookSecret: secret:WHATSAPP_BSP_WEBHOOK_SECRET
+  email:
+    from: ""                    # TODO: remitente del dominio de la instancia
+    smtpSecret: secret:SMTP_CONNECTION_URI
   meta:
     pixelId: ""
     adAccountId: ""
