@@ -36,6 +36,18 @@ export const WhatsappBsp = z.enum(["respond_io", "360dialog", "other"]);
 export const CommissionModel = z.enum(["fee", "commission", "fee_plus_commission"]);
 export const QualificationMode = z.enum(["assisted", "autonomous"]);
 
+/**
+ * Destino de un aviso interno (`agency.notify`, `partner.notify`): canal y referencia
+ * `secret:NOMBRE` al destino (p. ej. direcciones de email separadas por comas).
+ */
+export const NotifyTarget = z
+  .object({
+    channel: NotifyChannel,
+    target: SecretRef,
+  })
+  .strict();
+export type NotifyTarget = z.infer<typeof NotifyTarget>;
+
 /** Rango de presupuesto por persona: `<N`, `N-M` o `>N`. */
 export const BudgetRange = z.string().regex(/^(<[0-9]+|[0-9]+-[0-9]+|>[0-9]+)$/, {
   message: "rango de presupuesto inválido: usa <N, N-M o >N",
@@ -120,20 +132,18 @@ export const InstanceConfigObject = z
         /** Vacío u omitido: se usa la zona horaria del pack de destino. */
         timezone: emptyOr(TimeZone).optional(),
         website: emptyOr(HttpsUrl),
+        /** Idioma de los avisos internos. Omitido: se usa el locale del mercado. */
+        locale: Locale.optional(),
         /** Opcional: sin canal, la tarea `agency.notify` se omite con un aviso (spec 003). */
-        notify: z
-          .object({
-            channel: NotifyChannel,
-            target: SecretRef,
-          })
-          .strict()
-          .optional(),
+        notify: NotifyTarget.optional(),
       })
       .strict(),
     partner: z
       .object({
         legalName: z.string(),
         country: CountryCode,
+        /** Opcional: aviso al socio (SLA, #18). Sin él, el aviso al socio se omite. */
+        notify: NotifyTarget.optional(),
       })
       .strict(),
     destination: z.object({ country: CountryCode }).strict(),
@@ -203,6 +213,18 @@ export const InstanceConfigObject = z
               .optional(),
           })
           .strict(),
+        /**
+         * Envío de email con la extensión Trigger Email. `smtpSecret` es la credencial
+         * SMTP que usa la extensión; el código del motor no la lee.
+         */
+        email: z
+          .object({
+            /** Remitente (`dirección` o `Nombre <dirección>`). Obligatorio fuera de draft. */
+            from: z.string(),
+            smtpSecret: SecretRef,
+          })
+          .strict()
+          .optional(),
         gtmId: emptyOr(z.string().regex(/^GTM-[A-Z0-9]+$/, { message: "ID de GTM inválido" })),
         ga4MeasurementId: emptyOr(
           z.string().regex(/^G-[A-Z0-9]+$/, { message: "ID de medición de GA4 inválido" }),
@@ -284,6 +306,21 @@ export function refineInstanceConfig(config: RefinableInstance, ctx: z.Refinemen
     });
   }
 
+  const emailNotify = (
+    [
+      ["agency", config.agency.notify],
+      ["partner", config.partner.notify],
+    ] as const
+  ).filter(([, notify]) => notify?.channel === "email");
+  for (const [owner] of emailNotify) {
+    if (config.channels.email !== undefined) continue;
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["channels", "email"],
+      message: `obligatorio cuando ${owner}.notify.channel es email`,
+    });
+  }
+
   if (config.status === "draft") return;
 
   const required: Array<[path: (string | number)[], missing: boolean]> = [
@@ -291,6 +328,7 @@ export function refineInstanceConfig(config: RefinableInstance, ctx: z.Refinemen
     [["partner", "legalName"], config.partner.legalName.trim() === ""],
     [["channels", "whatsapp", "number"], config.channels.whatsapp.number === ""],
     [["commission", "rate"], !(config.commission.rate > 0)],
+    [["channels", "email", "from"], config.channels.email?.from.trim() === ""],
   ];
   for (const [path, missing] of required) {
     if (!missing) continue;

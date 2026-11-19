@@ -2,10 +2,12 @@
 // opciones globales (`region`) se leen al definirse: `index.ts` las llama tras
 // `setGlobalOptions`. Cada acción tiene su cola y su política de reintentos.
 import { logger } from "firebase-functions";
+import { defineSecret } from "firebase-functions/params";
 import { onTaskDispatched, type TaskQueueOptions } from "firebase-functions/v2/tasks";
 import { ulid } from "../domain/ulid.js";
 import { crmAdapterFor, type CrmConfig } from "../integrations/crm/index.js";
 import { notifierFor, type NotifierConfig } from "../integrations/notifier/index.js";
+import { secretName } from "../integrations/secrets.js";
 import {
   createAgencyNotifyHandler,
   createCrmUpsertHandler,
@@ -47,8 +49,12 @@ function defaultDeps(): LeadTaskDeps {
   };
 }
 
-function taskFunction(handler: LeadTaskHandler) {
-  return onTaskDispatched(TASK_OPTIONS, (request) => handler(request.data));
+type Secret = ReturnType<typeof defineSecret>;
+
+function taskFunction(handler: LeadTaskHandler, secrets: Secret[] = []) {
+  const options: TaskQueueOptions =
+    secrets.length > 0 ? { ...TASK_OPTIONS, secrets } : TASK_OPTIONS;
+  return onTaskDispatched(options, (request) => handler(request.data));
 }
 
 export function createCrmUpsertTaskFunction(config: CrmConfig) {
@@ -57,9 +63,23 @@ export function createCrmUpsertTaskFunction(config: CrmConfig) {
   );
 }
 
+/**
+ * Con `agency.notify.channel: email` ata el secreto de `agency.notify.target` (las
+ * direcciones de los destinatarios); con otro canal o sin aviso no declara secretos.
+ */
 export function createAgencyNotifyTaskFunction(config: NotifierConfig) {
+  const notify = config.agency.notify;
+  const target = notify?.channel === "email" ? defineSecret(secretName(notify.target)) : undefined;
+  const readTarget = () => {
+    if (target === undefined) throw new Error("agency.notify.target no está atado a la función");
+    return target.value();
+  };
   return taskFunction(
-    createAgencyNotifyHandler({ ...defaultDeps(), notifier: () => notifierFor(config) }),
+    createAgencyNotifyHandler({
+      ...defaultDeps(),
+      notifier: () => notifierFor(config, readTarget),
+    }),
+    target === undefined ? [] : [target],
   );
 }
 

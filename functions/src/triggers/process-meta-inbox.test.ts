@@ -6,7 +6,6 @@ import { MetaGraphApiError } from "../integrations/meta-graph-api.js";
 import {
   createProcessMetaInboxHandler,
   leadgenIdOf,
-  secretName,
   shouldProcessInbox,
   type ProcessMetaInboxDeps,
   type ProcessMetaInboxLogFields,
@@ -17,6 +16,7 @@ const FAKE_REGION = "region-sintetica";
 vi.mock("../config.js", () => ({
   loadInstanceConfig: () => ({
     infra: { region: FAKE_REGION },
+    agency: {},
     channels: { meta: { pageTokenSecret: "secret:PAGINA_DE_PRUEBA" } },
   }),
 }));
@@ -94,12 +94,6 @@ describe("leadgenIdOf", () => {
     [{}, undefined],
   ])("%j → %s", (doc, expected) => {
     expect(leadgenIdOf(doc)).toBe(expected);
-  });
-});
-
-describe("secretName", () => {
-  it("quita el prefijo secret:", () => {
-    expect(secretName("secret:META_PAGE_ACCESS_TOKEN")).toBe("META_PAGE_ACCESS_TOKEN");
   });
 });
 

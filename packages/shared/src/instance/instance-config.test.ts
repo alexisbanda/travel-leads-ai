@@ -54,6 +54,7 @@ const REQUIRED_OUTSIDE_DRAFT = [
   "partner.legalName",
   "channels.whatsapp.number",
   "commission.rate",
+  "channels.email.from",
 ];
 
 const SECRET_FIELDS = [
@@ -62,6 +63,7 @@ const SECRET_FIELDS = [
   "channels.whatsapp.webhookSecret",
   "channels.meta.capiTokenSecret",
   "channels.meta.pageTokenSecret",
+  "channels.email.smtpSecret",
 ];
 
 describe("InstanceConfig con los YAML del repositorio", () => {
@@ -142,6 +144,57 @@ describe("InstanceConfig: canales de CRM y aviso", () => {
     const raw = withValue(ecEs, "agency.notify", { channel: "email" });
     expect(issuePaths(InstanceConfig.safeParse(raw))).toEqual(["agency.notify.target"]);
   });
+
+  it("admite partner.notify con el mismo formato que agency.notify", () => {
+    const notify = { channel: "email", target: "secret:PARTNER_NOTIFY_TARGET" };
+    const result = InstanceConfig.safeParse(withValue(ecEs, "partner.notify", notify));
+    expect(issuePaths(result)).toEqual([]);
+    expect(result.data?.partner.notify).toEqual(notify);
+  });
+
+  it("rechaza un secreto en claro en partner.notify.target", () => {
+    const raw = withValue(ecEs, "partner.notify", { channel: "email", target: "a@b.test" });
+    expect(issuePaths(InstanceConfig.safeParse(raw))).toEqual(["partner.notify.target"]);
+  });
+
+  it.each(["agency", "partner"])("si %s.notify usa email, exige channels.email", (owner) => {
+    const raw = structuredClone(ecEs) as {
+      partner: Record<string, unknown>;
+      channels: Record<string, unknown>;
+    };
+    delete raw.channels.email;
+    const notify = { channel: "email", target: "secret:NOTIFY_TARGET" };
+    const other = owner === "agency" ? "partner" : "agency";
+    const withOwner = withValue(raw, `${owner}.notify`, notify);
+    const onlyOwner = withValue(withOwner, `${other}.notify`, undefined);
+    const result = InstanceConfig.safeParse(onlyOwner);
+    expect(issuePaths(result)).toEqual(["channels.email"]);
+    expect(issuesAt(result, "channels.email")[0]?.message).toContain(`${owner}.notify`);
+  });
+
+  it("sin canal email no exige channels.email", () => {
+    const raw = structuredClone(ecEs) as { channels: Record<string, unknown> };
+    delete raw.channels.email;
+    const result = InstanceConfig.safeParse(
+      withValue(raw, "agency.notify.channel", "whatsapp_group"),
+    );
+    expect(issuePaths(result)).toEqual([]);
+  });
+});
+
+describe("InstanceConfig: idioma de la agencia", () => {
+  it("admite agency.locale en BCP 47 y lo omite si no está", () => {
+    expect(issuePaths(InstanceConfig.safeParse(withValue(ecEs, "agency.locale", "xx-XX")))).toEqual(
+      [],
+    );
+    expect(InstanceConfig.parse(ecEs).agency.locale).toBeUndefined();
+  });
+
+  it("rechaza agency.locale fuera de BCP 47", () => {
+    const result = InstanceConfig.safeParse(withValue(ecEs, "agency.locale", "es_ES!"));
+    expect(issuePaths(result)).toEqual(["agency.locale"]);
+    expect(issuesAt(result, "agency.locale")[0]?.message).toMatch(/BCP 47/);
+  });
 });
 
 describe("InstanceConfig: campos obligatorios según status", () => {
@@ -158,8 +211,9 @@ describe("InstanceConfig: campos obligatorios según status", () => {
     },
   );
 
-  it("en pilot pasa con los cuatro campos rellenos", () => {
+  it("en pilot pasa con los campos obligatorios rellenos", () => {
     let raw = withValue(ecEs, "status", "pilot");
+    raw = withValue(raw, "channels.email.from", "avisos@example.test");
     raw = withValue(raw, "agency.legalName", "Agencia Ficticia S.A.");
     raw = withValue(raw, "partner.legalName", "Socio Ficticio");
     raw = withValue(raw, "channels.whatsapp.number", FAKE_E164);

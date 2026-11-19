@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { LeadEvent } from "@tla/shared";
 import { InMemoryCrmAdapter, type CrmAdapter } from "../integrations/crm/index.js";
-import type { Notifier, NotifierResolution } from "../integrations/notifier/index.js";
+import type {
+  Notifier,
+  NotifierResolution,
+  NotifyMessage,
+} from "../integrations/notifier/index.js";
 import { fakeLeadDoc, TEST_LEAD_ID, TEST_NOW } from "./fake-lead.js";
 import {
   createAgencyNotifyHandler,
@@ -50,7 +54,12 @@ const throwingCrm: CrmAdapter = {
 };
 const okNotifier = () => {
   const notified: string[] = [];
-  const notifier: Notifier = { notify: async (lead) => void notified.push(lead.leadId) };
+  const notifier: Notifier = {
+    notify: async (message) => {
+      notified.push(message.lead.leadId);
+      return { status: "sent" };
+    },
+  };
   const resolution: NotifierResolution = { status: "ready", channel: "email", notifier };
   return { notified, resolution };
 };
@@ -140,6 +149,47 @@ describe("agency.notify", () => {
     expect(t.events.map((e) => [e.event.type, e.event.detail])).toEqual([
       ["agency.notify.skipped", "not_implemented"],
     ]);
+  });
+
+  it("pasa al notifier un mensaje lead_created con los datos del lead", async () => {
+    const t = setup();
+    const messages: NotifyMessage[] = [];
+    const notifier: Notifier = {
+      notify: async (message) => {
+        messages.push(message);
+        return { status: "sent" };
+      },
+    };
+    await createAgencyNotifyHandler({
+      ...t.deps,
+      notifier: () => ({ status: "ready", channel: "email", notifier }),
+    })(payload);
+    expect(messages).toHaveLength(1);
+    expect(messages[0]?.kind).toBe("lead_created");
+    expect(messages[0]?.lead.leadId).toBe(TEST_LEAD_ID);
+    expect(t.types()).toEqual(["agency.notify.succeeded"]);
+  });
+
+  it("sin destinatarios: skipped no_recipients y aviso en logs sin datos personales", async () => {
+    const t = setup();
+    const notifier: Notifier = {
+      notify: async () => ({ status: "skipped", reason: "no_recipients" }),
+    };
+    await createAgencyNotifyHandler({
+      ...t.deps,
+      notifier: () => ({ status: "ready", channel: "email", notifier }),
+    })(payload);
+    expect(t.events.map((e) => e.event)).toEqual([
+      { type: "agency.notify.skipped", actor: "system", at: TEST_NOW, detail: "no_recipients" },
+    ]);
+    const warn = t.logs.filter((l) => l.level === "warn");
+    expect(warn).toHaveLength(1);
+    expect(warn[0]?.fields).toEqual({
+      action: "agency.notify",
+      leadId: TEST_LEAD_ID,
+      detail: "no_recipients",
+    });
+    expect(JSON.stringify(t.logs)).not.toMatch(/Ficticia|example\.test|@/);
   });
 
   it("si el notifier lanza: failed y re-lanza", async () => {

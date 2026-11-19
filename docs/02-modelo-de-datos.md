@@ -16,6 +16,7 @@ agent_runs/{runId}          # trazas de ejecución de agentes (sin PII en claro)
 config/{docId}              # sla, agents, flags (pnpm instance:seed)
 inbox/{deliveryId}          # payloads crudos de webhooks, TTL 7 días (doc 03); estado de proceso: spec 004
 dedupe/{dedupeKey}          # índice para deduplicar personas en transacción (doc 03)
+mail/{mailId}               # emails pendientes para la extensión Trigger Email, TTL 7 días
 ```
 
 ## `leads/{leadId}`
@@ -139,6 +140,20 @@ Registro probatorio del consentimiento RGPD.
 | `createdAt` | Fecha de alta de ese lead |
 
 Si el lead apuntado sigue abierto y se creó hace menos de 90 días, un nuevo envío añade un evento `reengaged`; si no, se crea un lead nuevo y este documento pasa a apuntar a él.
+
+## `mail/{mailId}`
+
+Emails que envía la extensión Trigger Email de Firebase ([doc 11](11-instancias-y-configuracion.md#email-extensión-trigger-email)). Los escribe solo el servidor: la tarea `agencyNotifyTask` (aviso de lead nuevo, `agency.notify.channel: email`). **Contiene datos personales** (nombre del viajero y direcciones de los destinatarios): no se exporta a BigQuery y se borra por TTL.
+
+El ID es determinista por aviso (`lead-created-<leadId>`) y se crea con `create()`: un reintento de Cloud Tasks no duplica el email.
+
+| Campo | Notas |
+| --- | --- |
+| `to` | Lista de direcciones, del secreto de `agency.notify.target` |
+| `from` | Opcional. `channels.email.from` si no está vacío |
+| `message.subject` / `.text` / `.html` | Contenido del aviso, en el idioma de `agency.locale` o del mercado. El HTML lleva los valores del lead escapados |
+| `expireAt` | Fecha de creación + 7 días. Política TTL de Firestore sobre este campo |
+| `delivery` | Lo añade la extensión: estado del envío, intentos y error |
 
 ## `catalog_tours/{tourId}`
 
