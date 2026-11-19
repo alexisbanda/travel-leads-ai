@@ -6,8 +6,9 @@
   "description": "Tipos y esquemas Zod compartidos entre landings, functions y el servidor MCP.",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
   "scripts": {

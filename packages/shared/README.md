@@ -4,6 +4,10 @@ Tipos y esquemas **Zod** compartidos entre landings, functions y el servidor MCP
 
 > Estado: `LeadStatus`, los esquemas de configuración (`InstanceConfig`, `MarketPack`, `DestinationPack`), la configuración resuelta (`ResolvedInstanceConfig`) y los documentos `config/*` listos; el resto (`attribution`, `consent`, `catalog`, `events`) está pendiente.
 
+## Compilación y consumo
+
+`pnpm --filter @tla/shared build` compila `src/` a `dist/` (con declaraciones). Node y el build de `functions` consumen `dist/index.js`; vitest y `tsx --conditions=source` (ver `instance-cli`) resuelven directamente `src/index.ts` mediante la condición de exports `source`, sin necesitar `dist/` en local.
+
 ## Contenido previsto
 
 ```
