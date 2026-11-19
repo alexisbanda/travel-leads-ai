@@ -20,13 +20,13 @@ El proveedor de CRM aún no está decidido (ADR pendiente): el CRM se usa a trav
    - `agency.notify`: siempre (el handler decide si hay canal).
    - `meta.capi.lead`: solo si `channels.meta.pixelId` no está vacío.
 4. Encola una tarea por acción en la cola de su función (`crmUpsertTask`, `agencyNotifyTask`, `metaCapiLeadTask`), con payload `{ leadId }` y un **ID de idempotencia** derivado del `leadId`: `crm-upsert-<leadId>`, `agency-notify-<leadId>`, `meta-capi-lead-<leadId>`. Si Cloud Tasks responde que la tarea ya existe (`task-already-exists`), cuenta como éxito. Intenta encolar todas aunque falle alguna; si alguna falla, el trigger lanza para que se reintente (las que ya estaban encoladas no se duplican).
-5. Cada tarea se ejecuta por separado, con su propio `retryConfig` (5 intentos, *backoff* de 10 s a 300 s) y `rateLimits` modestos. El fallo de una no afecta a las demás.
+5. Cada tarea se ejecuta por separado, con su propio `retryConfig` (5 intentos, _backoff_ de 10 s a 300 s) y `rateLimits` modestos. El fallo de una no afecta a las demás.
 6. Cada ejecución añade un evento al lead en `leads/{leadId}/events` con tipo `<acción>.<resultado>` (`succeeded`, `failed` o `skipped`), `actor: "system"` y, si aplica, `detail`.
 
 ### `crm.upsert`
 
 - `crmAdapterFor(config)` devuelve el `CrmAdapter` del proveedor: `InMemoryCrmAdapter` si `channels.crm.provider` es `memory`; `null` para `hubspot` y `pipedrive` hasta que exista su adaptador.
-- Con adaptador: `upsert(lead)` devuelve `{ contactId, dealId }`; se guardan en `lead.crm.contactId` y `lead.crm.dealId` (y `updatedAt`) junto al evento `crm.upsert.succeeded`, en un mismo *batch*.
+- Con adaptador: `upsert(lead)` devuelve `{ contactId, dealId }`; se guardan en `lead.crm.contactId` y `lead.crm.dealId` (y `updatedAt`) junto al evento `crm.upsert.succeeded`, en un mismo _batch_.
 - Sin adaptador: evento `crm.upsert.skipped` con `detail: "not_implemented"`; no lanza y **nunca** escribe IDs inventados.
 - Si el adaptador lanza: evento `crm.upsert.failed` con `detail` = nombre del error y se re-lanza para que Cloud Tasks reintente.
 
@@ -56,22 +56,27 @@ Hasta #17 no hace nada: evento `meta.capi.lead.skipped` con `detail: "not_implem
 Ejemplo de evento:
 
 ```json
-{ "type": "crm.upsert.failed", "actor": "system", "at": "2030-01-15T10:00:05Z", "detail": "CrmUnavailableError" }
+{
+  "type": "crm.upsert.failed",
+  "actor": "system",
+  "at": "2030-01-15T10:00:05Z",
+  "detail": "CrmUnavailableError"
+}
 ```
 
 ## Casos límite y errores
 
-| Caso | Comportamiento |
-| --- | --- |
-| Trigger entregado dos veces | Los IDs de tarea coinciden: `task-already-exists` cuenta como éxito; no hay tareas duplicadas |
-| Falla el encolado de una acción | Se intentan las demás; el trigger lanza y se reintenta. Las ya encoladas devuelven `already_exists` |
+| Caso                                     | Comportamiento                                                                                                                                      |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Trigger entregado dos veces              | Los IDs de tarea coinciden: `task-already-exists` cuenta como éxito; no hay tareas duplicadas                                                       |
+| Falla el encolado de una acción          | Se intentan las demás; el trigger lanza y se reintenta. Las ya encoladas devuelven `already_exists`                                                 |
 | Evento del trigger con más de 50 minutos | Se descarta con `logger.error`: Cloud Tasks solo deduplica IDs durante ~1 hora tras ejecutar la tarea, y reencolar más tarde podría duplicar avisos |
-| Payload sin `leadId` válido | `logger.warn` y fin, sin reintento (reintentar no lo arregla) |
-| El lead ya no existe | `logger.warn` y fin, sin evento |
-| El lead no cumple el esquema mínimo | `crm.upsert` / `agency.notify`: evento `failed` con `detail: "invalid_lead"`, sin reintento |
-| El CRM falla | `crm.upsert.failed` y reintento según `retryConfig`; `agency.notify` sigue su curso |
-| Proveedor de CRM sin adaptador | `crm.upsert.skipped` (`not_implemented`) |
-| Sin canal de aviso | `agency.notify.skipped` (`no_channel`) + aviso en logs |
+| Payload sin `leadId` válido              | `logger.warn` y fin, sin reintento (reintentar no lo arregla)                                                                                       |
+| El lead ya no existe                     | `logger.warn` y fin, sin evento                                                                                                                     |
+| El lead no cumple el esquema mínimo      | `crm.upsert` / `agency.notify`: evento `failed` con `detail: "invalid_lead"`, sin reintento                                                         |
+| El CRM falla                             | `crm.upsert.failed` y reintento según `retryConfig`; `agency.notify` sigue su curso                                                                 |
+| Proveedor de CRM sin adaptador           | `crm.upsert.skipped` (`not_implemented`)                                                                                                            |
+| Sin canal de aviso                       | `agency.notify.skipped` (`no_channel`) + aviso en logs                                                                                              |
 
 ## Seguridad y privacidad
 

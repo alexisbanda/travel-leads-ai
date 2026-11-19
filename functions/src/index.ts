@@ -3,6 +3,12 @@ import { setGlobalOptions } from "firebase-functions/v2";
 import { loadInstanceConfig } from "./config.js";
 import { createIngestLandingLeadFunction } from "./http/ingest-landing-lead.js";
 import { createMetaLeadWebhookFunction } from "./http/meta-lead-webhook.js";
+import {
+  createAgencyNotifyTaskFunction,
+  createCrmUpsertTaskFunction,
+  createMetaCapiLeadTaskFunction,
+} from "./tasks/lead-task-functions.js";
+import { createOnLeadCreatedFunction } from "./triggers/on-lead-created.js";
 
 // La región sale de la configuración resuelta de la instancia
 // (`pnpm instance:build <id>`), nunca de constantes.
@@ -13,3 +19,10 @@ setGlobalOptions({ region: config.infra.region });
 // las opciones globales en el momento de definirse.
 export const metaLeadWebhook = createMetaLeadWebhookFunction();
 export const ingestLandingLead = createIngestLandingLeadFunction(config);
+
+// Orquestación tras crear un lead (docs/specs/003-on-lead-created.md). Los nombres de
+// las tareas son los de sus colas: deben coincidir con `LEAD_TASK_FUNCTIONS`.
+export const onLeadCreated = createOnLeadCreatedFunction(config);
+export const crmUpsertTask = createCrmUpsertTaskFunction(config);
+export const agencyNotifyTask = createAgencyNotifyTaskFunction(config);
+export const metaCapiLeadTask = createMetaCapiLeadTaskFunction();

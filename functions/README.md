@@ -11,7 +11,8 @@ Backend en **Cloud Functions for Firebase (2ª gen) con Node 22 + TypeScript**. 
 | `ingestLandingLead` | HTTPS (callable o onRequest + App Check) | Recibe formularios de las landings |
 | `metaLeadWebhook` | HTTPS onRequest | Webhook de Meta Lead Ads (verificación + firma) |
 | `whatsappWebhook` | HTTPS onRequest | Webhook del proveedor de WhatsApp (BSP) |
-| `onLeadCreated` | Trigger Firestore | Enriquecer, reenviar al CRM, avisar a la agencia, evento CAPI |
+| `onLeadCreated` | Trigger Firestore | Encola una tarea por acción activa con ID de idempotencia ([spec 003](../docs/specs/003-on-lead-created.md)) |
+| `crmUpsertTask` · `agencyNotifyTask` · `metaCapiLeadTask` | Cloud Tasks (`onTaskDispatched`) | Alta en el CRM (`CrmAdapter`), aviso a la agencia (`Notifier`) y evento CAPI, cada una con sus reintentos. El nombre de la función es el de su cola |
 | `slaWatchdog` | Scheduler (cada 5 min) | Alerta de leads sin respuesta |
 | `crmWebhook` | HTTPS onRequest | Cambios de etapa en el CRM → actualiza el lead y envía conversiones offline |
 | `qualificationAgent` | Interno | Agente de calificación (modo asistido) |
@@ -24,8 +25,9 @@ functions/src/
 ├── index.ts                 # Solo exporta funciones
 ├── http/                    # Adaptadores HTTP y webhooks
 ├── triggers/                # Triggers de Firestore y scheduler
+├── tasks/                   # Tareas de Cloud Tasks tras crear un lead (handlers testeables)
 ├── domain/                  # Lógica pura: dedupe, normalización, reglas SLA
-├── integrations/            # meta/, whatsapp/, crm/, anthropic/, gemini/
+├── integrations/            # meta/, whatsapp/, crm/, notifier/, task-queue, anthropic/, gemini/
 └── agents/                  # Prompts, herramientas, guardrails y evals
 ```
 

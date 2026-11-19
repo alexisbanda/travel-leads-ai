@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:emulator": "firebase emulators:exec --only firestore --project demo-tla-ingest \"vitest run src/http/ingest-landing-lead.emulator.test.ts\"",
+    "test:emulator": "firebase emulators:exec --only firestore --project demo-tla-ingest \"vitest run --no-file-parallelism emulator.test\"",
     "prebuild": "pnpm --filter @tla/shared build",
     "build": "tsc -p tsconfig.build.json"
   },
