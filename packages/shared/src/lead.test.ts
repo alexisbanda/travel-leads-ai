@@ -7,6 +7,7 @@ import {
   LandingLeadInput,
   Lead,
   LeadEvent,
+  LeadEventType,
   LeadSegment,
   LeadSource,
   LeadStatus,
@@ -257,10 +258,32 @@ describe("LeadEvent", () => {
     expect(issuePaths(LeadEvent, event)).toEqual(["to", "actor", "at"]);
   });
 
-  it("rechaza un tipo que no es snake_case", () => {
+  it("rechaza un tipo fuera de la lista cerrada", () => {
     expect(issuePaths(LeadEvent, { type: "Status Changed", actor: "system", at: AT })).toEqual([
       "type",
     ]);
+    expect(issuePaths(LeadEvent, { type: "lead_merged", actor: "system", at: AT })).toEqual([
+      "type",
+    ]);
+  });
+
+  it("LeadEventType contiene created, reengaged y status_changed", () => {
+    expect(LeadEventType.options).toEqual(["created", "reengaged", "status_changed"]);
+  });
+
+  it("acepta un reengaged con la atribución del nuevo envío", () => {
+    const event = {
+      type: "reengaged",
+      actor: "system",
+      at: AT,
+      attribution: { utmSource: "newsletter", landingSlug: "otra-landing" },
+    };
+    expect(issuePaths(LeadEvent, event)).toEqual([]);
+  });
+
+  it("rechaza una atribución con campos inválidos", () => {
+    const event = { type: "reengaged", actor: "system", at: AT, attribution: { landingSlug: 1 } };
+    expect(issuePaths(LeadEvent, event)).toEqual(["attribution.landingSlug"]);
   });
 });
 

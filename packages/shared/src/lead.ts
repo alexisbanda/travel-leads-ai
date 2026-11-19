@@ -163,17 +163,27 @@ export const Lead = z.object({
 export type Lead = z.infer<typeof Lead>;
 
 /**
+ * Tipos de evento de `leads/{leadId}/events` (lista cerrada, docs/02-modelo-de-datos.md):
+ * - `created`: alta del lead.
+ * - `reengaged`: la misma persona vuelve a escribir con el lead aún abierto (doc 03).
+ * - `status_changed`: transición de la máquina de estados (lleva `from` y `to`).
+ */
+export const LeadEventType = z.enum(["created", "reengaged", "status_changed"]);
+export type LeadEventType = z.infer<typeof LeadEventType>;
+
+/**
  * Evento inmutable de `leads/{leadId}/events`. `from` y `to` solo aparecen en
  * las transiciones de estado; eventos como `created` o `reengaged` pueden omitirlos.
+ * `attribution` guarda la atribución del nuevo envío en `reengaged`: la del lead
+ * (primer contacto) no se modifica.
  */
 export const LeadEvent = z.object({
-  type: z.string().regex(/^[a-z]+(_[a-z]+)*$/, {
-    message: "tipo de evento inválido: usa snake_case, p. ej. status_changed",
-  }),
+  type: LeadEventType,
   from: LeadStatus.optional(),
   to: LeadStatus.optional(),
   actor: NonEmptyText,
   at: z.date(),
+  attribution: Attribution.optional(),
 });
 export type LeadEvent = z.infer<typeof LeadEvent>;
 
@@ -233,7 +243,10 @@ export const LandingLeadInput = z.object({
   name: z.string().trim().min(2).max(80),
   phone: z.string().min(6).max(20),
   email: z.string().email().optional(),
-  travelMonth: z.string().regex(/^\d{4}-\d{2}$/).optional(),
+  travelMonth: z
+    .string()
+    .regex(/^\d{4}-\d{2}$/)
+    .optional(),
   pax: z
     .object({
       adults: z.number().int().min(1).max(20),
