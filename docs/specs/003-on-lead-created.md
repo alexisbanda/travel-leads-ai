@@ -41,7 +41,16 @@ El proveedor de CRM aún no está decidido (ADR pendiente): el CRM se usa a trav
 
 ### `meta.capi.lead`
 
-Hasta #17 no hace nada: evento `meta.capi.lead.skipped` con `detail: "not_implemented"`.
+Envía el evento `Lead` a la Conversions API de Meta (#17): `POST /{versión}/{pixelId}/events` con el token de `channels.meta.capiTokenSecret` en la cabecera `Authorization`.
+
+- Sin `attribution.eventId` (p. ej. leads de Lead Ads): `meta.capi.lead.skipped` con `detail: "no_event_id"`. Sin ese ID no se puede deduplicar con el Pixel.
+- Evento: `event_name: "Lead"`, `event_id` = `attribution.eventId`, `event_time` = `createdAt` en segundos Unix y `action_source: "website"`.
+- `user_data`: `fbc`/`fbp` si existen; `em` (email con trim y minúsculas) y `ph` (dígitos del E.164, sin `+`), en SHA-256 hex, **solo** con consentimiento de `marketing` concedido y no retirado (`consents/{consentId}`; si no consta, se trata como no concedido). Sin nada de eso, `user_data` va vacío (Meta exige el objeto). Nunca IP, _user agent_ ni nombre.
+- Éxito: `meta.capi.lead.succeeded`.
+- 5xx, 429, error de red o timeout: `meta.capi.lead.failed` con `detail` `meta_capi_<status>`, `meta_capi_network` o `meta_capi_timeout`, y reintento. El reintento no duplica el evento en Meta: lleva el mismo `event_id`.
+- Otro 4xx: `meta.capi.lead.failed` con `meta_capi_<status>`, sin reintento.
+- Logs: solo acción, `leadId`, resultado, `detail`, `status`, `code`, `subcode` y `fbtrace_id` de Meta. Nunca hashes, email, teléfono ni el token.
+- `test_event_code`: del parámetro `META_CAPI_TEST_EVENT_CODE`, solo en dev ([doc 11](../11-instancias-y-configuracion.md#meta-conversions-api)).
 
 ## Contratos
 
@@ -74,10 +83,13 @@ Ejemplo de evento:
 | Evento del trigger con más de 50 minutos | Se descarta con `logger.error`: Cloud Tasks solo deduplica IDs durante ~1 hora tras ejecutar la tarea, y reencolar más tarde podría duplicar avisos |
 | Payload sin `leadId` válido              | `logger.warn` y fin, sin reintento (reintentar no lo arregla)                                                                                       |
 | El lead ya no existe                     | `logger.warn` y fin, sin evento                                                                                                                     |
-| El lead no cumple el esquema mínimo      | `crm.upsert` / `agency.notify`: evento `failed` con `detail: "invalid_lead"`, sin reintento                                                         |
+| El lead no cumple el esquema mínimo      | `crm.upsert` / `agency.notify` / `meta.capi.lead`: evento `failed` con `detail: "invalid_lead"`, sin reintento                                      |
 | El CRM falla                             | `crm.upsert.failed` y reintento según `retryConfig`; `agency.notify` sigue su curso                                                                 |
 | Proveedor de CRM sin adaptador           | `crm.upsert.skipped` (`not_implemented`)                                                                                                            |
 | Sin canal de aviso                       | `agency.notify.skipped` (`no_channel`) + aviso en logs                                                                                              |
+| Lead sin `attribution.eventId`           | `meta.capi.lead.skipped` (`no_event_id`)                                                                                                            |
+| Meta CAPI responde 5xx/429, red, timeout | `meta.capi.lead.failed` y reintento; el `event_id` evita duplicados en Meta                                                                         |
+| Meta CAPI responde otro 4xx              | `meta.capi.lead.failed` (`meta_capi_<status>`), sin reintento                                                                                       |
 
 ## Seguridad y privacidad
 

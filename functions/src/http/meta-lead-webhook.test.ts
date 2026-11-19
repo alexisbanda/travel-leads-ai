@@ -16,7 +16,13 @@ vi.mock("../config.js", () => ({
   loadInstanceConfig: () => ({
     infra: { region: FAKE_REGION },
     agency: {},
-    channels: { meta: { pageTokenSecret: "secret:META_PAGE_ACCESS_TOKEN" } },
+    channels: {
+      meta: {
+        pageTokenSecret: "secret:META_PAGE_ACCESS_TOKEN",
+        pixelId: "",
+        capiTokenSecret: "secret:META_CAPI_ACCESS_TOKEN",
+      },
+    },
   }),
 }));
 

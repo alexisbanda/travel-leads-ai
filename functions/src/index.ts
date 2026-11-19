@@ -28,4 +28,4 @@ export const processMetaInbox = createProcessMetaInboxFunction(config);
 export const onLeadCreated = createOnLeadCreatedFunction(config);
 export const crmUpsertTask = createCrmUpsertTaskFunction(config);
 export const agencyNotifyTask = createAgencyNotifyTaskFunction(config);
-export const metaCapiLeadTask = createMetaCapiLeadTaskFunction();
+export const metaCapiLeadTask = createMetaCapiLeadTaskFunction(config);
