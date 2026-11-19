@@ -14,7 +14,7 @@ catalog_tours/{tourId}
   departures/{departureId}
 agent_runs/{runId}          # trazas de ejecución de agentes (sin PII en claro)
 config/{docId}              # sla, agents, flags (pnpm instance:seed)
-inbox/{deliveryId}          # payloads crudos de webhooks, TTL 7 días (doc 03)
+inbox/{deliveryId}          # payloads crudos de webhooks, TTL 7 días (doc 03); estado de proceso: spec 004
 dedupe/{dedupeKey}          # índice para deduplicar personas en transacción (doc 03)
 ```
 

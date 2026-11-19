@@ -13,7 +13,10 @@ import {
 /** Región sintética: no corresponde a ninguna región real. */
 const FAKE_REGION = "region-sintetica";
 vi.mock("../config.js", () => ({
-  loadInstanceConfig: () => ({ infra: { region: FAKE_REGION } }),
+  loadInstanceConfig: () => ({
+    infra: { region: FAKE_REGION },
+    channels: { meta: { pageTokenSecret: "secret:META_PAGE_ACCESS_TOKEN" } },
+  }),
 }));
 
 const APP_SECRET = "test-app-secret";
