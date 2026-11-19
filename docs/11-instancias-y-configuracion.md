@@ -121,6 +121,7 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 | `agency.country` | ISO 3166-1 alfa-2 | No |
 | `agency.timezone` | IANA. Opcional; vacío u omitido = la del pack de destino | Sí |
 | `agency.website` | URL `https://` | Sí |
+| `agency.notify` | Opcional. Si se omite, la tarea `agency.notify` se registra como `skipped` con un aviso en logs ([spec 003](specs/003-on-lead-created.md)) | — |
 | `agency.notify.channel` | `whatsapp_group` · `email` · `slack` | No |
 | `agency.notify.target` | `secret:NOMBRE` | No |
 | `partner.legalName` | Texto | Solo en `draft` |
@@ -139,7 +140,7 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 | `infra.firebaseProjects.dev` / `.prod` | ID de proyecto (6–30 caracteres: minúsculas, dígitos y `-`) | No |
 | `infra.region` | Región de Google Cloud (formato `<área>-<zona><n>`) | Sí |
 | `infra.bigqueryLocation` | Multirregión en mayúsculas o región de Google Cloud | Sí |
-| `channels.crm.provider` | `hubspot` · `pipedrive` | No |
+| `channels.crm.provider` | `hubspot` · `pipedrive` · `memory`. `memory` es un adaptador en memoria solo para desarrollo, hasta el ADR de CRM; `hubspot` y `pipedrive` aún no tienen adaptador y la tarea `crm.upsert` se registra como `skipped` ([spec 003](specs/003-on-lead-created.md)) | No |
 | `channels.crm.tokenSecret` | `secret:NOMBRE` | No |
 | `channels.whatsapp.bsp` | `respond_io` · `360dialog` · `other` | No |
 | `channels.whatsapp.number` | E.164 (`+` y 7–15 dígitos) | Solo en `draft` |

@@ -30,7 +30,8 @@ export const InstanceId = z.string().regex(/^[a-z]{2}-[a-z]{2}(-[a-z0-9]+)?$/, {
 });
 
 export const NotifyChannel = z.enum(["whatsapp_group", "email", "slack"]);
-export const CrmProvider = z.enum(["hubspot", "pipedrive"]);
+/** `memory`: adaptador en memoria, solo para desarrollo hasta el ADR de CRM. */
+export const CrmProvider = z.enum(["hubspot", "pipedrive", "memory"]);
 export const WhatsappBsp = z.enum(["respond_io", "360dialog", "other"]);
 export const CommissionModel = z.enum(["fee", "commission", "fee_plus_commission"]);
 export const QualificationMode = z.enum(["assisted", "autonomous"]);
@@ -59,12 +60,14 @@ export const InstanceConfigObject = z
         /** Vacío u omitido: se usa la zona horaria del pack de destino. */
         timezone: emptyOr(TimeZone).optional(),
         website: emptyOr(HttpsUrl),
+        /** Opcional: sin canal, la tarea `agency.notify` se omite con un aviso (spec 003). */
         notify: z
           .object({
             channel: NotifyChannel,
             target: SecretRef,
           })
-          .strict(),
+          .strict()
+          .optional(),
       })
       .strict(),
     partner: z

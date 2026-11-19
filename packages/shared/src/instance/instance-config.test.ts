@@ -117,6 +117,31 @@ describe("InstanceConfig: secretos", () => {
   });
 });
 
+describe("InstanceConfig: canales de CRM y aviso", () => {
+  it("acepta el proveedor de CRM memory (solo desarrollo)", () => {
+    const raw = withValue(ecEs, "channels.crm.provider", "memory");
+    expect(issuePaths(InstanceConfig.safeParse(raw))).toEqual([]);
+  });
+
+  it("rechaza un proveedor de CRM desconocido", () => {
+    const raw = withValue(ecEs, "channels.crm.provider", "otro-crm");
+    expect(issuePaths(InstanceConfig.safeParse(raw))).toEqual(["channels.crm.provider"]);
+  });
+
+  it("admite omitir agency.notify", () => {
+    const raw = structuredClone(ecEs) as { agency: Record<string, unknown> };
+    delete raw.agency.notify;
+    const result = InstanceConfig.safeParse(raw);
+    expect(issuePaths(result)).toEqual([]);
+    expect(result.data?.agency.notify).toBeUndefined();
+  });
+
+  it("si agency.notify está, exige canal y destino", () => {
+    const raw = withValue(ecEs, "agency.notify", { channel: "email" });
+    expect(issuePaths(InstanceConfig.safeParse(raw))).toEqual(["agency.notify.target"]);
+  });
+});
+
 describe("InstanceConfig: campos obligatorios según status", () => {
   it("en draft admite vacíos los datos legales, el número de WhatsApp y la comisión", () => {
     expect(InstanceConfig.safeParse(withValue(ecEs, "status", "draft")).success).toBe(true);
