@@ -17,6 +17,17 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   eslintConfigPrettier,
   {
+    // Scripts Node planos (no TS): no-undef de eslint:recommended necesita
+    // los globals del entorno; tseslint ya los resuelve vía lib para .ts.
+    files: ["**/scripts/**/*.mjs", "**/scripts/**/*.cjs"],
+    languageOptions: {
+      globals: {
+        process: "readonly",
+        console: "readonly",
+      },
+    },
+  },
+  {
     // domain/ es lógica pura (AGENTS.md): sin Firebase, SDKs ni clientes HTTP.
     files: ["functions/src/domain/**"],
     rules: {

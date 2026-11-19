@@ -9,9 +9,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:emulator": "firebase emulators:exec --only firestore --project demo-tla-seed \"vitest run src/seed.emulator.test.ts\"",
-    "validate": "tsx src/validate.ts",
-    "instance:build": "tsx src/build.ts",
-    "instance:seed": "tsx src/seed.ts"
+    "validate": "tsx --conditions=source src/validate.ts",
+    "instance:build": "tsx --conditions=source src/build.ts",
+    "instance:seed": "tsx --conditions=source src/seed.ts"
   },
   "dependencies": {
     "@tla/destinations": "workspace:*",

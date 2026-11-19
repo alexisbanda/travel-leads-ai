@@ -29,6 +29,8 @@ functions/src/
 └── agents/                  # Prompts, herramientas, guardrails y evals
 ```
 
+`pnpm build` compila primero `@tla/shared` (`prebuild`) y luego `functions` a `lib/`, para que Node (y el emulador) puedan cargar `@tla/shared` sin un loader de TypeScript.
+
 Regla: `domain/` no importa nada de Firebase ni de SDKs externos. Así se prueba con tests unitarios sin emuladores.
 
 Documentación: [docs/03-registro-de-leads.md](../docs/03-registro-de-leads.md), [docs/06-agentes-ia.md](../docs/06-agentes-ia.md)

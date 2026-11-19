@@ -16,6 +16,7 @@
     "skipLibCheck": true,
     "declaration": true,
     "sourceMap": true,
+    "customConditions": ["source"],
     "isolatedModules": true,
     "verbatimModuleSyntax": false
   }

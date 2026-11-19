@@ -46,6 +46,13 @@ jobs:
       - name: Validate instances
         run: pnpm instance:validate
 
+      - name: Build functions
+        run: pnpm --filter functions build
+
+      - name: Import @tla/shared with plain Node
+        working-directory: functions
+        run: node scripts/check-shared-import.mjs
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
