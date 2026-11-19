@@ -105,8 +105,11 @@ export interface NewLandingLeadContext {
   userAgent?: string;
 }
 
-/** Documentos que crea la transacción cuando no hay lead que reutilizar. */
-export interface NewLandingLeadDocs {
+/**
+ * Documentos que crea la transacción de ingesta cuando no hay lead que reutilizar.
+ * Es común a todos los orígenes: el lead lleva su `source` y el consentimiento su `channel`.
+ */
+export interface NewLeadDocs {
   leadId: string;
   lead: Lead;
   consentId: string;
@@ -126,7 +129,7 @@ export const USER_AGENT_MAX_LENGTH = 500;
 export function buildNewLandingLead(
   input: LandingLeadInput,
   ctx: NewLandingLeadContext,
-): NewLandingLeadDocs {
+): NewLeadDocs {
   const { leadId, consentId, eventId } = ctx.ids;
   const interest: Interest = {
     tourIds: input.tourIds,
