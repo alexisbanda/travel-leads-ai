@@ -16,11 +16,11 @@ El registro de leads es la pieza central: recibe leads de cualquier origen, los 
 Meta y los BSP reintentan si no reciben `200` a tiempo. Por eso:
 
 1. Verificar firma → si falla, `401`.
-2. Guardar el payload crudo en `inbox/{deliveryId}` (TTL de 7 días) y responder `200`.
+2. Guardar el payload crudo en `inbox/{deliveryId}` (TTL de 7 días) y responder `200`. El documento lleva `source`, `payload`, `receivedAt` y `expiresAt = receivedAt + 7 días`; la política TTL de Firestore sobre `inbox.expiresAt` está en `firestore.indexes.json`. En Meta, cada `leadgen_id` de la entrega es un documento `inbox/meta_{leadgen_id}` cuyo `payload` es el `value` de ese cambio `leadgen`. Se escribe **antes** de responder (la instancia puede congelarse tras la respuesta); si la escritura falla se responde `500` para que Meta reintente, y un JSON inválido con firma válida recibe `400`.
 3. Un trigger `onDocumentCreated(inbox/{id})` procesa el payload de forma idempotente.
 
 ```ts
-// Pseudocódigo: functions/src/http/metaLeadWebhook.ts
+// Pseudocódigo: functions/src/http/meta-lead-webhook.ts
 export const metaLeadWebhook = onRequest(
   { secrets: [META_APP_SECRET, META_VERIFY_TOKEN] }, // región: setGlobalOptions desde la configuración de la instancia
   async (req, res) => {

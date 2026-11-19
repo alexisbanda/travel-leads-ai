@@ -17,3 +17,6 @@ firebase-debug*.log
 firestore-debug.log
 ui-debug.log
 .firebase/
+
+# Secretos locales del emulador de Cloud Functions
+.secret.local
