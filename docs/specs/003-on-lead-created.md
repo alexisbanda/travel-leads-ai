@@ -32,7 +32,8 @@ El proveedor de CRM aún no está decidido (ADR pendiente): el CRM se usa a trav
 
 ### `agency.notify`
 
-- `notifierFor(config)` elige el `Notifier` según `agency.notify.channel`, a partir de un registro de implementaciones por canal (vacío hoy; #16 registrará `email`).
+- `notifierFor(config, readTarget)` elige el `Notifier` según `agency.notify.channel`, a partir de un registro de implementaciones por canal (hoy solo `email`, #16).
+- Notifier que devuelve `skipped` (p. ej. email sin destinatarios): evento `agency.notify.skipped` con el motivo (`no_recipients`) y aviso en logs sin datos personales.
 - Sin `agency.notify` en la configuración: `logger.warn` (sin datos personales) y evento `agency.notify.skipped` con `detail: "no_channel"`. No falla.
 - Canal configurado sin implementación: evento `agency.notify.skipped` con `detail: "not_implemented"`.
 - Notifier que lanza: evento `agency.notify.failed` con el nombre del error y se re-lanza.
@@ -50,7 +51,7 @@ Hasta #17 no hace nada: evento `meta.capi.lead.skipped` con `detail: "not_implem
 - **`LeadEvent.detail`** (opcional): código corto sin datos personales (`^[A-Za-z0-9_.-]+$`, máx. 100), p. ej. `not_implemented`, `no_channel`, `invalid_lead` o el nombre del error (`TypeError`).
 - **`CrmProvider`** admite `memory` (solo desarrollo, hasta el ADR de CRM). **`agency.notify`** pasa a ser opcional.
 - **`CrmAdapter`**: `upsert(lead: CrmLeadInput): Promise<{ contactId: string; dealId: string }>`; `CrmLeadInput` = `leadId`, `dedupeKey`, `source`, `contact`, `interest` del lead.
-- **`Notifier`**: `notify(lead: NotifyLeadInput): Promise<void>`.
+- **`Notifier`**: `notify(message: NotifyMessage): Promise<NotifyResult>`, con `NotifyMessage = { kind: "lead_created"; lead: NotifyLeadInput }` (discriminado para añadir avisos de SLA en #18) y `NotifyResult = { status: "sent" } | { status: "skipped"; reason: "no_recipients" }`.
 - **`TaskEnqueuer`**: `enqueue({ functionName, id, payload }) → "enqueued" | "already_exists"`. La implementación real usa `getFunctions().taskQueue("locations/<infra.region>/functions/<nombre>")` de `firebase-admin/functions` (sin la región, el SDK usaría una región por defecto que no es la de la instancia).
 
 Ejemplo de evento:

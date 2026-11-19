@@ -78,7 +78,7 @@ agency:
   legalName: ""                # obligatorio fuera de draft
   country: EC
   timezone: America/Guayaquil  # opcional; vacío u omitido = la del pack de destino
-  notify: { channel: whatsapp_group, target: secret:AGENCY_NOTIFY_TARGET }
+  notify: { channel: email, target: secret:AGENCY_NOTIFY_TARGET }
 partner: { legalName: "", country: ES }
 destination: { country: EC }
 market: { country: ES }        # locale, moneda y zona horaria vienen del pack
@@ -89,6 +89,7 @@ infra:
 channels:
   crm: { provider: hubspot, tokenSecret: secret:CRM_API_TOKEN }
   whatsapp: { bsp: respond_io, number: "", webhookSecret: secret:WHATSAPP_BSP_WEBHOOK_SECRET }
+  email: { from: "", smtpSecret: secret:SMTP_CONNECTION_URI }
 segments:
   - { id: adventure, label: "Aventura y naturaleza" }
   - { id: couple, label: "Parejas y luna de miel" }
@@ -106,7 +107,7 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 
 - **Objetos cerrados.** Una clave desconocida (por ejemplo, una errata) es un error.
 - **Formatos sin listas de países.** País: ISO 3166-1 alfa-2 por formato (dos letras mayúsculas, sin lista cerrada, así que `XX`/`YY` de la plantilla son válidos). Moneda: ISO 4217, idioma: BCP 47 y zona horaria: IANA, comprobados con la API `Intl` del entorno de ejecución. Cada error indica el campo (`market.country`) y el estándar incumplido.
-- **Secretos.** `agency.notify.target`, `channels.crm.tokenSecret`, `channels.whatsapp.webhookSecret`, `channels.meta.capiTokenSecret` y `channels.meta.pageTokenSecret` deben ser `secret:NOMBRE` (mayúsculas, dígitos y `_`). Un valor en claro se rechaza.
+- **Secretos.** `agency.notify.target`, `partner.notify.target`, `channels.email.smtpSecret`, `channels.crm.tokenSecret`, `channels.whatsapp.webhookSecret`, `channels.meta.capiTokenSecret` y `channels.meta.pageTokenSecret` deben ser `secret:NOMBRE` (mayúsculas, dígitos y `_`). Un valor en claro se rechaza.
 - **Campos pendientes.** Los campos de texto que la plantilla deja en `""` admiten la cadena vacía en cualquier `status`; si traen valor, se valida su formato. Excepción: fuera de `draft` (es decir, en `pilot`, `active` y `paused`) son obligatorios `agency.legalName`, `partner.legalName`, `channels.whatsapp.number` (E.164) y `commission.rate > 0`, con un error por cada campo que falte.
 
 ### `InstanceConfig` (`instances/<id>/instance.yaml`)
@@ -123,9 +124,11 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 | `agency.website` | URL `https://` | Sí |
 | `agency.notify` | Opcional. Si se omite, la tarea `agency.notify` se registra como `skipped` con un aviso en logs ([spec 003](specs/003-on-lead-created.md)) | — |
 | `agency.notify.channel` | `whatsapp_group` · `email` · `slack` | No |
-| `agency.notify.target` | `secret:NOMBRE` | No |
+| `agency.notify.target` | `secret:NOMBRE`. Con `email`, el secreto contiene las direcciones de los destinatarios separadas por comas o saltos de línea; si no queda ninguna, el aviso se registra como `skipped` (`no_recipients`) con un aviso en logs sin direcciones | No |
+| `agency.locale` | BCP 47. Opcional: idioma de los avisos internos (email de lead nuevo). Si se omite, se usa el locale del mercado resuelto. Los textos existen en `es` y `en` (por idioma base); otro idioma cae en `en` | — |
 | `partner.legalName` | Texto | Solo en `draft` |
 | `partner.country` | ISO 3166-1 alfa-2 | No |
+| `partner.notify` | Opcional, mismo formato que `agency.notify` (`{ channel, target: secret:NOMBRE }`). Aviso al socio de los leads sin respuesta (SLA, #18); sin él, ese aviso se omite con un aviso en logs. El aviso de lead nuevo va solo a la agencia | — |
 | `destination.country` | ISO 3166-1 alfa-2 | No |
 | `market.country` | ISO 3166-1 alfa-2 | No |
 | `market.locale` | BCP 47. Opcional (por defecto, el del pack) | — |
@@ -145,6 +148,9 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 | `channels.whatsapp.bsp` | `respond_io` · `360dialog` · `other` | No |
 | `channels.whatsapp.number` | E.164 (`+` y 7–15 dígitos) | Solo en `draft` |
 | `channels.whatsapp.webhookSecret` | `secret:NOMBRE` | No |
+| `channels.email` | Opcional. Obligatorio si `agency.notify.channel` o `partner.notify.channel` es `email`. Envío con la extensión Trigger Email (ver [Email: extensión Trigger Email](#email-extensión-trigger-email)) | — |
+| `channels.email.from` | Remitente (`dirección` o `Nombre <dirección>`) del dominio de la instancia. Si no está vacío, se escribe como `from` en cada documento de `mail`; vacío: el remitente por defecto de la extensión | Solo en `draft` |
+| `channels.email.smtpSecret` | `secret:NOMBRE`: credencial SMTP (URI de conexión) que usa la extensión. El código del motor no la lee | No |
 | `channels.meta.pixelId` / `.pageId` | Dígitos | Sí |
 | `channels.meta.adAccountId` | Dígitos, con prefijo `act_` opcional | Sí |
 | `channels.meta.capiTokenSecret` | `secret:NOMBRE` | No |
@@ -263,6 +269,20 @@ CI valida **todas** las instancias en cada PR (paso `Validate instances` de `.gi
 | Build | `pnpm instance:build <id>` resuelve las tres capas y genera `generated/instance.json` para landings, functions y MCP. El código lee siempre de ahí, nunca de constantes. |
 | Runtime | Valores operativos (umbrales de SLA, horario, agentes, flags) se siembran en Firestore `config/*` con `pnpm instance:seed <id> local\|dev` y se pueden ajustar sin redesplegar. |
 | Secretos | Secret Manager del proyecto de la instancia. El YAML solo los nombra. |
+
+### Email: extensión Trigger Email
+
+Los avisos por email (`agency.notify.channel: email`) no envían SMTP desde el motor: la tarea `agencyNotifyTask` escribe un documento en la colección `mail` ([doc 02](02-modelo-de-datos.md#mailmailid)) y la extensión **Trigger Email** de Firebase lo envía. La tarea lee los destinatarios del secreto de `agency.notify.target`, que se ata a la función al desplegar.
+
+La instalación la hace el equipo, una vez por proyecto (`dev` y `prod`) de la instancia; los agentes no despliegan:
+
+1. Crear en Secret Manager del proyecto de la instancia el secreto con el nombre de `channels.email.smtpSecret` (URI SMTP del dominio de la instancia, p. ej. `smtps://usuario:contraseña@servidor:465`) y el de `agency.notify.target` (direcciones de los destinatarios).
+2. Instalar la extensión (`firebase/firestore-send-email`) con:
+   - **Ubicación de Cloud Functions**: la región de datos de la instancia (`infra.region`, que sale del pack de mercado). Nunca otra.
+   - **Colección de email**: `mail`.
+   - **URI de conexión SMTP**: el secreto de `channels.email.smtpSecret` (la extensión lo guarda en Secret Manager; no se escribe en claro en ningún archivo del repositorio).
+   - **Remitente por defecto**: el de `channels.email.from`.
+3. Activar la política TTL de Firestore sobre el campo `expireAt` de la colección `mail` (los documentos se conservan 7 días).
 
 ### Configuración resuelta (`generated/instance.json`)
 
