@@ -163,19 +163,54 @@ export const Lead = z.object({
 export type Lead = z.infer<typeof Lead>;
 
 /**
+ * Acciones que se ejecutan como tareas independientes tras crear un lead
+ * (docs/specs/003-on-lead-created.md).
+ */
+export const LeadTaskAction = z.enum(["crm.upsert", "agency.notify", "meta.capi.lead"]);
+export type LeadTaskAction = z.infer<typeof LeadTaskAction>;
+
+/** Resultado de una ejecución de tarea. */
+export const LeadTaskOutcome = z.enum(["succeeded", "failed", "skipped"]);
+export type LeadTaskOutcome = z.infer<typeof LeadTaskOutcome>;
+
+/** Tipo de evento de una tarea: `<acción>.<resultado>`. */
+export type LeadTaskEventType = `${LeadTaskAction}.${LeadTaskOutcome}`;
+
+/** Los 9 tipos `<acción>.<resultado>`, en el orden de las dos listas. */
+export const LEAD_TASK_EVENT_TYPES: readonly LeadTaskEventType[] = LeadTaskAction.options.flatMap(
+  (action) => LeadTaskOutcome.options.map((outcome): LeadTaskEventType => `${action}.${outcome}`),
+);
+
+/**
  * Tipos de evento de `leads/{leadId}/events` (lista cerrada, docs/02-modelo-de-datos.md):
  * - `created`: alta del lead.
  * - `reengaged`: la misma persona vuelve a escribir con el lead aún abierto (doc 03).
  * - `status_changed`: transición de la máquina de estados (lleva `from` y `to`).
+ * - `<acción>.<resultado>`: ejecución de una tarea tras el alta (spec 003).
  */
-export const LeadEventType = z.enum(["created", "reengaged", "status_changed"]);
+export const LeadEventType = z.enum([
+  "created",
+  "reengaged",
+  "status_changed",
+  ...LEAD_TASK_EVENT_TYPES,
+] as const);
 export type LeadEventType = z.infer<typeof LeadEventType>;
+
+/**
+ * Código corto y sin datos personales que acompaña a un evento: motivo de un
+ * `skipped` (`not_implemented`, `no_channel`) o nombre del error de un `failed`.
+ */
+export const LeadEventDetail = z
+  .string()
+  .max(100)
+  .regex(/^[A-Za-z0-9_.-]+$/, { message: "detail inválido: solo letras, dígitos, _, . y -" });
+export type LeadEventDetail = z.infer<typeof LeadEventDetail>;
 
 /**
  * Evento inmutable de `leads/{leadId}/events`. `from` y `to` solo aparecen en
  * las transiciones de estado; eventos como `created` o `reengaged` pueden omitirlos.
  * `attribution` guarda la atribución del nuevo envío en `reengaged`: la del lead
- * (primer contacto) no se modifica.
+ * (primer contacto) no se modifica. `detail` solo lo usan los eventos de tareas.
  */
 export const LeadEvent = z.object({
   type: LeadEventType,
@@ -184,6 +219,7 @@ export const LeadEvent = z.object({
   actor: NonEmptyText,
   at: z.date(),
   attribution: Attribution.optional(),
+  detail: LeadEventDetail.optional(),
 });
 export type LeadEvent = z.infer<typeof LeadEvent>;
 

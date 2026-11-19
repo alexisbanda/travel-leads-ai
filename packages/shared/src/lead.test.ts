@@ -7,8 +7,11 @@ import {
   LandingLeadInput,
   Lead,
   LeadEvent,
+  LEAD_TASK_EVENT_TYPES,
   LeadEventType,
   LeadSegment,
+  LeadTaskAction,
+  LeadTaskOutcome,
   LeadSource,
   LeadStatus,
   Sale,
@@ -267,8 +270,48 @@ describe("LeadEvent", () => {
     ]);
   });
 
-  it("LeadEventType contiene created, reengaged y status_changed", () => {
-    expect(LeadEventType.options).toEqual(["created", "reengaged", "status_changed"]);
+  it("LeadEventType contiene created, reengaged, status_changed y los eventos de tareas", () => {
+    expect(LeadEventType.options).toEqual([
+      "created",
+      "reengaged",
+      "status_changed",
+      "crm.upsert.succeeded",
+      "crm.upsert.failed",
+      "crm.upsert.skipped",
+      "agency.notify.succeeded",
+      "agency.notify.failed",
+      "agency.notify.skipped",
+      "meta.capi.lead.succeeded",
+      "meta.capi.lead.failed",
+      "meta.capi.lead.skipped",
+    ]);
+  });
+
+  it("genera un tipo de evento por cada acción y resultado", () => {
+    expect(LEAD_TASK_EVENT_TYPES).toHaveLength(
+      LeadTaskAction.options.length * LeadTaskOutcome.options.length,
+    );
+    expect(LeadEventType.safeParse("crm.upsert").success).toBe(false);
+    expect(LeadEventType.safeParse("crm.upsert.retried").success).toBe(false);
+  });
+
+  it("acepta un evento de tarea con detail", () => {
+    const event = {
+      type: "crm.upsert.skipped",
+      actor: "system",
+      at: AT,
+      detail: "not_implemented",
+    };
+    expect(issuePaths(LeadEvent, event)).toEqual([]);
+  });
+
+  it("rechaza un detail con texto libre o demasiado largo", () => {
+    const base = { type: "crm.upsert.failed", actor: "system", at: AT };
+    expect(issuePaths(LeadEvent, { ...base, detail: "texto libre con espacios" })).toEqual([
+      "detail",
+    ]);
+    expect(issuePaths(LeadEvent, { ...base, detail: "a".repeat(101) })).toEqual(["detail"]);
+    expect(issuePaths(LeadEvent, { ...base, detail: "" })).toEqual(["detail"]);
   });
 
   it("acepta un reengaged con la atribución del nuevo envío", () => {
