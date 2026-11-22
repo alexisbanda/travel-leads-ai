@@ -67,7 +67,7 @@ function validLead(): Record<string, unknown> {
     consentId: "consent-prueba",
     assignedTo: "vendedor-prueba",
     crm: { contactId: "crm-contacto-prueba", dealId: "crm-deal-prueba" },
-    sla: { firstResponseAt: AT },
+    sla: { firstResponseAt: AT, warnedAt: AT, breachedAt: AT },
     qualification: { score: 80, summary: "Resumen de prueba" },
     createdAt: AT,
     updatedAt: AT,
@@ -270,7 +270,7 @@ describe("LeadEvent", () => {
     ]);
   });
 
-  it("LeadEventType contiene created, reengaged, status_changed y los eventos de tareas", () => {
+  it("LeadEventType contiene created, reengaged, status_changed y los eventos de tareas y SLA", () => {
     expect(LeadEventType.options).toEqual([
       "created",
       "reengaged",
@@ -284,6 +284,8 @@ describe("LeadEvent", () => {
       "meta.capi.lead.succeeded",
       "meta.capi.lead.failed",
       "meta.capi.lead.skipped",
+      "sla.warned",
+      "sla.breached",
     ]);
   });
 

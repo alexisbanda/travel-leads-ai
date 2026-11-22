@@ -1,10 +1,11 @@
-// Email de aviso interno de un lead nuevo (ticket #16). Lógica pura: sin Firebase.
+// Emails de avisos internos: lead nuevo (ticket #16) y SLA de primera respuesta
+// (ticket #18, spec 005). Lógica pura: sin Firebase.
 //
 // El idioma es el de la agencia (`agency.locale`) o, si falta, el del mercado. Los
 // textos se eligen por idioma base (`es`, `en`) con `en` como respaldo. El enlace al
 // CRM no se puede construir desde la configuración: si el lead tiene deal, se muestra
 // su id.
-import type { Lead } from "@tla/shared";
+import type { Lead, SlaLevel } from "@tla/shared";
 
 /** Datos del lead que usa el email. */
 export type LeadCreatedEmailInput = Pick<Lead, "leadId" | "source" | "interest"> & {
@@ -32,6 +33,9 @@ interface EmailTexts {
   noProducts: string;
   adults: (count: number) => string;
   children: (count: number) => string;
+  slaSubject: Record<SlaLevel, string>;
+  slaMinutes: (minutes: number) => string;
+  slaIntro: (minutes: number, threshold: number) => string;
 }
 
 const TEXTS = {
@@ -49,6 +53,10 @@ const TEXTS = {
     noProducts: "sin producto",
     adults: (n) => `${n} ${n === 1 ? "adulto" : "adultos"}`,
     children: (n) => `${n} ${n === 1 ? "niño" : "niños"}`,
+    slaSubject: { warning: "SLA en riesgo", breach: "SLA incumplido" },
+    slaMinutes: (n) => `${n} min sin respuesta`,
+    slaIntro: (n, threshold) =>
+      `Un lead nuevo lleva ${n} ${n === 1 ? "minuto hábil" : "minutos hábiles"} sin primera respuesta (umbral: ${threshold}).`,
   },
   en: {
     subjectPrefix: "New lead",
@@ -64,6 +72,10 @@ const TEXTS = {
     noProducts: "no product",
     adults: (n) => `${n} ${n === 1 ? "adult" : "adults"}`,
     children: (n) => `${n} ${n === 1 ? "child" : "children"}`,
+    slaSubject: { warning: "SLA at risk", breach: "SLA breached" },
+    slaMinutes: (n) => `${n} min without reply`,
+    slaIntro: (n, threshold) =>
+      `A new lead has gone ${n} business ${n === 1 ? "minute" : "minutes"} without a first reply (threshold: ${threshold}).`,
   },
 } satisfies Record<string, EmailTexts>;
 
@@ -136,6 +148,40 @@ export function buildLeadCreatedEmail(lead: LeadCreatedEmailInput, locale: strin
   const text = [t.intro, "", ...rows.map(([label, value]) => `${label}: ${value}`)].join("\n");
   const html = [
     `<p>${escapeHtml(t.intro)}</p>`,
+    "<table>",
+    ...rows.map(
+      ([label, value]) =>
+        `<tr><th align="left">${escapeHtml(label)}</th><td>${escapeHtml(value)}</td></tr>`,
+    ),
+    "</table>",
+  ].join("\n");
+  return { subject, text, html };
+}
+
+/** Datos del lead que usa el email del SLA: nunca teléfono ni email del viajero. */
+export type SlaEmailInput = Pick<Lead, "leadId" | "source"> & {
+  contact: Pick<Lead["contact"], "name">;
+};
+
+/** Email de un nivel del SLA (`warning` al socio, `breach` a la agencia). */
+export function buildSlaEmail(
+  level: SlaLevel,
+  lead: SlaEmailInput,
+  businessMinutes: number,
+  thresholdMinutes: number,
+  locale: string,
+): EmailContent {
+  const t = textsFor(locale);
+  const intro = t.slaIntro(businessMinutes, thresholdMinutes);
+  const rows: Array<[label: string, value: string]> = [
+    [t.name, lead.contact.name],
+    [t.source, lead.source],
+    [t.leadId, lead.leadId],
+  ];
+  const subject = `${t.slaSubject[level]} · ${t.slaMinutes(businessMinutes)} · ${lead.source}`;
+  const text = [intro, "", ...rows.map(([label, value]) => `${label}: ${value}`)].join("\n");
+  const html = [
+    `<p>${escapeHtml(intro)}</p>`,
     "<table>",
     ...rows.map(
       ([label, value]) =>

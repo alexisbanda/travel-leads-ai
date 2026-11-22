@@ -272,11 +272,11 @@ CI valida **todas** las instancias en cada PR (paso `Validate instances` de `.gi
 
 ### Email: extensión Trigger Email
 
-Los avisos por email (`agency.notify.channel: email`) no envían SMTP desde el motor: la tarea `agencyNotifyTask` escribe un documento en la colección `mail` ([doc 02](02-modelo-de-datos.md#mailmailid)) y la extensión **Trigger Email** de Firebase lo envía. La tarea lee los destinatarios del secreto de `agency.notify.target`, que se ata a la función al desplegar.
+Los avisos por email (`agency.notify.channel: email` o `partner.notify.channel: email`) no envían SMTP desde el motor: la tarea `agencyNotifyTask` y `slaWatchdog` escriben un documento en la colección `mail` ([doc 02](02-modelo-de-datos.md#mailmailid)) y la extensión **Trigger Email** de Firebase lo envía. Los destinatarios salen del secreto de `agency.notify.target` (o de `partner.notify.target`), que se ata a la función al desplegar.
 
 La instalación la hace el equipo, una vez por proyecto (`dev` y `prod`) de la instancia; los agentes no despliegan:
 
-1. Crear en Secret Manager del proyecto de la instancia el secreto con el nombre de `channels.email.smtpSecret` (URI SMTP del dominio de la instancia, p. ej. `smtps://usuario:contraseña@servidor:465`) y el de `agency.notify.target` (direcciones de los destinatarios).
+1. Crear en Secret Manager del proyecto de la instancia el secreto con el nombre de `channels.email.smtpSecret` (URI SMTP del dominio de la instancia, p. ej. `smtps://usuario:contraseña@servidor:465`) y los de `agency.notify.target` y, si existe, `partner.notify.target` (direcciones de los destinatarios).
 2. Instalar la extensión (`firebase/firestore-send-email`) con:
    - **Ubicación de Cloud Functions**: la región de datos de la instancia (`infra.region`, que sale del pack de mercado). Nunca otra.
    - **Colección de email**: `mail`.

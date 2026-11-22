@@ -1,6 +1,7 @@
-// Avisos internos (docs/specs/003-on-lead-created.md). Las implementaciones por canal
-// se registran en `NOTIFIER_REGISTRY`; hoy solo email (#16).
-import type { Lead, ResolvedInstanceConfig } from "@tla/shared";
+// Avisos internos (docs/specs/003-on-lead-created.md y 005-sla-watchdog.md). Las
+// implementaciones por canal se registran en `NOTIFIER_REGISTRY`; hoy solo email (#16).
+import type { Lead, ResolvedInstanceConfig, SlaLevel } from "@tla/shared";
+import type { SlaEmailInput } from "../../domain/notify-email.js";
 import { notifyLocale } from "../../domain/notify-email.js";
 import { createEmailNotifier } from "./email-notifier.js";
 
@@ -10,11 +11,29 @@ export type NotifyChannelName = NonNullable<ResolvedInstanceConfig["agency"]["no
 /** Datos del lead que necesita el aviso. */
 export type NotifyLeadInput = Pick<Lead, "leadId" | "source" | "contact" | "interest" | "crm">;
 
+/** Datos del lead que necesitan los avisos del SLA. */
+export type SlaNotifyLeadInput = SlaEmailInput;
+
 /**
- * Mensaje que envía un `Notifier`. Discriminado por `kind` para añadir otros avisos
- * (p. ej. los de SLA de #18) sin romper los existentes.
+ * Mensaje que envía un `Notifier`, discriminado por `kind`. Cada mensaje tiene un id
+ * fijo por lead y tipo (`notifyMessageId`): todo canal debe deduplicar por él.
  */
-export type NotifyMessage = { kind: "lead_created"; lead: NotifyLeadInput };
+export type NotifyMessage =
+  | { kind: "lead_created"; lead: NotifyLeadInput }
+  | {
+      kind: "sla";
+      level: SlaLevel;
+      lead: SlaNotifyLeadInput;
+      businessMinutes: number;
+      thresholdMinutes: number;
+    };
+
+/** Id fijo de un aviso: `lead-created-<leadId>`, `sla-warning-<leadId>` o `sla-breach-<leadId>`. */
+export function notifyMessageId(message: NotifyMessage): string {
+  return message.kind === "lead_created"
+    ? `lead-created-${message.lead.leadId}`
+    : `sla-${message.level}-${message.lead.leadId}`;
+}
 
 /** Resultado de un envío que no lanza: enviado u omitido con su motivo. */
 export type NotifyResult = { status: "sent" } | { status: "skipped"; reason: "no_recipients" };
@@ -52,9 +71,14 @@ export const NOTIFIER_REGISTRY: Partial<Record<NotifyChannelName, NotifierFactor
 /** Parte de la configuración resuelta que elige el aviso. */
 export interface NotifierConfig {
   agency: { notify?: NotifyTarget | undefined; locale?: string | undefined };
+  /** Solo para los avisos al socio (SLA). */
+  partner?: { notify?: NotifyTarget | undefined };
   market: { locale: string };
   channels: { email?: { from: string } | undefined };
 }
+
+/** A quién va el aviso: `agency.notify` o `partner.notify`. */
+export type NotifyRecipient = "agency" | "partner";
 
 /** Resultado de elegir el aviso según la configuración. */
 export type NotifierResolution =
@@ -63,20 +87,23 @@ export type NotifierResolution =
   | { status: "not_implemented"; channel: NotifyChannelName };
 
 /**
- * Elige el `Notifier` según `agency.notify.channel`: `no_channel` si la instancia no
- * configura aviso y `not_implemented` si el canal aún no tiene implementación.
+ * Elige el `Notifier` según el canal de `agency.notify` (o de `partner.notify` con
+ * `recipient: "partner"`): `no_channel` si la instancia no configura aviso y
+ * `not_implemented` si el canal aún no tiene implementación. El aviso a la agencia va
+ * en `agency.locale` (o el del mercado); el del socio, en el del mercado.
  */
 export function notifierFor(
   config: NotifierConfig,
   readTarget: () => string,
   registry: Partial<Record<NotifyChannelName, NotifierFactory>> = NOTIFIER_REGISTRY,
+  recipient: NotifyRecipient = "agency",
 ): NotifierResolution {
-  const notify = config.agency.notify;
+  const notify = recipient === "agency" ? config.agency.notify : config.partner?.notify;
   if (notify === undefined) return { status: "no_channel" };
   const factory = registry[notify.channel];
   if (factory === undefined) return { status: "not_implemented", channel: notify.channel };
   const notifier = factory(notify, {
-    locale: notifyLocale(config),
+    locale: recipient === "agency" ? notifyLocale(config) : config.market.locale,
     from: config.channels.email?.from,
     readTarget,
   });

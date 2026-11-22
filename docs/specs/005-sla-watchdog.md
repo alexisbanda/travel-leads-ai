@@ -1,7 +1,7 @@
 # Spec 005 · Vigilancia del SLA de primera respuesta (`slaWatchdog`)
 
 - **Issue:** #18
-- **Estado:** En revisión
+- **Estado:** Aprobada
 - **Autor:** equipo del motor
 - **Área:** functions
 
@@ -61,10 +61,12 @@ Piezas que ya existen y se reutilizan:
 ```ts
 type NotifyMessage =
   | { kind: "lead_created"; lead: NotifyLeadInput }
-  | { kind: "sla_warning" | "sla_breach"; lead: NotifyLeadInput; businessMinutes: number; thresholdMinutes: number };
+  | { kind: "sla"; level: "warning" | "breach"; lead: SlaNotifyLeadInput; businessMinutes: number; thresholdMinutes: number };
 ```
 
-- `notifierFor` recibe el destino que corresponde (`agency.notify` o `partner.notify`) en lugar de leer siempre `agency.notify`.
+- `SlaNotifyLeadInput` solo lleva `leadId`, `source` y `contact.name`.
+- `notifierFor` recibe un parámetro opcional `recipient` (`"agency"` por defecto o `"partner"`) para elegir `agency.notify` o `partner.notify`.
+- `notifyMessageId(message)` da el id fijo de cada aviso.
 - Idioma: el aviso a la agencia usa `agency.locale` o, si falta, el del mercado. El aviso al socio usa siempre el del mercado.
 - Los textos de los emails van en `domain/notify-email.ts` (`es` y `en`), junto a los del aviso de lead nuevo, porque son avisos internos y no textos para viajeros.
 
@@ -131,7 +133,7 @@ leadId: 01JD0000000000000000000000
 - **Unitarias** (`domain/sla.test.ts`):
   - `businessMinutesBetween`: dentro del horario, fuera de horario, a caballo del cierre, días no hábiles, fin de semana largo y cambios de horario de verano en una zona con DST.
   - `slaLevelsDue`: cada combinación de umbrales y marcas.
-- **Unitarias** (`notify-email.test.ts`): textos de `sla_warning` y `sla_breach` en `es` y `en`, con HTML escapado.
+- **Unitarias** (`notify-email.test.ts`): textos de los niveles `warning` y `breach` en `es` y `en`, con HTML escapado.
 - **Handler** (`sla-watchdog.test.ts`, con un store y un notifier falsos):
   - los dos niveles y su orden;
   - omisión por falta de canal;

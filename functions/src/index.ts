@@ -10,6 +10,7 @@ import {
 } from "./tasks/lead-task-functions.js";
 import { createOnLeadCreatedFunction } from "./triggers/on-lead-created.js";
 import { createProcessMetaInboxFunction } from "./triggers/process-meta-inbox.js";
+import { createSlaWatchdogFunction } from "./triggers/sla-watchdog.js";
 
 // La región sale de la configuración resuelta de la instancia
 // (`pnpm instance:build <id>`), nunca de constantes.
@@ -29,3 +30,6 @@ export const onLeadCreated = createOnLeadCreatedFunction(config);
 export const crmUpsertTask = createCrmUpsertTaskFunction(config);
 export const agencyNotifyTask = createAgencyNotifyTaskFunction(config);
 export const metaCapiLeadTask = createMetaCapiLeadTaskFunction();
+
+// SLA de primera respuesta cada 5 minutos (docs/specs/005-sla-watchdog.md).
+export const slaWatchdog = createSlaWatchdogFunction(config);
