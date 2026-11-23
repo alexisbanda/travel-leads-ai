@@ -188,7 +188,8 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 | `dataRetentionMonths` | Entero positivo: conservación por defecto de leads sin venta |
 | `internationalTransferWithoutAdequacy` | `scc` · `adequacy` · `none`: mecanismo exigido si el destino no tiene decisión de adecuación para este mercado |
 | `aiDisclosure` | `{ text, version }`: aviso de que el viajero habla con una IA, en el idioma del mercado |
-| `legalTexts` | `{ version, privacyNotice, commercialConsent, marketingConsent?, cookieBanner? }`: textos legales base con una versión común |
+| `legalTexts` | `{ version, privacyNotice, commercialConsent, marketingConsent?, cookieBanner?, pages }`: textos legales base con una versión común |
+| `legalTexts.pages` | `[{ slug, title, body }]`: páginas legales completas que publica la plantilla de landings en `/legal/<slug>`. Al menos una, con slugs en kebab-case y sin repetidos |
 | `priceDisclaimer` | Texto: aviso de precios orientativos |
 | `agentTone` | Texto: tono del agente para los prompts |
 | `locked` | Lista sin repetidos de claves de este pack que la instancia no puede sobrescribir: `locale`, `currency`, `timezone`, `phoneDefaultRegion`, `businessHours`, `legalRegime`, `dataRegions`, `bigqueryLocation`, `dataRetentionMonths`, `internationalTransferWithoutAdequacy`, `aiDisclosure`, `legalTexts`, `priceDisclaimer`, `agentTone` |
@@ -196,6 +197,12 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 Las versiones (`aiDisclosure.version`, `legalTexts.version`) son `draft` o un identificador como `1.0.0` o `2026-01`. Los textos no pueden estar vacíos.
 
 Los packs viven en el paquete `@tla/markets` (`packages/markets/<iso>/pack.ts`) y se registran por código de país en `marketPacks`; `getMarketPack(country)` devuelve `undefined` si no existe. `aiDisclosure.text` admite el marcador `{brand}`, que se sustituye por `brand.displayName` de la instancia.
+
+## Qué lee la plantilla de landings
+
+`apps/landings` (ver [04-landings.md](04-landings.md)) no lee `instance.yaml` ni los packs directamente: lee `generated/instance.json` en la raíz del repositorio, que escribe `pnpm instance:build <id>` como `ResolvedInstanceConfig`. De ahí toma la marca, el número de WhatsApp, la moneda y el locale del mercado, y las páginas de `marketPack.legalTexts.pages` para las rutas `/legal/<slug>`.
+
+Fuera de `draft`, el build de la plantilla exige que `brand.displayName`, `brand.domain` y `channels.whatsapp.number` no estén vacíos; si falta alguno, falla con un error que los lista. En `draft`, solo avisa por consola y sigue adelante.
 
 #### Claves bloqueadas
 

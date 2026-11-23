@@ -34,6 +34,30 @@ El contenido pertenece a la instancia, en el idioma de su mercado. La plantilla 
 
 El código de campaña en el `prefill` (`[GAL-01]`) permite atribuir conversaciones de WhatsApp que empiezan en la landing.
 
+### Campos de `LandingContent`
+
+Esquema Zod en `packages/shared/src/landing/landing-content.ts`, exportado como `LandingContent` desde `@tla/shared`. `pnpm instance:validate` lo aplica a cada archivo de `content/landings/*.json`: el `slug` debe coincidir con el nombre del archivo (sin extensión) y no puede chocar con un slug de `legalTexts.pages` del pack de mercado.
+
+| Campo | Tipo y validación |
+| --- | --- |
+| `slug` | Kebab-case (minúsculas, dígitos y `-`); debe coincidir con el nombre del archivo |
+| `segment` | Texto no vacío; coherente con los `segments` de la instancia |
+| `tourIds` | Lista no vacía de IDs del catálogo |
+| `seo` | `{ title, description }`, ambos obligatorios |
+| `hero` | `{ headline, subheadline?, media? }` |
+| `sections` | Lista no vacía de `itinerary` · `includes` · `bestSeason` · `priceGuidance` · `faq` · `trust` · `cta`, en el orden en que se renderizan |
+| `faq` | Opcional: lista de `{ q, a }` |
+| `cta` | `{ type: "whatsapp" \| "form", prefill? }` |
+| `experiment` | Opcional: `{ id, variant }`, referencia a un experimento A/B en curso |
+| `draft` | Booleano, por defecto `false`. Ver [Borrador](#borrador) |
+
+## Rutas y borrador
+
+- `/<slug>`: una landing publicada (`apps/landings/app/[slug]/page.tsx`), generada por `generateStaticParams` a partir de `content/landings/*.json`, con `dynamicParams = false` (cualquier otro slug devuelve 404).
+- `/legal/<slug>`: una página legal (`apps/landings/app/legal/[slug]/page.tsx`) por cada entrada de `legalTexts.pages` del pack de mercado de la instancia (no de `content/landings/`).
+
+Una landing con `draft: true` solo se incluye en `generateStaticParams` si la instancia completa está en `status: draft`; en cualquier otro estado queda excluida, como si no existiera. Mientras la instancia está en `draft`, la plantilla añade una banda de borrador visible y `noindex` en todas las páginas, para que un sitio de prueba no se indexe ni se confunda con el definitivo.
+
 ## Componentes
 
 | Componente | Notas |
@@ -76,7 +100,7 @@ Además:
 
 ## Páginas legales obligatorias
 
-Las define el pack de mercado (`legal.pages`), con textos revisados por un abogado de ese mercado. En mercados UE: privacidad, cookies y aviso legal. El texto del checkbox de consentimiento se versiona (`textVersion`).
+Las define el pack de mercado en `legalTexts.pages` (al menos una, slugs únicos en kebab-case), con textos revisados por un abogado de ese mercado. En mercados UE: privacidad, cookies y aviso legal. El texto del checkbox de consentimiento se versiona (`legalTexts.version`).
 
 ## Una instancia, un sitio
 
