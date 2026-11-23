@@ -12,6 +12,7 @@ export default tseslint.config(
       "!apps/landings/lib/**",
       "**/dist/**",
       "**/.next/**",
+      "**/next-env.d.ts",
       "**/coverage/**",
       "**/generated/**",
     ],
