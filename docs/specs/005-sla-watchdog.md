@@ -1,7 +1,7 @@
 # Spec 005 · Vigilancia del SLA de primera respuesta (`slaWatchdog`)
 
 - **Issue:** #18
-- **Estado:** En revisión
+- **Estado:** Aprobada
 - **Autor:** equipo del motor
 - **Área:** functions
 
@@ -19,7 +19,7 @@ Piezas que ya existen y se reutilizan:
 
 1. `slaWatchdog` (`onSchedule("every 5 minutes")`, región de las opciones globales) se ejecuta cada 5 minutos.
 2. Lee `config/sla` y lo valida con `ConfigSla`. Si falta o no es válido, usa los valores de la configuración resuelta (`sla`, `market.businessHours`, `market.timezone`) y registra un error en logs (`detail: "config_sla_fallback"`). Así, cambiar `config/sla` cambia los umbrales en la ejecución siguiente, sin redesplegar.
-3. Consulta los candidatos: `status == "new"` y `createdAt` entre `ahora − 14 días` y `ahora − warnAfterMinutes`, en orden por `createdAt`, con un máximo de 200 por ejecución. El límite inferior impide que los leads `new` antiguos se lean para siempre (ver «Casos límite»). El superior es un filtro previo válido, porque los minutos hábiles nunca superan a los de reloj.
+3. Consulta los candidatos: `status == "new"` y `createdAt` entre `ahora − 14 días` y `ahora − warnAfterMinutes`, en orden por `createdAt`, en páginas de 200 y con un máximo de 1.000 por ejecución. Se pagina porque los leads ya avisados siguen en `new` hasta que alguien responde: con un tope fijo ocuparían todos los puestos y los leads nuevos nunca entrarían. El límite inferior impide que los leads `new` antiguos se lean para siempre (ver «Casos límite»). El superior es un filtro previo válido, porque los minutos hábiles nunca superan a los de reloj.
 4. Descarta en memoria los que tienen `sla.firstResponseAt` o `sla.breachedAt`.
 5. Para cada candidato calcula los **minutos hábiles** transcurridos entre `createdAt` y ahora (`businessMinutesBetween`, lógica pura en `functions/src/domain/sla.ts`):
    - Solo cuentan los minutos dentro de `businessHours` (`start`–`end` de los `days` ISO, con 1 = lunes), interpretados en `timezone`, con los cambios de horario de verano incluidos.
@@ -61,10 +61,12 @@ Piezas que ya existen y se reutilizan:
 ```ts
 type NotifyMessage =
   | { kind: "lead_created"; lead: NotifyLeadInput }
-  | { kind: "sla_warning" | "sla_breach"; lead: NotifyLeadInput; businessMinutes: number; thresholdMinutes: number };
+  | { kind: "sla"; level: "warning" | "breach"; lead: SlaNotifyLeadInput; businessMinutes: number; thresholdMinutes: number };
 ```
 
-- `notifierFor` recibe el destino que corresponde (`agency.notify` o `partner.notify`) en lugar de leer siempre `agency.notify`.
+- `SlaNotifyLeadInput` solo lleva `leadId`, `source` y `contact.name`.
+- `notifierFor` recibe un parámetro opcional `recipient` (`"agency"` por defecto o `"partner"`) para elegir `agency.notify` o `partner.notify`.
+- `notifyMessageId(message)` da el id fijo de cada aviso.
 - Idioma: el aviso a la agencia usa `agency.locale` o, si falta, el del mercado. El aviso al socio usa siempre el del mercado.
 - Los textos de los emails van en `domain/notify-email.ts` (`es` y `en`), junto a los del aviso de lead nuevo, porque son avisos internos y no textos para viajeros.
 
@@ -100,7 +102,8 @@ leadId: 01JD0000000000000000000000
 | `config/sla` ausente o inválido | Se usa la configuración resuelta y se registra un error (`config_sla_fallback`) |
 | El lead pasa a `contacted` o recibe `firstResponseAt` | Deja de ser candidato. Los avisos ya enviados no se retiran |
 | Lead `new` con más de 14 días | Fuera de la consulta. Con cualquier horario de al menos un día por semana, los dos niveles ya se han alcanzado antes |
-| Más de 200 candidatos | Se procesan los 200 más antiguos. El resto, en las ejecuciones siguientes |
+| Más de 200 candidatos | Se leen en páginas de 200 con cursor, hasta 1.000 por ejecución |
+| Más de 1.000 candidatos | Se procesan los 1.000 más antiguos y se registra un aviso (`candidate_cap`). Los más recientes esperan, así que el aviso indica que hay que revisar el volumen |
 | Lead que no cumple el esquema mínimo | Se omite con un error en logs (`invalid_lead`) y no detiene a los demás |
 
 ## Seguridad y privacidad
@@ -131,7 +134,7 @@ leadId: 01JD0000000000000000000000
 - **Unitarias** (`domain/sla.test.ts`):
   - `businessMinutesBetween`: dentro del horario, fuera de horario, a caballo del cierre, días no hábiles, fin de semana largo y cambios de horario de verano en una zona con DST.
   - `slaLevelsDue`: cada combinación de umbrales y marcas.
-- **Unitarias** (`notify-email.test.ts`): textos de `sla_warning` y `sla_breach` en `es` y `en`, con HTML escapado.
+- **Unitarias** (`notify-email.test.ts`): textos de los niveles `warning` y `breach` en `es` y `en`, con HTML escapado.
 - **Handler** (`sla-watchdog.test.ts`, con un store y un notifier falsos):
   - los dos niveles y su orden;
   - omisión por falta de canal;

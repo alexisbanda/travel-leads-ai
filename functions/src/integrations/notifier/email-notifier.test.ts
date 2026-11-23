@@ -99,4 +99,31 @@ describe("email notifier", () => {
     );
     await expect(n.notify(message)).rejects.toBeInstanceOf(TypeError);
   });
+
+  it("los avisos del SLA usan un documento por nivel y no llevan datos de contacto", async () => {
+    const { mail, n } = notifier("uno@example.test");
+    const lead = {
+      leadId: TEST_LEAD_ID,
+      source: "landing" as const,
+      contact: { name: "Persona Ficticia" },
+    };
+    const sla = (level: "warning" | "breach"): NotifyMessage => ({
+      kind: "sla",
+      level,
+      lead,
+      businessMinutes: level === "warning" ? 11 : 31,
+      thresholdMinutes: level === "warning" ? 10 : 30,
+    });
+    await n.notify(sla("warning"));
+    await n.notify(sla("warning"));
+    await n.notify(sla("breach"));
+    expect([...mail.docs.keys()]).toEqual([
+      `sla-warning-${TEST_LEAD_ID}`,
+      `sla-breach-${TEST_LEAD_ID}`,
+    ]);
+    expect(mail.docs.get(`sla-warning-${TEST_LEAD_ID}`)?.message.subject).toBe(
+      "SLA en riesgo · 11 min sin respuesta · landing",
+    );
+    expect(mail.docs.get(`sla-breach-${TEST_LEAD_ID}`)?.message.text).not.toContain("@");
+  });
 });

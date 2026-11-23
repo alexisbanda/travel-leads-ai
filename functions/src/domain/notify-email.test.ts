@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildLeadCreatedEmail,
+  buildSlaEmail,
   escapeHtml,
   notifyLocale,
   parseRecipients,
@@ -111,5 +112,47 @@ describe("parseRecipients", () => {
 describe("escapeHtml", () => {
   it("escapa los cinco caracteres especiales", () => {
     expect(escapeHtml(`&<>"'`)).toBe("&amp;&lt;&gt;&quot;&#39;");
+  });
+});
+
+describe("buildSlaEmail", () => {
+  const SLA_LEAD = { leadId: LEAD.leadId, source: LEAD.source, contact: LEAD.contact };
+
+  it("warning en español: asunto con minutos y origen, umbral en el cuerpo", () => {
+    const email = buildSlaEmail("warning", SLA_LEAD, 12, 10, ES_LOCALE);
+    expect(email.subject).toBe("SLA en riesgo · 12 min sin respuesta · landing");
+    expect(email.text).toBe(
+      [
+        "Un lead nuevo lleva 12 minutos hábiles sin primera respuesta (umbral: 10).",
+        "",
+        "Nombre: Persona Ficticia",
+        "Origen: landing",
+        `leadId: ${LEAD.leadId}`,
+      ].join("\n"),
+    );
+  });
+
+  it("breach en inglés", () => {
+    const email = buildSlaEmail("breach", SLA_LEAD, 31, 30, EN_LOCALE);
+    expect(email.subject).toBe("SLA breached · 31 min without reply · landing");
+    expect(email.text).toContain(
+      "A new lead has gone 31 business minutes without a first reply (threshold: 30).",
+    );
+  });
+
+  it("idioma desconocido: inglés", () => {
+    expect(buildSlaEmail("warning", SLA_LEAD, 10, 10, "xx-XX").subject).toMatch(/^SLA at risk/);
+  });
+
+  it("escapa el nombre en el HTML", () => {
+    const email = buildSlaEmail(
+      "breach",
+      { ...SLA_LEAD, contact: { name: "<b>Ficticia</b>" } },
+      31,
+      30,
+      ES_LOCALE,
+    );
+    expect(email.html).toContain("&lt;b&gt;Ficticia&lt;/b&gt;");
+    expect(email.html).not.toContain("<b>Ficticia");
   });
 });

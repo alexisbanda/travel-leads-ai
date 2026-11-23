@@ -147,6 +147,9 @@ export const Lead = z.object({
   sla: z
     .object({
       firstResponseAt: z.date().optional(),
+      /** Aviso al socio del SLA enviado u omitido (spec 005). */
+      warnedAt: z.date().optional(),
+      /** SLA incumplido: aviso a la agencia enviado u omitido (spec 005). */
       breachedAt: z.date().optional(),
     })
     .optional(),
@@ -181,24 +184,35 @@ export const LEAD_TASK_EVENT_TYPES: readonly LeadTaskEventType[] = LeadTaskActio
   (action) => LeadTaskOutcome.options.map((outcome): LeadTaskEventType => `${action}.${outcome}`),
 );
 
+/** Niveles del SLA de primera respuesta (spec 005): aviso al socio e incumplimiento. */
+export const SlaLevel = z.enum(["warning", "breach"]);
+export type SlaLevel = z.infer<typeof SlaLevel>;
+
+/** Evento de cada nivel del SLA. */
+export const SLA_EVENT_TYPES = { warning: "sla.warned", breach: "sla.breached" } as const;
+
 /**
  * Tipos de evento de `leads/{leadId}/events` (lista cerrada, docs/02-modelo-de-datos.md):
  * - `created`: alta del lead.
  * - `reengaged`: la misma persona vuelve a escribir con el lead aún abierto (doc 03).
  * - `status_changed`: transición de la máquina de estados (lleva `from` y `to`).
  * - `<acción>.<resultado>`: ejecución de una tarea tras el alta (spec 003).
+ * - `sla.warned` / `sla.breached`: aviso del SLA de primera respuesta (spec 005).
  */
 export const LeadEventType = z.enum([
   "created",
   "reengaged",
   "status_changed",
   ...LEAD_TASK_EVENT_TYPES,
+  SLA_EVENT_TYPES.warning,
+  SLA_EVENT_TYPES.breach,
 ] as const);
 export type LeadEventType = z.infer<typeof LeadEventType>;
 
 /**
  * Código corto y sin datos personales que acompaña a un evento: motivo de un
- * `skipped` (`not_implemented`, `no_channel`) o nombre del error de un `failed`.
+ * `skipped` (`not_implemented`, `no_channel`), de un aviso de SLA omitido o nombre
+ * del error de un `failed`.
  */
 export const LeadEventDetail = z
   .string()
@@ -210,7 +224,7 @@ export type LeadEventDetail = z.infer<typeof LeadEventDetail>;
  * Evento inmutable de `leads/{leadId}/events`. `from` y `to` solo aparecen en
  * las transiciones de estado; eventos como `created` o `reengaged` pueden omitirlos.
  * `attribution` guarda la atribución del nuevo envío en `reengaged`: la del lead
- * (primer contacto) no se modifica. `detail` solo lo usan los eventos de tareas.
+ * (primer contacto) no se modifica. `detail` solo lo usan los eventos de tareas y de SLA.
  */
 export const LeadEvent = z.object({
   type: LeadEventType,

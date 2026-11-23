@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { NOTIFIER_REGISTRY, notifierFor, type Notifier, type NotifierContext } from "./index.js";
+import {
+  NOTIFIER_REGISTRY,
+  notifierFor,
+  notifyMessageId,
+  type Notifier,
+  type NotifierContext,
+} from "./index.js";
 
 // Locales de prueba: en runtime salen de la configuración resuelta.
 const ES_LOCALE = "es-XX"; // hardcoding-ok: valor de prueba
@@ -58,5 +64,56 @@ describe("notifierFor", () => {
 
   it("email está registrado", () => {
     expect(NOTIFIER_REGISTRY.email).toBeTypeOf("function");
+  });
+
+  it("recipient partner usa partner.notify y el locale del mercado", () => {
+    const partnerTarget = { channel: "email" as const, target: "secret:PARTNER_NOTIFY_TARGET" };
+    const seen: Array<[unknown, string]> = [];
+    const resolution = notifierFor(
+      {
+        agency: { notify: target, locale: EN_LOCALE },
+        partner: { notify: partnerTarget },
+        market,
+        channels: {},
+      },
+      readTarget,
+      {
+        email: (t, context) => {
+          seen.push([t, context.locale]);
+          return { notify: async () => ({ status: "sent" }) };
+        },
+      },
+      "partner",
+    );
+    expect(resolution.status).toBe("ready");
+    expect(seen).toEqual([[partnerTarget, ES_LOCALE]]);
+  });
+
+  it("recipient partner sin partner.notify → no_channel", () => {
+    expect(
+      notifierFor(
+        { agency: { notify: target }, market, channels: {} },
+        readTarget,
+        undefined,
+        "partner",
+      ),
+    ).toEqual({ status: "no_channel" });
+  });
+});
+
+describe("notifyMessageId", () => {
+  it("un id fijo por lead y tipo de aviso", () => {
+    const lead = {
+      leadId: "01J0000000000000000000000A",
+      source: "landing" as const,
+      contact: { name: "Ficticia" },
+    };
+    const sla = { lead, businessMinutes: 1, thresholdMinutes: 1 };
+    expect(notifyMessageId({ kind: "sla", level: "warning", ...sla })).toBe(
+      "sla-warning-01J0000000000000000000000A",
+    );
+    expect(notifyMessageId({ kind: "sla", level: "breach", ...sla })).toBe(
+      "sla-breach-01J0000000000000000000000A",
+    );
   });
 });

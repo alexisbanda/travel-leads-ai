@@ -68,9 +68,11 @@ Para cada lead nuevo (y en transiciones relevantes), se encolan tareas independi
 
 | Condición | Acción |
 | --- | --- |
-| Lead `new` sin `firstResponseAt` tras `sla.warnAfterMinutes` dentro de `market.businessHours` | Aviso al socio en el mercado |
+| Lead `new` sin `firstResponseAt` tras `sla.warnAfterMinutes` dentro de `market.businessHours` | Aviso al socio en el mercado + marca `sla.warnedAt` |
 | Tras `sla.breachAfterMinutes` | Aviso a la agencia + marca `sla.breachedAt` |
 | Fuera de horario | El agente envía un mensaje de acuse (si hay consentimiento y ventana de 24 h abierta) y se mide desde la apertura del horario |
+
+El reloj cuenta solo minutos dentro del horario: se pausa al cierre y sigue en la apertura siguiente. Cada aviso sale una sola vez por lead y nivel. Detalle en la [spec 005](specs/005-sla-watchdog.md).
 
 Horario y zona horaria salen de la configuración de la instancia (en `ec-es`: 9–21 h, `Europe/Madrid`, avisos a los 10 y 30 min). Los umbrales, el horario y su zona horaria se siembran en `config/sla` con `pnpm instance:seed <id> <env>` para poder cambiarlos sin desplegar (doc 02).
 

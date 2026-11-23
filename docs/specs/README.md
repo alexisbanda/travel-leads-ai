@@ -8,6 +8,6 @@ Los flujos con varias piezas (p. ej. webhook → inbox → lead → tareas) empi
 | [002](002-prueba-punta-a-punta.md) | Prueba de punta a punta antes de lanzar | Aprobada |
 | [003](003-on-lead-created.md) | Orquestación tras crear un lead (`onLeadCreated`) | Aprobada |
 | [004](004-meta-lead-ads-ingesta.md) | Ingesta de Meta Lead Ads (`processMetaInbox`) | Aprobada |
-| [005](005-sla-watchdog.md) | Vigilancia del SLA de primera respuesta (`slaWatchdog`) | En revisión |
+| [005](005-sla-watchdog.md) | Vigilancia del SLA de primera respuesta (`slaWatchdog`) | Aprobada |
 
 Próximas: webhook de WhatsApp, plantilla de landings, agente de calificación, ingesta del catálogo.
