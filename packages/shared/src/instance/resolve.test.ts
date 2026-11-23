@@ -55,6 +55,7 @@ const market = MarketPack.parse({
     version: "1.0.0",
     privacyNotice: `${BRAND_PLACEHOLDER} trata tus datos.`,
     commercialConsent: "Contacto",
+    pages: [{ slug: "privacidad", title: "Privacidad", body: "Texto de prueba." }],
   },
   priceDisclaimer: "Precio de prueba",
   agentTone: "Tono de prueba",

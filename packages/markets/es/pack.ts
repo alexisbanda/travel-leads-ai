@@ -67,6 +67,34 @@ export const es: MarketPack = MarketPack.parse({
     cookieBanner:
       "Usamos cookies propias y de terceros para medir y mejorar nuestra publicidad. Puedes " +
       "aceptarlas, rechazarlas o configurarlas. Si las rechazas, solo usamos las necesarias.",
+    // BORRADOR: páginas legales genéricas, pendientes de revisión por un abogado del
+    // mercado. No publicar en una instancia `pilot` o `active` sin esa revisión.
+    pages: [
+      {
+        slug: "privacidad",
+        title: "Política de privacidad (borrador)",
+        body:
+          "Borrador pendiente de revisión legal. Esta página describirá qué datos personales " +
+          "recogemos, con qué finalidad los tratamos, con quién los compartimos (incluida la " +
+          "agencia del destino) y cómo puedes ejercer tus derechos de acceso, rectificación, " +
+          "supresión, oposición, limitación y portabilidad.",
+      },
+      {
+        slug: "cookies",
+        title: "Política de cookies (borrador)",
+        body:
+          "Borrador pendiente de revisión legal. Esta página describirá las cookies propias y " +
+          "de terceros que usamos, su finalidad y cómo puedes aceptarlas, rechazarlas o " +
+          "configurarlas desde el panel de preferencias.",
+      },
+      {
+        slug: "aviso-legal",
+        title: "Aviso legal (borrador)",
+        body:
+          "Borrador pendiente de revisión legal. Esta página describirá la identidad del " +
+          "titular del sitio, sus datos de contacto y las condiciones generales de uso.",
+      },
+    ],
   },
   priceDisclaimer:
     "Precio orientativo, sujeto a confirmación por la agencia. No es una oferta ni una reserva.",
