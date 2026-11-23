@@ -189,3 +189,34 @@ export function mkLandingsDir(): string {
   const base = mkdtempSync(join(tmpdir(), "landings-content-"));
   return join(base, "content", "landings");
 }
+
+/**
+ * Landing ficticia con todas las secciones y datos (vídeo en el hero,
+ * itinerario, incluye, época, precio orientativo, FAQ, confianza y CTA).
+ */
+export function buildFullLanding(overrides: Partial<LandingContent> = {}): LandingContent {
+  return buildLanding({
+    hero: {
+      headline: "Titular de ejemplo",
+      subheadline: "Subtítulo de ejemplo",
+      media: {
+        src: "/media/ejemplo.mp4",
+        kind: "video",
+        poster: "/media/ejemplo.jpg",
+        alt: "Texto alternativo de ejemplo",
+        aiGenerated: false,
+      },
+    },
+    sections: ["itinerary", "includes", "bestSeason", "priceGuidance", "faq", "trust", "cta"],
+    itinerary: [
+      { day: 1, title: "Primer día de ejemplo", description: "Descripción del primer día." },
+      { day: 2, title: "Segundo día de ejemplo", description: "Descripción del segundo día." },
+    ],
+    includes: { included: ["Elemento incluido de ejemplo"], notIncluded: ["Elemento no incluido de ejemplo"] },
+    bestSeason: { summary: "Resumen de época de ejemplo." },
+    priceGuidance: { from: 2490 },
+    faq: [{ q: "Pregunta de ejemplo", a: "Respuesta de ejemplo." }],
+    cta: { type: "whatsapp", prefill: "Mensaje de ejemplo [EJ-01]" },
+    ...overrides,
+  });
+}
