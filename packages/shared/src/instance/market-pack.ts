@@ -29,6 +29,19 @@ export const VersionedText = z
   .strict();
 export type VersionedText = z.infer<typeof VersionedText>;
 
+/** Página legal completa (privacidad, cookies, aviso legal...) del mercado. */
+export const MarketLegalPage = z
+  .object({
+    /** Identificador en kebab-case; se usa como ruta `/legal/<slug>`. */
+    slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+      message: "identificador inválido: usa kebab-case (minúsculas, dígitos y -)",
+    }),
+    title: NonEmptyText,
+    body: NonEmptyText,
+  })
+  .strict();
+export type MarketLegalPage = z.infer<typeof MarketLegalPage>;
+
 /** Textos legales base del mercado, en su idioma, con una versión común. */
 export const MarketLegalTexts = z
   .object({
@@ -41,8 +54,19 @@ export const MarketLegalTexts = z
     marketingConsent: NonEmptyText.optional(),
     /** Texto del banner de cookies. */
     cookieBanner: NonEmptyText.optional(),
+    /** Páginas legales completas que publica la plantilla de landings en `/legal/<slug>`. */
+    pages: z.array(MarketLegalPage).min(1, { message: "indica al menos una página legal" }),
   })
-  .strict();
+  .strict()
+  .superRefine((legal, ctx) => {
+    for (const slug of duplicates(legal.pages.map((page) => page.slug))) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["pages"],
+        message: `slug de página legal repetido: ${slug}`,
+      });
+    }
+  });
 export type MarketLegalTexts = z.infer<typeof MarketLegalTexts>;
 
 /**

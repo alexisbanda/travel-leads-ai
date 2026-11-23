@@ -10,10 +10,13 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PATTERNS="$ROOT/scripts/hardcoding-patterns.txt"
 SCAN_DIRS=(apps functions packages/shared)
+# Salidas de build que no se escanean. No se usa --exclude-dir=lib porque
+# excluiría cualquier carpeta `lib` (apps/landings/lib es código fuente).
+BUILD_OUTPUTS=("$ROOT/functions/lib/")
 
 # Solo código; la documentación puede usar ejemplos.
 INCLUDES=(--include='*.ts' --include='*.tsx' --include='*.js' --include='*.mjs' --include='*.cjs' --include='*.json')
-EXCLUDES=(--exclude-dir=node_modules --exclude-dir=.next --exclude-dir=dist --exclude-dir=lib --exclude-dir=generated --exclude=package.json --exclude='tsconfig*.json')
+EXCLUDES=(--exclude-dir=node_modules --exclude-dir=.next --exclude-dir=dist --exclude-dir=generated --exclude=package.json --exclude='tsconfig*.json')
 
 existing=()
 for d in "${SCAN_DIRS[@]}"; do [[ -d "$ROOT/$d" ]] && existing+=("$ROOT/$d"); done
@@ -21,7 +24,11 @@ for d in "${SCAN_DIRS[@]}"; do [[ -d "$ROOT/$d" ]] && existing+=("$ROOT/$d"); do
 
 regex="$(grep -v '^[[:space:]]*#' "$PATTERNS" | grep -v '^[[:space:]]*$' | paste -sd '|' -)"
 
-if matches="$(grep -rnIE "${INCLUDES[@]}" "${EXCLUDES[@]}" -e "$regex" "${existing[@]}")"; then
+matches="$(grep -rnIE "${INCLUDES[@]}" "${EXCLUDES[@]}" -e "$regex" "${existing[@]}" || true)"
+for out in "${BUILD_OUTPUTS[@]}"; do
+  matches="$(printf '%s\n' "$matches" | grep -vF "$out" || true)"
+done
+if [[ -n "$matches" ]]; then
   echo "check-hardcoding: valores de instancia encontrados en el motor:"
   echo "$matches" | sed "s#$ROOT/##"
   echo

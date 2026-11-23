@@ -46,7 +46,12 @@ const pack = MarketPack.parse({
   dataRetentionMonths: 12,
   internationalTransferWithoutAdequacy: "scc",
   aiDisclosure: { text: "Aviso de IA de prueba", version: "draft" },
-  legalTexts: { version: "draft", privacyNotice: "Privacidad", commercialConsent: "Contacto" },
+  legalTexts: {
+    version: "draft",
+    privacyNotice: "Privacidad",
+    commercialConsent: "Contacto",
+    pages: [{ slug: "privacidad", title: "Privacidad", body: "Texto de prueba." }],
+  },
   priceDisclaimer: "Precio de prueba",
   agentTone: "Tono de prueba",
   locked: ALL_KEYS,

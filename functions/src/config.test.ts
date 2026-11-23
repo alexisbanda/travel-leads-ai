@@ -50,7 +50,12 @@ function syntheticConfig(): ResolvedInstanceConfig {
     dataRetentionMonths: 24,
     internationalTransferWithoutAdequacy: "scc",
     aiDisclosure: { text: "Aviso de IA de {brand}", version: "1.0.0" },
-    legalTexts: { version: "1.0.0", privacyNotice: "Privacidad", commercialConsent: "Contacto" },
+    legalTexts: {
+      version: "1.0.0",
+      privacyNotice: "Privacidad",
+      commercialConsent: "Contacto",
+      pages: [{ slug: "privacidad", title: "Privacidad", body: "Cuerpo de prueba" }],
+    },
     priceDisclaimer: "Precio de prueba",
     agentTone: "Tono de prueba",
     locked: [],

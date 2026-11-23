@@ -1,0 +1,21 @@
+{
+  "slug": "ejemplo",
+  "segment": "adventure",
+  "tourIds": ["tour-ejemplo-8d"],
+  "seo": {
+    "title": "Viaje de aventura de ejemplo: 8 días con guía local",
+    "description": "Itinerario de ejemplo, mejor época y precio orientativo. Asesoramiento por WhatsApp."
+  },
+  "hero": {
+    "headline": "Un viaje de aventura como lo viven los locales",
+    "subheadline": "8 días, grupos pequeños y asesoramiento en tu idioma",
+    "media": "/media/ejemplo-hero.mp4"
+  },
+  "sections": ["itinerary", "includes", "bestSeason", "priceGuidance", "faq", "trust", "cta"],
+  "faq": [
+    { "q": "¿Cuál es la mejor época para ir?", "a": "Depende de la actividad; te lo detallamos por WhatsApp." },
+    { "q": "¿Es seguro viajar?", "a": "Trabajamos con una agencia receptiva registrada en el destino." }
+  ],
+  "cta": { "type": "whatsapp", "prefill": "Hola, me interesa el viaje de ejemplo [EJ-01]" },
+  "draft": true
+}

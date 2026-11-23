@@ -1,0 +1,11 @@
+.next/
+out/
+*.tsbuildinfo
+
+# El .gitignore raíz ignora cualquier carpeta `lib/` (salida de build de
+# functions); aquí `lib/` es código fuente (ver AGENTS.md, apps/landings/lib).
+!lib/
+!lib/**
+
+# Lo genera Next (`next typegen`, `next dev`, `next build`) con rutas a .next/types.
+next-env.d.ts

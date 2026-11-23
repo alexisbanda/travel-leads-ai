@@ -46,6 +46,7 @@ const validPack = {
     version: "draft",
     privacyNotice: "Texto ficticio de privacidad.",
     commercialConsent: "Texto ficticio de consentimiento.",
+    pages: [{ slug: "privacidad", title: "Privacidad (ficticio)", body: "Texto ficticio." }],
   },
   priceDisclaimer: "Precios orientativos (texto ficticio).",
   agentTone: "Cercano (texto ficticio).",
@@ -63,6 +64,8 @@ describe("MarketPack", () => {
     ["dataRegions", []],
     ["aiDisclosure.text", " "],
     ["legalTexts.version", ""],
+    ["legalTexts.pages", []],
+    ["legalTexts.pages.0.slug", "No_Kebab"],
     ["locked", ["dataRegions", "dataRegions"]],
     ["businessHours.end", "08:00"],
   ])("rechaza un %s inválido", (path, value) => {
@@ -73,5 +76,14 @@ describe("MarketPack", () => {
   it("rechaza claves bloqueadas que no existen en el pack", () => {
     const result = MarketPack.safeParse(withValue(validPack, "locked", ["unknown"]));
     expect(issuePaths(result)).toEqual(["locked.0"]);
+  });
+
+  it("rechaza páginas legales con slug repetido", () => {
+    const withDuplicate = withValue(validPack, "legalTexts.pages", [
+      { slug: "privacidad", title: "Privacidad", body: "Texto." },
+      { slug: "privacidad", title: "Otra", body: "Otro texto." },
+    ]);
+    const result = MarketPack.safeParse(withDuplicate);
+    expect(issuePaths(result)).toEqual(["legalTexts.pages"]);
   });
 });

@@ -66,6 +66,16 @@ describe("pack de mercado es", () => {
     expect(es.legalTexts.cookieBanner).toBeDefined();
   });
 
+  it("incluye páginas legales en borrador, con slugs únicos", () => {
+    expect(es.legalTexts.version).toBe("draft");
+    const slugs = es.legalTexts.pages.map((page) => page.slug);
+    expect(new Set(slugs).size).toBe(slugs.length);
+    expect(slugs).toEqual(expect.arrayContaining(["privacidad", "cookies", "aviso-legal"]));
+    for (const page of es.legalTexts.pages) {
+      expect(page.body).toMatch(/Borrador pendiente de revisión legal/);
+    }
+  });
+
   it("retención de 24 meses, transferencia scc y aviso de precios orientativos", () => {
     expect(es.dataRetentionMonths).toBe(24);
     expect(es.internationalTransferWithoutAdequacy).toBe("scc");
