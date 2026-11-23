@@ -69,6 +69,60 @@ export const MarketLegalTexts = z
   });
 export type MarketLegalTexts = z.infer<typeof MarketLegalTexts>;
 
+/** Marcador del precio formateado en `landingUi.priceFrom`. */
+export const PRICE_PLACEHOLDER = "{price}";
+/** Marcador del número de día en `landingUi.dayLabel`. */
+export const DAY_PLACEHOLDER = "{day}";
+
+/** Texto no vacío que debe contener el marcador `placeholder`. */
+function templateText(placeholder: string) {
+  return NonEmptyText.refine((text) => text.includes(placeholder), {
+    message: `la plantilla debe contener el marcador ${placeholder}`,
+  });
+}
+
+/**
+ * Textos de interfaz de la plantilla de landings, en el idioma del mercado.
+ * El motor no escribe textos para viajeros: los componentes los leen de aquí.
+ */
+export const MarketLandingUi = z
+  .object({
+    /** Etiqueta visible junto a un medio generado con IA (`aiGenerated: true`). */
+    aiImageLabel: NonEmptyText,
+    /** Plantilla del precio orientativo con el marcador `{price}` (precio ya formateado). */
+    priceFrom: templateText(PRICE_PLACEHOLDER),
+    /** Títulos de las secciones de la landing. */
+    sectionTitles: z
+      .object({
+        itinerary: NonEmptyText,
+        includes: NonEmptyText,
+        bestSeason: NonEmptyText,
+        priceGuidance: NonEmptyText,
+        faq: NonEmptyText,
+        trust: NonEmptyText,
+      })
+      .strict(),
+    /** Plantilla de la etiqueta de cada día del itinerario, con el marcador `{day}`. */
+    dayLabel: templateText(DAY_PLACEHOLDER),
+    /** Encabezado de la lista de lo que incluye el viaje. */
+    includedLabel: NonEmptyText,
+    /** Encabezado de la lista de lo que no incluye el viaje. */
+    notIncludedLabel: NonEmptyText,
+    /** Etiquetas del bloque de confianza. */
+    trust: z
+      .object({
+        /** Etiqueta del teléfono o canal de atención. */
+        phoneLabel: NonEmptyText,
+        /** Etiqueta de la agencia. */
+        agencyLabel: NonEmptyText,
+      })
+      .strict(),
+    /** Texto del botón de WhatsApp. */
+    whatsappCta: NonEmptyText,
+  })
+  .strict();
+export type MarketLandingUi = z.infer<typeof MarketLandingUi>;
+
 /**
  * Claves del pack de mercado que se pueden declarar como bloqueadas: la
  * instancia no puede sobrescribirlas al resolver la configuración.
@@ -126,6 +180,8 @@ export const MarketPack = z
     priceDisclaimer: NonEmptyText,
     /** Descripción del tono del agente para los prompts. */
     agentTone: NonEmptyText,
+    /** Textos de interfaz de la plantilla de landings. */
+    landingUi: MarketLandingUi,
     /** Claves que la instancia no puede sobrescribir. */
     locked: z.array(MarketPackLockableKey),
   })

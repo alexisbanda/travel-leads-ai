@@ -59,6 +59,23 @@ const market = MarketPack.parse({
   },
   priceDisclaimer: "Precio de prueba",
   agentTone: "Tono de prueba",
+  landingUi: {
+    aiImageLabel: "Etiqueta IA (ficticio)",
+    priceFrom: "Desde {price} (ficticio)",
+    sectionTitles: {
+      itinerary: "Itinerario (ficticio)",
+      includes: "Incluye (ficticio)",
+      bestSeason: "Época (ficticio)",
+      priceGuidance: "Precio (ficticio)",
+      faq: "FAQ (ficticio)",
+      trust: "Confianza (ficticio)",
+    },
+    dayLabel: "Día {day} (ficticio)",
+    includedLabel: "Incluido (ficticio)",
+    notIncludedLabel: "No incluido (ficticio)",
+    trust: { phoneLabel: "Teléfono (ficticio)", agencyLabel: "Agencia (ficticio)" },
+    whatsappCta: "WhatsApp (ficticio)",
+  },
   locked: ["dataRegions", "bigqueryLocation", "dataRetentionMonths", "currency"],
 });
 

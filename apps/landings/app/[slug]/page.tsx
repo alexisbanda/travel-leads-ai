@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { LandingContent } from "@tla/shared";
+import { LandingView } from "../../components/LandingView.js";
 import { loadLandingsConfig } from "../../lib/config.js";
 import { loadLandings } from "../../lib/content.js";
 import { buildLandingParams } from "../../lib/params.js";
+import { buildLandingView } from "../../lib/view.js";
 
 // Literal: Next analiza estáticamente la configuración del segmento.
 export const dynamicParams = false;
@@ -30,12 +32,6 @@ export async function generateMetadata({
   return { title: landing.seo.title, description: landing.seo.description };
 }
 
-function whatsappHref(number: string, prefill: string | undefined): string | undefined {
-  if (number.trim() === "") return undefined;
-  const base = `https://wa.me/${number.replace(/^\+/, "")}`;
-  return prefill === undefined ? base : `${base}?text=${encodeURIComponent(prefill)}`;
-}
-
 export default async function LandingPage({
   params,
 }: {
@@ -46,23 +42,5 @@ export default async function LandingPage({
   if (!landing) notFound();
 
   const { instance } = loadLandingsConfig();
-  const href = whatsappHref(instance.channels.whatsapp.number, landing.cta.prefill);
-
-  return (
-    <main>
-      <h1>{landing.hero.headline}</h1>
-      {landing.hero.subheadline ? <p>{landing.hero.subheadline}</p> : null}
-      {landing.faq ? (
-        <section>
-          {landing.faq.map((item) => (
-            <details key={item.q}>
-              <summary>{item.q}</summary>
-              <p>{item.a}</p>
-            </details>
-          ))}
-        </section>
-      ) : null}
-      {landing.cta.type === "whatsapp" && href ? <a href={href}>WhatsApp</a> : null}
-    </main>
-  );
+  return <LandingView view={buildLandingView(landing, instance)} />;
 }

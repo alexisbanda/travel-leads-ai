@@ -192,15 +192,30 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 | `legalTexts.pages` | `[{ slug, title, body }]`: páginas legales completas que publica la plantilla de landings en `/legal/<slug>`. Al menos una, con slugs en kebab-case y sin repetidos |
 | `priceDisclaimer` | Texto: aviso de precios orientativos |
 | `agentTone` | Texto: tono del agente para los prompts |
+| `landingUi` | Textos de interfaz de la plantilla de landings, en el idioma del mercado (ver abajo). Obligatorio; no es una clave bloqueable |
 | `locked` | Lista sin repetidos de claves de este pack que la instancia no puede sobrescribir: `locale`, `currency`, `timezone`, `phoneDefaultRegion`, `businessHours`, `legalRegime`, `dataRegions`, `bigqueryLocation`, `dataRetentionMonths`, `internationalTransferWithoutAdequacy`, `aiDisclosure`, `legalTexts`, `priceDisclaimer`, `agentTone` |
 
 Las versiones (`aiDisclosure.version`, `legalTexts.version`) son `draft` o un identificador como `1.0.0` o `2026-01`. Los textos no pueden estar vacíos.
+
+`landingUi` agrupa los textos fijos de la interfaz de las landings, para que los componentes no escriban textos para viajeros. Es un objeto estricto y todos sus textos son no vacíos:
+
+| Campo | Uso |
+| --- | --- |
+| `aiImageLabel` | Etiqueta visible junto a un medio con `aiGenerated: true` |
+| `priceFrom` | Plantilla del precio orientativo; debe contener `{price}`, que se sustituye por el precio ya formateado (p. ej. «Desde {price} por persona») |
+| `sectionTitles` | `{ itinerary, includes, bestSeason, priceGuidance, faq, trust }`: títulos de las secciones |
+| `dayLabel` | Plantilla de la etiqueta de cada día del itinerario; debe contener `{day}` (p. ej. «Día {day}») |
+| `includedLabel`, `notIncludedLabel` | Encabezados de las listas de lo que incluye y no incluye el viaje |
+| `trust` | `{ phoneLabel, agencyLabel }`: etiquetas del bloque de confianza |
+| `whatsappCta` | Texto del botón de WhatsApp |
+
+En la configuración resuelta queda en `marketPack.landingUi` de `generated/instance.json`.
 
 Los packs viven en el paquete `@tla/markets` (`packages/markets/<iso>/pack.ts`) y se registran por código de país en `marketPacks`; `getMarketPack(country)` devuelve `undefined` si no existe. `aiDisclosure.text` admite el marcador `{brand}`, que se sustituye por `brand.displayName` de la instancia.
 
 ## Qué lee la plantilla de landings
 
-`apps/landings` (ver [04-landings.md](04-landings.md)) no lee `instance.yaml` ni los packs directamente: lee `generated/instance.json` en la raíz del repositorio, que escribe `pnpm instance:build <id>` como `ResolvedInstanceConfig`. De ahí toma la marca, el número de WhatsApp, la moneda y el locale del mercado, y las páginas de `marketPack.legalTexts.pages` para las rutas `/legal/<slug>`.
+`apps/landings` (ver [04-landings.md](04-landings.md)) no lee `instance.yaml` ni los packs directamente: lee `generated/instance.json` en la raíz del repositorio, que escribe `pnpm instance:build <id>` como `ResolvedInstanceConfig`. De ahí toma la marca, el número de WhatsApp, la moneda y el locale del mercado, las páginas de `marketPack.legalTexts.pages` para las rutas `/legal/<slug>` y los textos de interfaz de `marketPack.landingUi`.
 
 Fuera de `draft`, el build de la plantilla exige que `brand.displayName`, `brand.domain` y `channels.whatsapp.number` no estén vacíos; si falta alguno, falla con un error que los lista. En `draft`, solo avisa por consola y sigue adelante.
 

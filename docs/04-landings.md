@@ -20,9 +20,25 @@ El contenido pertenece a la instancia, en el idioma de su mercado. La plantilla 
   "hero": {
     "headline": "Galápagos como lo viven los locales",
     "subheadline": "8 días, grupos pequeños y asesoramiento en España",
-    "media": "/media/galapagos-hero.mp4"
+    "media": {
+      "src": "/media/galapagos-hero.mp4",
+      "kind": "video",
+      "poster": "/media/galapagos-hero.jpg",
+      "alt": "Lobo marino en una playa de Galápagos",
+      "aiGenerated": false
+    }
   },
   "sections": ["itinerary", "includes", "bestSeason", "priceGuidance", "faq", "trust", "cta"],
+  "itinerary": [
+    { "day": 1, "title": "Llegada a Quito", "description": "..." },
+    { "day": 2, "title": "Vuelo a Galápagos", "description": "..." }
+  ],
+  "includes": {
+    "included": ["Alojamiento", "Guía naturalista"],
+    "notIncluded": ["Vuelos internacionales"]
+  },
+  "bestSeason": { "summary": "..." },
+  "priceGuidance": { "from": 2490 },
   "faq": [
     { "q": "¿Cuál es la mejor época para ir?", "a": "..." },
     { "q": "¿Es seguro viajar a Ecuador?", "a": "..." }
@@ -45,11 +61,18 @@ Esquema Zod en `packages/shared/src/landing/landing-content.ts`, exportado como 
 | `tourIds` | Lista no vacía de IDs del catálogo |
 | `seo` | `{ title, description }`, ambos obligatorios |
 | `hero` | `{ headline, subheadline?, media? }` |
+| `hero.media` | Opcional: `{ src, kind: "video" \| "image", poster?, alt, aiGenerated }`. `aiGenerated` es booleano, por defecto `false`; si es `true`, la plantilla muestra junto al medio la etiqueta `landingUi.aiImageLabel` del pack de mercado |
 | `sections` | Lista no vacía de `itinerary` · `includes` · `bestSeason` · `priceGuidance` · `faq` · `trust` · `cta`, en el orden en que se renderizan |
+| `itinerary` | Opcional: lista no vacía de `{ day, title, description }`; `day` es un entero ≥ 1 |
+| `includes` | Opcional: `{ included, notIncluded? }`; `included` es una lista no vacía de textos |
+| `bestSeason` | Opcional: `{ summary }` |
+| `priceGuidance` | Opcional: `{ from }`, número positivo. Precio **orientativo** por persona en la moneda del mercado; no es una oferta ni confirma disponibilidad, y se muestra siempre con el `priceDisclaimer` del pack |
 | `faq` | Opcional: lista de `{ q, a }` |
 | `cta` | `{ type: "whatsapp" \| "form", prefill? }` |
 | `experiment` | Opcional: `{ id, variant }`, referencia a un experimento A/B en curso |
 | `draft` | Booleano, por defecto `false`. Ver [Borrador](#borrador) |
+
+Los datos de las secciones (`itinerary`, `includes`, `bestSeason`, `priceGuidance`, `faq`) son opcionales: una sección incluida en `sections` pero sin datos no se renderiza. Los textos fijos de la interfaz (títulos de sección, «Día N», «Desde X por persona», etiqueta de medio generado con IA, botón de WhatsApp...) no están en el contenido ni en el código: salen de `marketPack.landingUi` de la configuración resuelta (ver [11-instancias-y-configuracion.md](11-instancias-y-configuracion.md#marketpack-packagesmarketsiso)).
 
 ## Rutas y borrador
 
@@ -69,6 +92,8 @@ Una landing con `draft: true` solo se incluye en `generateStaticParams` si la in
 | `LeadForm` | Nombre, teléfono, email opcional, mes, personas, checkbox de consentimiento |
 | `WhatsAppCTA` | Enlace `wa.me` con mensaje predefinido y código de campaña |
 | `ConsentBanner` | Consent Mode v2; sin consentimiento no se carga el Pixel |
+
+Los componentes viven en `apps/landings/components/` (Server Components sin estado). No leen configuración: `lib/view.ts` (`buildLandingView`) resuelve antes los textos de `marketPack.landingUi`, el precio con `Intl.NumberFormat`, el número con `libphonenumber-js` y el enlace `wa.me`, y descarta las secciones sin datos. La página renderiza el `Hero` y después las secciones en el orden de `sections`. Los estilos usan Tailwind CSS 4 (`app/globals.css`); el color de marca sale de `brand.primaryColor` (variable `--brand-primary`, utilidades `bg-brand`, `text-brand`, `border-brand`). `LeadForm` y `ConsentBanner` llegan en otros tickets.
 
 ## Tracking
 

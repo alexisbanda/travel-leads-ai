@@ -50,6 +50,23 @@ const validPack = {
   },
   priceDisclaimer: "Precios orientativos (texto ficticio).",
   agentTone: "Cercano (texto ficticio).",
+  landingUi: {
+    aiImageLabel: "Etiqueta IA (ficticio)",
+    priceFrom: "Desde {price} (ficticio)",
+    sectionTitles: {
+      itinerary: "Itinerario (ficticio)",
+      includes: "Incluye (ficticio)",
+      bestSeason: "Época (ficticio)",
+      priceGuidance: "Precio (ficticio)",
+      faq: "FAQ (ficticio)",
+      trust: "Confianza (ficticio)",
+    },
+    dayLabel: "Día {day} (ficticio)",
+    includedLabel: "Incluido (ficticio)",
+    notIncludedLabel: "No incluido (ficticio)",
+    trust: { phoneLabel: "Teléfono (ficticio)", agencyLabel: "Agencia (ficticio)" },
+    whatsappCta: "WhatsApp (ficticio)",
+  },
   locked: ["dataRegions", "bigqueryLocation", "aiDisclosure"],
 };
 
@@ -71,6 +88,30 @@ describe("MarketPack", () => {
   ])("rechaza un %s inválido", (path, value) => {
     const result = MarketPack.safeParse(withValue(validPack, path, value));
     expect(issuePaths(result)).toEqual([path]);
+  });
+
+  it("exige el bloque landingUi", () => {
+    const { landingUi: _landingUi, ...rest } = validPack;
+    expect(issuePaths(MarketPack.safeParse(rest))).toContain("landingUi");
+  });
+
+  it.each([
+    ["landingUi.aiImageLabel", ""],
+    ["landingUi.priceFrom", "Desde 100"],
+    ["landingUi.priceFrom", " "],
+    ["landingUi.dayLabel", "Día"],
+    ["landingUi.sectionTitles.faq", ""],
+    ["landingUi.trust.agencyLabel", ""],
+    ["landingUi.whatsappCta", ""],
+  ])("rechaza %s = %j en su ruta", (path, value) => {
+    const result = MarketPack.safeParse(withValue(validPack, path, value));
+    expect(result.success).toBe(false);
+    expect(issuePaths(result)).toContain(path);
+  });
+
+  it("landingUi es estricto: rechaza claves desconocidas", () => {
+    const result = MarketPack.safeParse(withValue(validPack, "landingUi.unknown", "x"));
+    expect(issuePaths(result)).toContain("landingUi");
   });
 
   it("rechaza claves bloqueadas que no existen en el pack", () => {
