@@ -157,8 +157,13 @@ export function slaLevelsDue(
 
 /** Días hacia atrás que mira `slaWatchdog`: con un día hábil por semana basta. */
 export const SLA_LOOKBACK_DAYS = 14;
-/** Candidatos por ejecución, los más antiguos primero. */
-export const SLA_MAX_CANDIDATES = 200;
+/** Candidatos por página de la consulta, los más antiguos primero. */
+export const SLA_PAGE_SIZE = 200;
+/**
+ * Candidatos como máximo por ejecución. Los leads ya avisados siguen en `new` hasta que
+ * alguien responde, así que se pagina: un tope fijo bloquearía a los más recientes.
+ */
+export const SLA_MAX_CANDIDATES_PER_RUN = 1000;
 
 /** Ventana de `createdAt` de los candidatos: los minutos hábiles nunca superan a los de reloj. */
 export function slaCandidateWindow(

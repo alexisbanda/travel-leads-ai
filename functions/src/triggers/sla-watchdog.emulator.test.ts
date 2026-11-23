@@ -140,11 +140,29 @@ describe.skipIf(EMULATOR_HOST === "")("slaWatchdog contra el emulador de Firesto
     await db.collection(CONFIG_COLLECTION).doc(CONFIG_SLA_DOC).set(SLA);
   });
 
+  it("pagina los candidatos con el cursor de la página anterior", async () => {
+    const store = createFirestoreSlaWatchdogStore(() => db);
+    const now = new Date("2031-02-04T10:00:00Z");
+    const ids = [];
+    for (const minutes of [40, 30, 20]) {
+      ids.push(await seedLead(new Date(now.getTime() - minutes * 60_000)));
+    }
+    const window = { createdFrom: new Date(now.getTime() - 60 * 60_000), createdTo: now };
+    const first = await store.listCandidates({ ...window, limit: 2 });
+    expect(first.candidates.map((c) => c.leadId)).toEqual(ids.slice(0, 2));
+    expect(first.cursor).toBeDefined();
+    const second = await store.listCandidates({ ...window, limit: 2, cursor: first.cursor });
+    expect(second.candidates.map((c) => c.leadId)).toEqual(ids.slice(2));
+    expect(second.cursor).toBeUndefined();
+  });
+
   it("la marca no se escribe si el lead cambió desde que se leyó", async () => {
     const store = createFirestoreSlaWatchdogStore(() => db);
     const now = new Date("2031-01-28T10:00:00Z");
     const leadId = await seedLead(new Date(now.getTime() - 31 * 60_000));
-    const [candidate] = await store.listCandidates({
+    const {
+      candidates: [candidate],
+    } = await store.listCandidates({
       createdFrom: new Date(now.getTime() - 60 * 60_000),
       createdTo: now,
       limit: 10,

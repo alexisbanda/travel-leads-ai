@@ -19,7 +19,7 @@ Piezas que ya existen y se reutilizan:
 
 1. `slaWatchdog` (`onSchedule("every 5 minutes")`, región de las opciones globales) se ejecuta cada 5 minutos.
 2. Lee `config/sla` y lo valida con `ConfigSla`. Si falta o no es válido, usa los valores de la configuración resuelta (`sla`, `market.businessHours`, `market.timezone`) y registra un error en logs (`detail: "config_sla_fallback"`). Así, cambiar `config/sla` cambia los umbrales en la ejecución siguiente, sin redesplegar.
-3. Consulta los candidatos: `status == "new"` y `createdAt` entre `ahora − 14 días` y `ahora − warnAfterMinutes`, en orden por `createdAt`, con un máximo de 200 por ejecución. El límite inferior impide que los leads `new` antiguos se lean para siempre (ver «Casos límite»). El superior es un filtro previo válido, porque los minutos hábiles nunca superan a los de reloj.
+3. Consulta los candidatos: `status == "new"` y `createdAt` entre `ahora − 14 días` y `ahora − warnAfterMinutes`, en orden por `createdAt`, en páginas de 200 y con un máximo de 1.000 por ejecución. Se pagina porque los leads ya avisados siguen en `new` hasta que alguien responde: con un tope fijo ocuparían todos los puestos y los leads nuevos nunca entrarían. El límite inferior impide que los leads `new` antiguos se lean para siempre (ver «Casos límite»). El superior es un filtro previo válido, porque los minutos hábiles nunca superan a los de reloj.
 4. Descarta en memoria los que tienen `sla.firstResponseAt` o `sla.breachedAt`.
 5. Para cada candidato calcula los **minutos hábiles** transcurridos entre `createdAt` y ahora (`businessMinutesBetween`, lógica pura en `functions/src/domain/sla.ts`):
    - Solo cuentan los minutos dentro de `businessHours` (`start`–`end` de los `days` ISO, con 1 = lunes), interpretados en `timezone`, con los cambios de horario de verano incluidos.
@@ -102,7 +102,8 @@ leadId: 01JD0000000000000000000000
 | `config/sla` ausente o inválido | Se usa la configuración resuelta y se registra un error (`config_sla_fallback`) |
 | El lead pasa a `contacted` o recibe `firstResponseAt` | Deja de ser candidato. Los avisos ya enviados no se retiran |
 | Lead `new` con más de 14 días | Fuera de la consulta. Con cualquier horario de al menos un día por semana, los dos niveles ya se han alcanzado antes |
-| Más de 200 candidatos | Se procesan los 200 más antiguos. El resto, en las ejecuciones siguientes |
+| Más de 200 candidatos | Se leen en páginas de 200 con cursor, hasta 1.000 por ejecución |
+| Más de 1.000 candidatos | Se procesan los 1.000 más antiguos y se registra un aviso (`candidate_cap`). Los más recientes esperan, así que el aviso indica que hay que revisar el volumen |
 | Lead que no cumple el esquema mínimo | Se omite con un error en logs (`invalid_lead`) y no detiene a los demás |
 
 ## Seguridad y privacidad

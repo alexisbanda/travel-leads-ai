@@ -16,7 +16,8 @@ import {
 import { errorDetail } from "../domain/lead-tasks.js";
 import {
   businessMinutesBetween,
-  SLA_MAX_CANDIDATES,
+  SLA_MAX_CANDIDATES_PER_RUN,
+  SLA_PAGE_SIZE,
   slaCandidateWindow,
   slaLevelsDue,
 } from "../domain/sla.js";
@@ -183,28 +184,43 @@ export function createSlaWatchdogHandler(deps: SlaWatchdogDeps): () => Promise<v
   return async () => {
     const now = deps.now();
     const sla = await loadSla(deps);
-    const candidates = await deps.store.listCandidates({
-      ...slaCandidateWindow(now, sla.warnAfterMinutes),
-      limit: SLA_MAX_CANDIDATES,
-    });
+    const window = slaCandidateWindow(now, sla.warnAfterMinutes);
 
     const totals = { warned: 0, breached: 0, failed: 0 };
-    for (const candidate of candidates) {
-      try {
-        const result = await processCandidate(deps, sla, now, candidate);
-        totals.warned += result.warned;
-        totals.breached += result.breached;
-      } catch (error) {
-        totals.failed += 1;
-        deps.log.error("slaWatchdog: error con un lead", {
-          leadId: candidate.leadId,
-          outcome: "failed",
-          detail: errorDetail(error),
-        });
+    let seen = 0;
+    let cursor: unknown;
+    do {
+      const page = await deps.store.listCandidates({
+        ...window,
+        limit: Math.min(SLA_PAGE_SIZE, SLA_MAX_CANDIDATES_PER_RUN - seen),
+        ...(cursor !== undefined && { cursor }),
+      });
+      for (const candidate of page.candidates) {
+        try {
+          const result = await processCandidate(deps, sla, now, candidate);
+          totals.warned += result.warned;
+          totals.breached += result.breached;
+        } catch (error) {
+          totals.failed += 1;
+          deps.log.error("slaWatchdog: error con un lead", {
+            leadId: candidate.leadId,
+            outcome: "failed",
+            detail: errorDetail(error),
+          });
+        }
       }
-    }
+      seen += page.candidates.length;
+      cursor = page.cursor;
+    } while (cursor !== undefined && seen < SLA_MAX_CANDIDATES_PER_RUN);
 
-    deps.log.info("slaWatchdog: ejecución", { candidates: candidates.length, ...totals });
+    if (cursor !== undefined) {
+      // Quedan candidatos sin revisar: los más recientes esperan a la ejecución siguiente.
+      deps.log.warn("slaWatchdog: límite de candidatos por ejecución", {
+        candidates: seen,
+        detail: "candidate_cap",
+      });
+    }
+    deps.log.info("slaWatchdog: ejecución", { candidates: seen, ...totals });
     if (totals.failed > 0) throw new SlaWatchdogError(totals.failed);
   };
 }

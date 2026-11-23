@@ -1,6 +1,11 @@
 // Persistencia de `slaWatchdog` (spec 005): lectura de `config/sla`, consulta de
 // candidatos y marca de cada nivel del SLA en el lead, junto con su evento.
-import { getFirestore, Timestamp, type Firestore } from "firebase-admin/firestore";
+import {
+  getFirestore,
+  Timestamp,
+  type Firestore,
+  type QueryDocumentSnapshot,
+} from "firebase-admin/firestore";
 import type { LeadEvent, SlaLevel } from "@tla/shared";
 import { defaultAdminApp } from "../integrations/firebase-app.js";
 import { LEAD_EVENTS_SUBCOLLECTION, LEADS_COLLECTION } from "../integrations/landing-lead-store.js";
@@ -25,17 +30,27 @@ export interface SlaMarkRequest {
   event: LeadEvent;
 }
 
+/** Página de candidatos; `cursor` presente si puede haber más. */
+export interface SlaCandidatePage {
+  candidates: SlaCandidate[];
+  cursor?: unknown;
+}
+
 export type SlaMarkResult = { status: "marked"; version: unknown } | { status: "conflict" };
 
 export interface SlaWatchdogStore {
   /** Documento `config/sla` (sin validar) o `null` si no existe. */
   loadSlaConfig(): Promise<unknown>;
-  /** Leads `new` con `createdAt` en `[createdFrom, createdTo]`, los más antiguos primero. */
+  /**
+   * Una página de leads `new` con `createdAt` en `[createdFrom, createdTo]`, los más
+   * antiguos primero. `cursor` es el de la página anterior.
+   */
   listCandidates(query: {
     createdFrom: Date;
     createdTo: Date;
     limit: number;
-  }): Promise<SlaCandidate[]>;
+    cursor?: unknown;
+  }): Promise<SlaCandidatePage>;
   /**
    * Escribe en un batch `sla.warnedAt` o `sla.breachedAt`, `updatedAt` y el evento.
    * `conflict` si el lead cambió desde que se leyó con `version`.
@@ -79,20 +94,25 @@ export function createFirestoreSlaWatchdogStore(db: () => Firestore = defaultDb)
       return snap.exists ? (snap.data() ?? null) : null;
     },
 
-    async listCandidates({ createdFrom, createdTo, limit }) {
-      const snap = await db()
+    async listCandidates({ createdFrom, createdTo, limit, cursor }) {
+      let query = db()
         .collection(LEADS_COLLECTION)
         .where("status", "==", "new")
         .where("createdAt", ">=", createdFrom)
         .where("createdAt", "<=", createdTo)
         .orderBy("createdAt")
-        .limit(limit)
-        .get();
-      return snap.docs.map((doc) => ({
+        .limit(limit);
+      if (cursor !== undefined) query = query.startAfter(cursor as QueryDocumentSnapshot);
+      const snap = await query.get();
+      const candidates = snap.docs.map((doc) => ({
         leadId: doc.id,
         data: firestoreDatesToDates(doc.data()) as Record<string, unknown>,
         version: doc.updateTime,
       }));
+      const last = snap.docs.at(-1);
+      return snap.docs.length === limit && last !== undefined
+        ? { candidates, cursor: last }
+        : { candidates };
     },
 
     async markLevel(leadId, version, { level, at, eventId, event }) {

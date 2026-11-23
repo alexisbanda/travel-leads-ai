@@ -50,7 +50,7 @@ function setup(options: Options = {}) {
   const sent: { recipient: NotifyRecipient; message: NotifyMessage }[] = [];
   const marks: { leadId: string; mark: SlaMarkRequest }[] = [];
   const logs: { level: string; message: string; fields: SlaLogFields }[] = [];
-  const queries: { createdFrom: Date; createdTo: Date; limit: number }[] = [];
+  const queries: { createdFrom: Date; createdTo: Date; limit: number; cursor?: unknown }[] = [];
   let config: unknown = options.config === undefined ? SLA : options.config;
   let seq = 0;
 
@@ -58,17 +58,24 @@ function setup(options: Options = {}) {
     loadSlaConfig: async () => config,
     listCandidates: async (query) => {
       queries.push(query);
-      return Object.entries(leads)
+      const all = Object.entries(leads)
         .filter(([, data]) => data.status === "new")
         .filter(([, data]) => {
           const createdAt = data.createdAt as Date;
           return createdAt >= query.createdFrom && createdAt <= query.createdTo;
         })
-        .map(([leadId, data]) => ({
-          leadId,
-          data: structuredClone(data),
-          version: versions.get(leadId),
-        }));
+        .sort(
+          ([a, x], [b, y]) => +(x.createdAt as Date) - +(y.createdAt as Date) || a.localeCompare(b),
+        );
+      // El cursor es la posición siguiente en la lista ordenada.
+      const start = typeof query.cursor === "number" ? query.cursor : 0;
+      const candidates = all.slice(start, start + query.limit).map(([leadId, data]) => ({
+        leadId,
+        data: structuredClone(data),
+        version: versions.get(leadId),
+      }));
+      const next = start + candidates.length;
+      return candidates.length === query.limit ? { candidates, cursor: next } : { candidates };
     },
     markLevel: async (leadId, version, mark) => {
       if (options.conflictOn?.(leadId, mark.level) === true || versions.get(leadId) !== version) {
@@ -289,6 +296,42 @@ describe("slaWatchdog", () => {
     expect(levelsSent(t.sent)).toEqual([["partner", `warning:${LEAD_A}`]]);
     expect(t.marks).toEqual([]);
     expect(t.logs.some((entry) => entry.fields.outcome === "conflict")).toBe(true);
+  });
+
+  it("los leads ya avisados que siguen en new no bloquean a los nuevos: se pagina", async () => {
+    const leads: Record<string, Record<string, unknown>> = {};
+    const done = { warnedAt: minutesAgo(100), breachedAt: minutesAgo(80) };
+    for (let i = 0; i < 450; i += 1) {
+      const id = `01J${String(i).padStart(23, "0")}`;
+      leads[id] = lead(id, minutesAgo(200 + i), { sla: done });
+    }
+    leads[LEAD_A] = lead(LEAD_A, minutesAgo(11));
+    const t = setup({ leads });
+    await t.run();
+    expect(levelsSent(t.sent)).toEqual([["partner", `warning:${LEAD_A}`]]);
+    expect(t.queries.map((query) => [query.limit, query.cursor])).toEqual([
+      [200, undefined],
+      [200, 200],
+      [200, 400],
+    ]);
+    expect(t.logs.at(-1)?.fields).toMatchObject({ candidates: 451 });
+  });
+
+  it("con más candidatos que el tope por ejecución, para y lo registra", async () => {
+    const leads: Record<string, Record<string, unknown>> = {};
+    const done = { warnedAt: minutesAgo(100), breachedAt: minutesAgo(80) };
+    for (let i = 0; i < 1001; i += 1) {
+      const id = `01J${String(i).padStart(23, "0")}`;
+      leads[id] = lead(id, minutesAgo(200 + i), { sla: done });
+    }
+    const t = setup({ leads });
+    await t.run();
+    expect(t.queries).toHaveLength(5);
+    expect(t.logs).toContainEqual({
+      level: "warn",
+      message: "slaWatchdog: límite de candidatos por ejecución",
+      fields: { candidates: 1000, detail: "candidate_cap" },
+    });
   });
 
   it("con primera respuesta o fuera de new no avisa", async () => {
