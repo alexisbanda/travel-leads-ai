@@ -16,15 +16,21 @@ Plantilla única de landings en **Next.js (App Router) + React + TypeScript**, d
 ```
 apps/landings/
 ├── app/
-│   ├── layout.tsx             # Layout raíz
+│   ├── globals.css            # Tailwind CSS 4 y token de marca (--brand-primary)
+│   ├── layout.tsx             # Layout raíz; fija --brand-primary desde brand.primaryColor
 │   ├── not-found.tsx          # 404 (slugs fuera de generateStaticParams)
 │   ├── [slug]/page.tsx        # Una landing publicada; dynamicParams = false
 │   └── legal/[slug]/page.tsx  # Una página por entrada de legalTexts.pages
+├── components/                # Hero, Itinerary, Includes, BestSeason, PriceGuidance, FAQ, Trust, WhatsAppCTA, LandingView
+│   └── landing.test.tsx       # Tests de componentes (jsdom, testing-library, axe-core)
 ├── lib/
 │   ├── config.ts              # Lee y valida generated/instance.json (loadLandingsConfig)
 │   ├── content.ts             # Lee y valida instances/<id>/content/landings/*.json (loadLandings)
 │   ├── params.ts              # generateStaticParams de ambas rutas (buildLandingParams, buildLegalParams)
+│   ├── format.ts              # Precio (Intl), día, enlace wa.me y teléfono (libphonenumber-js)
+│   ├── view.ts                # buildLandingView: secciones con datos ya resueltos, en orden
 │   └── *.test.ts, test-fixtures.ts
+├── postcss.config.mjs         # @tailwindcss/postcss
 ├── next.config.ts             # transpilePackages + alias de resolución para @tla/shared en fuente TS
 ├── tsconfig.json               # No extiende tsconfig.base.json (incompatible con jsx/moduleResolution de Next)
 └── vitest.config.ts

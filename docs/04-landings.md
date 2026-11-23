@@ -93,6 +93,8 @@ Una landing con `draft: true` solo se incluye en `generateStaticParams` si la in
 | `WhatsAppCTA` | Enlace `wa.me` con mensaje predefinido y código de campaña |
 | `ConsentBanner` | Consent Mode v2; sin consentimiento no se carga el Pixel |
 
+Los componentes viven en `apps/landings/components/` (Server Components sin estado). No leen configuración: `lib/view.ts` (`buildLandingView`) resuelve antes los textos de `marketPack.landingUi`, el precio con `Intl.NumberFormat`, el número con `libphonenumber-js` y el enlace `wa.me`, y descarta las secciones sin datos. La página renderiza el `Hero` y después las secciones en el orden de `sections`. Los estilos usan Tailwind CSS 4 (`app/globals.css`); el color de marca sale de `brand.primaryColor` (variable `--brand-primary`, utilidades `bg-brand`, `text-brand`, `border-brand`). `LeadForm` y `ConsentBanner` llegan en otros tickets.
+
 ## Tracking
 
 1. Al cargar: leer UTMs, `fbclid` y `gclid`; guardarlos en `sessionStorage` y en una cookie first-party (solo con consentimiento de analítica).

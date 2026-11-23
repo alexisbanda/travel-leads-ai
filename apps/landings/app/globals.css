@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+/*
+ * Color de marca de la instancia: el layout fija `--brand-primary` desde
+ * `brand.primaryColor` de la configuración resuelta. `inline` hace que las
+ * utilidades (`bg-brand`, `text-brand`, `border-brand`) lean la variable.
+ */
+@theme inline {
+  --color-brand: var(--brand-primary, #111827);
+}
