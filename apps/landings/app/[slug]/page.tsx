@@ -3,9 +3,10 @@ import { notFound } from "next/navigation";
 import type { LandingContent } from "@tla/shared";
 import { loadLandingsConfig } from "../../lib/config.js";
 import { loadLandings } from "../../lib/content.js";
-import { buildLandingParams, dynamicParams as DYNAMIC_PARAMS } from "../../lib/params.js";
+import { buildLandingParams } from "../../lib/params.js";
 
-export const dynamicParams = DYNAMIC_PARAMS;
+// Literal: Next analiza estáticamente la configuración del segmento.
+export const dynamicParams = false;
 
 export function generateStaticParams(): Array<{ slug: string }> {
   return buildLandingParams();
