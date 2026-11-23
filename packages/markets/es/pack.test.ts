@@ -57,6 +57,25 @@ describe("pack de mercado es", () => {
     expect(es.locked).not.toContain("businessHours");
   });
 
+  it("define los textos de interfaz de landings (landingUi) en es-ES", () => {
+    expect(es.landingUi.aiImageLabel).toBe("Imagen generada con IA");
+    expect(es.landingUi.priceFrom).toBe("Desde {price} por persona");
+    expect(es.landingUi.dayLabel).toBe("Día {day}");
+    expect(es.landingUi.sectionTitles).toEqual({
+      itinerary: "Itinerario",
+      includes: "Qué incluye",
+      bestSeason: "Mejor época",
+      priceGuidance: "Precio orientativo",
+      faq: "Preguntas frecuentes",
+      trust: "Por qué confiar en nosotros",
+    });
+    expect(es.landingUi.includedLabel).toBeTruthy();
+    expect(es.landingUi.notIncludedLabel).toBeTruthy();
+    expect(es.landingUi.trust.phoneLabel).toBe("Atención por WhatsApp");
+    expect(es.landingUi.trust.agencyLabel).toBe("Agencia receptiva");
+    expect(es.landingUi.whatsappCta).toBe("Escríbenos por WhatsApp");
+  });
+
   it("textos legales y aviso de IA en borrador y en es-ES", () => {
     expect(es.legalTexts.version).toBe("draft");
     expect(es.aiDisclosure.version).toBe("draft");

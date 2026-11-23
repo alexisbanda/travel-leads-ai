@@ -102,6 +102,26 @@ export const es: MarketPack = MarketPack.parse({
     "Español de España (es-ES), tuteo cercano y profesional, sin jerga ni exceso de formalidad. " +
     "Mensajes breves (2–4 frases) y una sola pregunta por mensaje. Sin emojis salvo que el " +
     "viajero los use primero.",
+  landingUi: {
+    aiImageLabel: "Imagen generada con IA",
+    priceFrom: "Desde {price} por persona",
+    sectionTitles: {
+      itinerary: "Itinerario",
+      includes: "Qué incluye",
+      bestSeason: "Mejor época",
+      priceGuidance: "Precio orientativo",
+      faq: "Preguntas frecuentes",
+      trust: "Por qué confiar en nosotros",
+    },
+    dayLabel: "Día {day}",
+    includedLabel: "Incluye",
+    notIncludedLabel: "No incluye",
+    trust: {
+      phoneLabel: "Atención por WhatsApp",
+      agencyLabel: "Agencia receptiva",
+    },
+    whatsappCta: "Escríbenos por WhatsApp",
+  },
   locked: [
     "legalRegime",
     "dataRegions",

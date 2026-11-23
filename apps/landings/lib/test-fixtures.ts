@@ -83,6 +83,23 @@ export const BASE_RESOLVED_INSTANCE: ResolvedInstanceConfig = {
   },
   marketPack: {
     agentTone: "Tono de ejemplo.",
+    landingUi: {
+      aiImageLabel: "Etiqueta IA (ficticio)",
+      priceFrom: "Desde {price} (ficticio)",
+      sectionTitles: {
+        itinerary: "Itinerario (ficticio)",
+        includes: "Incluye (ficticio)",
+        bestSeason: "Época (ficticio)",
+        priceGuidance: "Precio (ficticio)",
+        faq: "FAQ (ficticio)",
+        trust: "Confianza (ficticio)",
+      },
+      dayLabel: "Día {day} (ficticio)",
+      includedLabel: "Incluido (ficticio)",
+      notIncludedLabel: "No incluido (ficticio)",
+      trust: { phoneLabel: "Teléfono (ficticio)", agencyLabel: "Agencia (ficticio)" },
+      whatsappCta: "WhatsApp (ficticio)",
+    },
     aiDisclosure: { text: "Aviso de IA de ejemplo.", version: "draft" },
     bigqueryLocation: "EU",
     businessHours: { days: [1, 2, 3, 4, 5, 6], end: "21:00", start: "09:00" },

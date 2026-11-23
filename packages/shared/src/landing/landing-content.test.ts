@@ -32,9 +32,21 @@ const validContent = {
   hero: {
     headline: "Titular de ejemplo",
     subheadline: "Subtitular de ejemplo",
-    media: "/media/ejemplo-hero.mp4",
+    media: {
+      src: "/media/ejemplo-hero.mp4",
+      kind: "video",
+      poster: "/media/ejemplo-hero.jpg",
+      alt: "Texto alternativo de ejemplo",
+    },
   },
   sections: ["itinerary", "includes", "bestSeason", "priceGuidance", "faq", "trust", "cta"],
+  itinerary: [
+    { day: 1, title: "Día de ejemplo 1", description: "Descripción de ejemplo." },
+    { day: 2, title: "Día de ejemplo 2", description: "Descripción de ejemplo." },
+  ],
+  includes: { included: ["Elemento incluido"], notIncluded: ["Elemento no incluido"] },
+  bestSeason: { summary: "Resumen de ejemplo de la mejor época." },
+  priceGuidance: { from: 1000 },
   faq: [{ q: "¿Pregunta de ejemplo?", a: "Respuesta de ejemplo." }],
   cta: { type: "whatsapp", prefill: "Hola, me interesa [EJ-01]" },
   experiment: { id: "hero-v2", variant: "B" },
@@ -81,6 +93,59 @@ describe("LandingContent", () => {
     const result = LandingContent.safeParse({ ...validContent, seo: seoWithoutTitle });
     expect(result.success).toBe(false);
     expect(issuePaths(result)).toContain("seo.title");
+  });
+
+  it("pone aiGenerated a false por defecto en el medio del hero", () => {
+    const result = LandingContent.safeParse(validContent);
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.hero.media?.aiGenerated).toBe(false);
+  });
+
+  it("acepta aiGenerated explícito y kind image sin poster", () => {
+    const media = { src: "/media/ejemplo.jpg", kind: "image", alt: "Alt", aiGenerated: true };
+    const result = LandingContent.safeParse(withValue(validContent, "hero.media", media));
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.hero.media?.aiGenerated).toBe(true);
+  });
+
+  it("rechaza hero.media como cadena (formato antiguo) en la ruta hero.media", () => {
+    const result = LandingContent.safeParse(
+      withValue(validContent, "hero.media", "/media/ejemplo-hero.mp4"),
+    );
+    expect(result.success).toBe(false);
+    expect(issuePaths(result)).toContain("hero.media");
+  });
+
+  it.each([
+    ["hero.media.alt", ""],
+    ["hero.media.kind", "audio"],
+    ["priceGuidance.from", 0],
+    ["priceGuidance.from", -10],
+    ["includes.included", []],
+    ["bestSeason.summary", " "],
+    ["itinerary", []],
+  ])("rechaza %s = %j en su ruta", (path, value) => {
+    const result = LandingContent.safeParse(withValue(validContent, path, value));
+    expect(result.success).toBe(false);
+    expect(issuePaths(result).some((p) => p.startsWith(path))).toBe(true);
+  });
+
+  it("rechaza un día 0 en el itinerario", () => {
+    const itinerary = [{ day: 0, title: "Día", description: "Descripción" }];
+    const result = LandingContent.safeParse({ ...validContent, itinerary });
+    expect(result.success).toBe(false);
+    expect(issuePaths(result)).toContain("itinerary.0.day");
+  });
+
+  it("acepta sin datos de secciones (todas opcionales)", () => {
+    const {
+      itinerary: _i,
+      includes: _inc,
+      bestSeason: _b,
+      priceGuidance: _p,
+      ...rest
+    } = validContent;
+    expect(LandingContent.safeParse(rest).success).toBe(true);
   });
 
   it("es estricto: rechaza campos desconocidos", () => {
