@@ -46,6 +46,9 @@ jobs:
       - name: Validate instances
         run: pnpm instance:validate
 
+      - name: Build landings
+        run: pnpm instance:build ec-es && pnpm --filter landings build
+
       - name: Build functions
         run: pnpm --filter functions build
 
