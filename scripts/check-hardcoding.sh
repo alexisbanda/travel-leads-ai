@@ -9,11 +9,14 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PATTERNS="$ROOT/scripts/hardcoding-patterns.txt"
-SCAN_DIRS=(apps functions packages/shared)
+SCAN_DIRS=(apps functions/src packages/shared)
 
-# Solo código; la documentación puede usar ejemplos.
+# Solo código; la documentación puede usar ejemplos. `functions/src` (no
+# `functions`) deja fuera la salida de build `functions/lib` sin tener que
+# excluir cualquier carpeta llamada `lib` (apps/landings/lib sí es código
+# fuente y se escanea).
 INCLUDES=(--include='*.ts' --include='*.tsx' --include='*.js' --include='*.mjs' --include='*.cjs' --include='*.json')
-EXCLUDES=(--exclude-dir=node_modules --exclude-dir=.next --exclude-dir=dist --exclude-dir=lib --exclude-dir=generated --exclude=package.json --exclude='tsconfig*.json')
+EXCLUDES=(--exclude-dir=node_modules --exclude-dir=.next --exclude-dir=dist --exclude-dir=generated --exclude=package.json --exclude='tsconfig*.json')
 
 existing=()
 for d in "${SCAN_DIRS[@]}"; do [[ -d "$ROOT/$d" ]] && existing+=("$ROOT/$d"); done

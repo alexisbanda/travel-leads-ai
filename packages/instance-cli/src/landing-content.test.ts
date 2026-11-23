@@ -25,7 +25,7 @@ describe("validateLandingFiles", () => {
   });
 
   it("falla con seo.title ausente y lo reporta con la ruta del archivo y del campo", () => {
-    const { title, ...seoWithoutTitle } = validLanding.seo;
+    const { title: _title, ...seoWithoutTitle } = validLanding.seo;
     const json = { ...validLanding, seo: seoWithoutTitle };
     const issues = validateLandingFiles([{ file: "content/landings/ejemplo.json", json }], []);
     expect(issues).toHaveLength(1);

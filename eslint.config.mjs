@@ -7,6 +7,9 @@ export default tseslint.config(
     ignores: [
       "**/node_modules/**",
       "**/lib/**",
+      // apps/landings/lib es código fuente (ver apps/landings/.gitignore),
+      // no una salida de build como functions/lib: no lo ignores.
+      "!apps/landings/lib/**",
       "**/dist/**",
       "**/.next/**",
       "**/coverage/**",
@@ -16,6 +19,13 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   eslintConfigPrettier,
+  {
+    // Permite el patrón `const { campo, ...resto } = obj` para omitir
+    // `campo` (p. ej. en fixtures de test) prefijándolo con `_`.
+    rules: {
+      "@typescript-eslint/no-unused-vars": ["error", { varsIgnorePattern: "^_" }],
+    },
+  },
   {
     // Scripts Node planos (no TS): no-undef de eslint:recommended necesita
     // los globals del entorno; tseslint ya los resuelve vía lib para .ts.

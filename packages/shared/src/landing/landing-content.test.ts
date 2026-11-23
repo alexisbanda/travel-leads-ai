@@ -54,7 +54,7 @@ describe("LandingContent", () => {
   });
 
   it("acepta sin faq ni experiment (opcionales)", () => {
-    const { faq, experiment, ...rest } = validContent;
+    const { faq: _faq, experiment: _experiment, ...rest } = validContent;
     expect(LandingContent.safeParse(rest).success).toBe(true);
   });
 
@@ -77,7 +77,7 @@ describe("LandingContent", () => {
   });
 
   it("falla con seo.title ausente y lo reporta en la ruta del campo", () => {
-    const { title, ...seoWithoutTitle } = validContent.seo;
+    const { title: _title, ...seoWithoutTitle } = validContent.seo;
     const result = LandingContent.safeParse({ ...validContent, seo: seoWithoutTitle });
     expect(result.success).toBe(false);
     expect(issuePaths(result)).toContain("seo.title");
