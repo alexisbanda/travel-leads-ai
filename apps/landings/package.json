@@ -1,0 +1,27 @@
+{
+  "name": "landings",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Plantilla Next.js única de landings por instancia, a partir del contenido de instances/<id>/content/landings (docs/04-landings.md).",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tla/shared": "workspace:*",
+    "next": "15.5.29",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "typescript": "^5.7.2"
+  }
+}
