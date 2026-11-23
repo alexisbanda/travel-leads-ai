@@ -2,6 +2,7 @@ import { realpathSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateInstanceRules } from "@tla/shared";
+import { readLandingFiles, validateLandingFiles } from "./landing-content.js";
 import {
   DEFAULT_INSTANCES_DIR,
   defaultPackRegistry,
@@ -62,6 +63,14 @@ export function validateInstanceDir(
     });
   }
   issues.push(...validateInstanceRules(loaded.config, resolvePacks(loaded.config, registry)));
+
+  const market = registry.market(loaded.config.market.country);
+  const legalSlugs = market?.legalTexts.pages.map((page) => page.slug) ?? [];
+  const landingIssues = validateLandingFiles(readLandingFiles(dir), legalSlugs);
+  issues.push(
+    ...landingIssues.map(({ path, message }) => ({ rule: "landing-content", path, message })),
+  );
+
   return { name: loaded.name, schemaOnly, issues };
 }
 
