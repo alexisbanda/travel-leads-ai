@@ -1,6 +1,7 @@
 export {
   NOTIFIER_REGISTRY,
   notifierFor,
+  notifyMessageId,
   type Notifier,
   type NotifierConfig,
   type NotifierContext,
@@ -9,8 +10,10 @@ export {
   type NotifyChannelName,
   type NotifyLeadInput,
   type NotifyMessage,
+  type NotifyRecipient,
   type NotifyResult,
   type NotifyTarget,
+  type SlaNotifyLeadInput,
 } from "./notifier.js";
 export {
   createEmailNotifier,

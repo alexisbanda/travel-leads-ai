@@ -46,7 +46,8 @@ mail/{mailId}               # emails pendientes para la extensión Trigger Email
 | `assignedTo` | string? | Vendedor de la agencia |
 | `crm.contactId` / `crm.dealId` | string? | IDs externos |
 | `sla.firstResponseAt` | timestamp? | Primer mensaje humano o aprobado |
-| `sla.breachedAt` | timestamp? | |
+| `sla.warnedAt` | timestamp? | Aviso al socio del SLA enviado u omitido por falta de canal ([spec 005](specs/005-sla-watchdog.md)) |
+| `sla.breachedAt` | timestamp? | SLA incumplido: aviso a la agencia enviado u omitido ([spec 005](specs/005-sla-watchdog.md)) |
 | `qualification.score` | number? | 0–100, generado por el agente |
 | `qualification.summary` | string? | Resumen para el vendedor |
 | `createdAt` / `updatedAt` | timestamp | Servidor |
@@ -98,6 +99,7 @@ Cada transición crea un documento en `leads/{id}/events` con `{type, from, to, 
 | `crm.upsert.{succeeded,failed,skipped}` | Ejecución de la tarea de alta o actualización en el CRM (spec 003). `succeeded` guarda además `crm.contactId` y `crm.dealId` en el lead | `detail` (opcional) |
 | `agency.notify.{succeeded,failed,skipped}` | Ejecución de la tarea de aviso a la agencia (spec 003) | `detail` (opcional) |
 | `meta.capi.lead.{succeeded,failed,skipped}` | Ejecución de la tarea del evento `Lead` a Meta CAPI (spec 003) | `detail` (opcional) |
+| `sla.warned` / `sla.breached` | `slaWatchdog` marcó un nivel del SLA de primera respuesta (spec 005). `actor: "system"` | `detail` si el aviso se omitió: `no_channel`, `not_implemented` o `no_recipients` |
 
 `detail` es un código corto sin datos personales (letras, dígitos, `_`, `.` y `-`; máx. 100): el motivo de un `skipped` (`not_implemented`, `no_channel`, `no_event_id`), `invalid_lead`, el código de un fallo de Meta CAPI (`meta_capi_<status>`, `meta_capi_network`, `meta_capi_timeout`, `meta_capi_invalid_response`) o el nombre del error de un `failed`. Los eventos de tareas usan `actor: "system"`.
 
@@ -143,15 +145,15 @@ Si el lead apuntado sigue abierto y se creó hace menos de 90 días, un nuevo en
 
 ## `mail/{mailId}`
 
-Emails que envía la extensión Trigger Email de Firebase ([doc 11](11-instancias-y-configuracion.md#email-extensión-trigger-email)). Los escribe solo el servidor: la tarea `agencyNotifyTask` (aviso de lead nuevo, `agency.notify.channel: email`). **Contiene datos personales** (nombre del viajero y direcciones de los destinatarios): no se exporta a BigQuery y se borra por TTL.
+Emails que envía la extensión Trigger Email de Firebase ([doc 11](11-instancias-y-configuracion.md#email-extensión-trigger-email)). Los escribe solo el servidor: la tarea `agencyNotifyTask` (aviso de lead nuevo, `agency.notify.channel: email`) y `slaWatchdog` (avisos del SLA al socio y a la agencia, [spec 005](specs/005-sla-watchdog.md)). **Contiene datos personales** (nombre del viajero y direcciones de los destinatarios): no se exporta a BigQuery y se borra por TTL.
 
-El ID es determinista por aviso (`lead-created-<leadId>`) y se crea con `create()`: un reintento de Cloud Tasks no duplica el email.
+El ID es determinista por aviso (`lead-created-<leadId>`, `sla-warning-<leadId>`, `sla-breach-<leadId>`) y se crea con `create()`: un reintento no duplica el email.
 
 | Campo | Notas |
 | --- | --- |
-| `to` | Lista de direcciones, del secreto de `agency.notify.target` |
+| `to` | Lista de direcciones, del secreto de `agency.notify.target` (o de `partner.notify.target` en el aviso de SLA al socio) |
 | `from` | Opcional. `channels.email.from` si no está vacío |
-| `message.subject` / `.text` / `.html` | Contenido del aviso, en el idioma de `agency.locale` o del mercado. El HTML lleva los valores del lead escapados |
+| `message.subject` / `.text` / `.html` | Contenido del aviso, en el idioma de `agency.locale` o del mercado (el aviso al socio, siempre en el del mercado). El HTML lleva los valores del lead escapados |
 | `expireAt` | Fecha de creación + 7 días. Política TTL de Firestore sobre este campo |
 | `delivery` | Lo añade la extensión: estado del envío, intentos y error |
 

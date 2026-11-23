@@ -4,11 +4,18 @@
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import {
   buildLeadCreatedEmail,
+  buildSlaEmail,
   parseRecipients,
   type EmailContent,
 } from "../../domain/notify-email.js";
 import { defaultAdminApp } from "../firebase-app.js";
-import type { Notifier, NotifierContext, NotifyMessage, NotifyTarget } from "./notifier.js";
+import {
+  notifyMessageId,
+  type Notifier,
+  type NotifierContext,
+  type NotifyMessage,
+  type NotifyTarget,
+} from "./notifier.js";
 
 /** Colección que lee la extensión Trigger Email. */
 export const MAIL_COLLECTION = "mail";
@@ -52,7 +59,19 @@ export function createFirestoreMailStore(db: () => Firestore = defaultDb): MailS
 
 /** Id determinista del documento de `mail` de cada aviso. */
 export function mailDocId(message: NotifyMessage): string {
-  return `lead-created-${message.lead.leadId}`;
+  return notifyMessageId(message);
+}
+
+function emailFor(message: NotifyMessage, locale: string): EmailContent {
+  return message.kind === "lead_created"
+    ? buildLeadCreatedEmail(message.lead, locale)
+    : buildSlaEmail(
+        message.level,
+        message.lead,
+        message.businessMinutes,
+        message.thresholdMinutes,
+        locale,
+      );
 }
 
 export interface EmailNotifierDeps {
@@ -75,7 +94,7 @@ export function createEmailNotifier(
       await deps.mail.createOnce(mailDocId(message), {
         to,
         ...(from !== undefined && from !== "" && { from }),
-        message: buildLeadCreatedEmail(message.lead, context.locale),
+        message: emailFor(message, context.locale),
         expireAt,
       });
       // `exists`: un intento anterior ya lo dejó en `mail`; cuenta como enviado.
