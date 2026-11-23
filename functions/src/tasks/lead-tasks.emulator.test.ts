@@ -124,7 +124,13 @@ describe.skipIf(EMULATOR_HOST === "")("tareas de un lead contra el emulador de F
     await createAgencyNotifyHandler({ ...deps, notifier: () => ({ status: "no_channel" }) })({
       leadId,
     });
-    await createMetaCapiLeadHandler(deps)({ leadId });
+    // El lead ficticio no trae attribution.eventId: skipped no_event_id, sin llamar a Meta.
+    await createMetaCapiLeadHandler({
+      ...deps,
+      capi: () => {
+        throw new Error("no debe llamarse");
+      },
+    })({ leadId });
 
     expect(await eventTypes(leadId)).toEqual([
       "agency.notify.skipped",

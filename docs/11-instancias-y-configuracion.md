@@ -153,7 +153,7 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 | `channels.email.smtpSecret` | `secret:NOMBRE`: credencial SMTP (URI de conexión) que usa la extensión. El código del motor no la lee | No |
 | `channels.meta.pixelId` / `.pageId` | Dígitos | Sí |
 | `channels.meta.adAccountId` | Dígitos, con prefijo `act_` opcional | Sí |
-| `channels.meta.capiTokenSecret` | `secret:NOMBRE` | No |
+| `channels.meta.capiTokenSecret` | `secret:NOMBRE`: token de la Conversions API con el que `metaCapiLeadTask` envía el evento `Lead` (ver [Meta Conversions API](#meta-conversions-api)). Solo se ata a la función si `pixelId` no está vacío | No |
 | `channels.meta.pageTokenSecret` | `secret:NOMBRE`: token de página con el que `processMetaInbox` lee los leads de la Graph API ([spec 004](specs/004-meta-lead-ads-ingesta.md)) | No |
 | `channels.meta.leadForm.fieldMap` | Opcional (por defecto `{}`). Clave de la pregunta personalizada del formulario de Lead Ads → campo destino (`travelMonth` · `paxAdults` · `paxChildren` · `budgetRange` · `segment` · `notes` · `marketingConsent`) o `{ field, values }` para opción múltiple (respuesta → valor). Se rechazan destinos desconocidos y valores de `values` que no validen contra su destino (p. ej. `travelMonth` en `AAAA-MM`) | Sí |
 | `channels.gtmId` | `GTM-…` | Sí |
@@ -283,6 +283,13 @@ La instalación la hace el equipo, una vez por proyecto (`dev` y `prod`) de la i
    - **URI de conexión SMTP**: el secreto de `channels.email.smtpSecret` (la extensión lo guarda en Secret Manager; no se escribe en claro en ningún archivo del repositorio).
    - **Remitente por defecto**: el de `channels.email.from`.
 3. Activar la política TTL de Firestore sobre el campo `expireAt` de la colección `mail` (los documentos se conservan 7 días).
+
+### Meta Conversions API
+
+La tarea `metaCapiLeadTask` (`meta.capi.lead`, [spec 003](specs/003-on-lead-created.md#metacapilead)) envía el evento `Lead` al píxel de `channels.meta.pixelId` con el mismo `event_id` que el Pixel de la landing. Solo se encola si `pixelId` no está vacío; en ese caso la función ata el secreto de `channels.meta.capiTokenSecret`, que el equipo crea en Secret Manager del proyecto de la instancia.
+
+- **Consentimiento.** El email y el teléfono (`em`, `ph`, normalizados y en SHA-256) solo se envían si el lead tiene el consentimiento de `marketing` concedido y no retirado. Sin él, el evento va solo con `fbc`/`fbp` si existen, o con `user_data` vacío. Nunca se envían IP, _user agent_ ni nombre.
+- **`META_CAPI_TEST_EVENT_CODE`.** Parámetro de Cloud Functions (`defineString`, vacío por defecto) con el código de prueba del Administrador de eventos de Meta. **Solo en dev**, para validar el evento con un Pixel de pruebas; **nunca se define en prod**. Vacío: no se envía `test_event_code`.
 
 ### Configuración resuelta (`generated/instance.json`)
 

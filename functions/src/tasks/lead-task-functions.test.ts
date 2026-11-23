@@ -21,7 +21,9 @@ describe("definición de las tareas", () => {
       market: { locale: ES_LOCALE },
       channels: {},
     }),
-    metaCapiLeadTask: createMetaCapiLeadTaskFunction(),
+    metaCapiLeadTask: createMetaCapiLeadTaskFunction({
+      channels: { meta: { pixelId: "", capiTokenSecret: "secret:META_CAPI_ACCESS_TOKEN" } },
+    }),
   };
 
   it.each(Object.entries(functions))(
@@ -50,6 +52,22 @@ describe("definición de las tareas", () => {
     });
     expect(otherChannel.__endpoint.secretEnvironmentVariables ?? []).toEqual([]);
     expect(functions.agencyNotifyTask.__endpoint.secretEnvironmentVariables ?? []).toEqual([]);
+  });
+
+  it("meta.capi.lead ata el secreto de capiTokenSecret solo con pixelId", () => {
+    const withPixel = createMetaCapiLeadTaskFunction({
+      channels: {
+        meta: { pixelId: "000000000000002", capiTokenSecret: "secret:META_CAPI_ACCESS_TOKEN" },
+      },
+    });
+    expect(withPixel.__endpoint.secretEnvironmentVariables).toEqual([
+      { key: "META_CAPI_ACCESS_TOKEN" },
+    ]);
+    const blankPixel = createMetaCapiLeadTaskFunction({
+      channels: { meta: { pixelId: "  ", capiTokenSecret: "secret:META_CAPI_ACCESS_TOKEN" } },
+    });
+    expect(blankPixel.__endpoint.secretEnvironmentVariables ?? []).toEqual([]);
+    expect(functions.metaCapiLeadTask.__endpoint.secretEnvironmentVariables ?? []).toEqual([]);
   });
 
   it("index.ts exporta cada tarea con el nombre de su cola", () => {

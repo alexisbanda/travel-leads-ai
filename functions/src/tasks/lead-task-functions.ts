@@ -2,10 +2,11 @@
 // opciones globales (`region`) se leen al definirse: `index.ts` las llama tras
 // `setGlobalOptions`. Cada acción tiene su cola y su política de reintentos.
 import { logger } from "firebase-functions";
-import { defineSecret } from "firebase-functions/params";
+import { defineSecret, defineString } from "firebase-functions/params";
 import { onTaskDispatched, type TaskQueueOptions } from "firebase-functions/v2/tasks";
 import { ulid } from "../domain/ulid.js";
 import { crmAdapterFor, type CrmConfig } from "../integrations/crm/index.js";
+import { sendCapiEvents } from "../integrations/meta-capi.js";
 import { notifierFor, type NotifierConfig } from "../integrations/notifier/index.js";
 import { secretName } from "../integrations/secrets.js";
 import {
@@ -83,6 +84,42 @@ export function createAgencyNotifyTaskFunction(config: NotifierConfig) {
   );
 }
 
-export function createMetaCapiLeadTaskFunction() {
-  return taskFunction(createMetaCapiLeadHandler(defaultDeps()));
+/** Parte de la configuración resuelta que usa `meta.capi.lead`. */
+export interface MetaCapiTaskConfig {
+  channels: { meta: { pixelId: string; capiTokenSecret: string } };
+}
+
+/**
+ * `test_event_code` del Administrador de eventos de Meta: **solo para pruebas en dev**
+ * (docs/11). Vacío (por defecto) → no se envía. Nunca se define en prod.
+ */
+export const META_CAPI_TEST_EVENT_CODE_PARAM = "META_CAPI_TEST_EVENT_CODE";
+const metaCapiTestEventCode = defineString(META_CAPI_TEST_EVENT_CODE_PARAM, { default: "" });
+
+/**
+ * Con `channels.meta.pixelId` ata el secreto de `channels.meta.capiTokenSecret`; sin
+ * píxel no declara secretos (la tarea no se encola, ver `activeLeadTasks`).
+ */
+export function createMetaCapiLeadTaskFunction(config: MetaCapiTaskConfig) {
+  const meta = config.channels.meta;
+  const pixelId = meta.pixelId.trim();
+  const token = pixelId !== "" ? defineSecret(secretName(meta.capiTokenSecret)) : undefined;
+  const capi = () => {
+    if (token === undefined) throw new Error("channels.meta.pixelId vacío: no hay token atado");
+    return (events: Parameters<typeof sendCapiEvents>[1]) => {
+      const testEventCode = metaCapiTestEventCode.value();
+      return sendCapiEvents(
+        {
+          pixelId,
+          accessToken: token.value(),
+          ...(testEventCode !== "" && { testEventCode }),
+        },
+        events,
+      );
+    };
+  };
+  return taskFunction(
+    createMetaCapiLeadHandler({ ...defaultDeps(), capi }),
+    token === undefined ? [] : [token],
+  );
 }

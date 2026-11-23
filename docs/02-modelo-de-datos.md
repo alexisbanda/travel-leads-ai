@@ -101,7 +101,7 @@ Cada transición crea un documento en `leads/{id}/events` con `{type, from, to, 
 | `meta.capi.lead.{succeeded,failed,skipped}` | Ejecución de la tarea del evento `Lead` a Meta CAPI (spec 003) | `detail` (opcional) |
 | `sla.warned` / `sla.breached` | `slaWatchdog` marcó un nivel del SLA de primera respuesta (spec 005). `actor: "system"` | `detail` si el aviso se omitió: `no_channel`, `not_implemented` o `no_recipients` |
 
-`detail` es un código corto sin datos personales (letras, dígitos, `_`, `.` y `-`; máx. 100): el motivo de un `skipped` (`not_implemented`, `no_channel`), `invalid_lead` o el nombre del error de un `failed`. Los eventos de tareas usan `actor: "system"`.
+`detail` es un código corto sin datos personales (letras, dígitos, `_`, `.` y `-`; máx. 100): el motivo de un `skipped` (`not_implemented`, `no_channel`, `no_event_id`), `invalid_lead`, el código de un fallo de Meta CAPI (`meta_capi_<status>`, `meta_capi_network`, `meta_capi_timeout`, `meta_capi_invalid_response`) o el nombre del error de un `failed`. Los eventos de tareas usan `actor: "system"`.
 
 ## `sales/{saleId}`
 
