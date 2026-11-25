@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { LandingContent } from "@tla/shared";
+import { JsonLdScript } from "../../components/JsonLdScript.js";
 import { LandingView } from "../../components/LandingView.js";
 import { loadLandingsConfig } from "../../lib/config.js";
 import { loadLandings } from "../../lib/content.js";
@@ -38,11 +39,6 @@ export async function generateMetadata({
   };
 }
 
-// Escapa `<` para que el JSON-LD no se interprete como HTML (p. ej. `</script>` en un texto de la landing).
-function serializeJsonLd(value: unknown): string {
-  return JSON.stringify(value).replace(/</g, "\\u003c");
-}
-
 export default async function LandingPage({
   params,
 }: {
@@ -59,8 +55,7 @@ export default async function LandingPage({
   const graph = buildLandingGraph(landing, instance, view);
   return (
     <>
-      {/* JSON-LD generado por el servidor, escapado en serializeJsonLd contra inyección HTML. */}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(graph) }} />
+      <JsonLdScript graph={graph} />
       <LandingView view={view} />
     </>
   );

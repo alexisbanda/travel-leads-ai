@@ -1,3 +1,4 @@
+import type { MetadataRoute } from "next";
 import type { LandingContent, ResolvedInstanceConfig } from "@tla/shared";
 import { loadLandings } from "./content.js";
 import { canonicalUrl, siteUrl } from "./structured-data.js";
@@ -16,13 +17,18 @@ export function isUnpublishable(instance: ResolvedInstanceConfig): boolean {
   return instance.status === "draft" || instance.brand.domain.trim() === "";
 }
 
-/** Cuerpo de `robots.txt`: sin dominio o en `draft`, bloquea todo el sitio. */
-export function buildRobotsTxt(instance: ResolvedInstanceConfig): string {
+/**
+ * `MetadataRoute.Robots` de `app/robots.ts`: sin dominio o en `draft`,
+ * bloquea todo el sitio; si no, lo permite y apunta al sitemap del dominio.
+ */
+export function buildRobots(instance: ResolvedInstanceConfig): MetadataRoute.Robots {
   if (isUnpublishable(instance)) {
-    return ["User-agent: *", "Disallow: /", ""].join("\n");
+    return { rules: { userAgent: "*", disallow: "/" } };
   }
-  const base = siteUrl(instance);
-  return ["User-agent: *", "Allow: /", `Sitemap: ${base}/sitemap.xml`, ""].join("\n");
+  return {
+    rules: { userAgent: "*", allow: "/" },
+    sitemap: `${siteUrl(instance)}/sitemap.xml`,
+  };
 }
 
 export interface SitemapEntry {
@@ -41,17 +47,14 @@ export function buildSitemapEntries(instance: ResolvedInstanceConfig): SitemapEn
 }
 
 /**
- * Contenido de `llms.txt` (formato llms.txt): título, resumen y una lista de
- * landings publicadas con su URL canónica y el resumen de `seo.description`.
- * Puede servirse en `draft`, pero nunca lista landings `draft: true`.
+ * Contenido de `llms.txt` (formato llms.txt): título y una lista de landings
+ * publicadas con su URL canónica y el resumen de `seo.description`. Sin
+ * textos propios del motor (AGENTS.md regla 1): solo el título, de
+ * `brand.displayName`, y la lista. Puede servirse en `draft`, pero nunca
+ * lista landings `draft: true`.
  */
 export function buildLlmsTxt(instance: ResolvedInstanceConfig): string {
-  const lines = [
-    `# ${instance.brand.displayName}`,
-    "",
-    `> Published pages for agents and search engines.`,
-    "",
-  ];
+  const lines = [`# ${instance.brand.displayName}`, ""];
   for (const landing of publishedLandings(instance)) {
     const url = canonicalUrl(instance, landing.slug);
     lines.push(`- [${landing.seo.title}](${url}): ${landing.seo.description}`);

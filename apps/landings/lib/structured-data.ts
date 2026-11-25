@@ -54,10 +54,17 @@ function buildItinerary(landing: LandingContent): ItemList | undefined {
  * `Offer` con precio orientativo: solo `PriceSpecification` (`minPrice`,
  * `priceCurrency`) y el `priceDisclaimer` del pack como `description`. Sin
  * `price` ni `availability` (AGENTS.md regla 2: nunca confirmamos precio ni
- * disponibilidad al viajero).
+ * disponibilidad al viajero). Solo si la sección de precio se ve de verdad
+ * (igual que `buildFaqPage` con `faq`): sin `priceGuidance` en `landing`, o
+ * sin la sección `priceGuidance` en `view.sections`, no hay `Offer`.
  */
-function buildOffer(landing: LandingContent, instance: ResolvedInstanceConfig): Offer | undefined {
+function buildOffer(
+  landing: LandingContent,
+  instance: ResolvedInstanceConfig,
+  view: LandingView,
+): Offer | undefined {
   if (!landing.priceGuidance) return undefined;
+  if (!view.sections.some((section) => section.kind === "priceGuidance")) return undefined;
   const priceSpecification: PriceSpecification = {
     "@type": "PriceSpecification",
     minPrice: landing.priceGuidance.from,
@@ -95,7 +102,7 @@ export function buildLandingGraph(
   const canonical = canonicalUrl(instance, landing.slug);
   const organization = buildOrganization(instance);
   const itinerary = buildItinerary(landing);
-  const offer = buildOffer(landing, instance);
+  const offer = buildOffer(landing, instance, view);
 
   const touristTrip: TouristTrip = {
     "@type": "TouristTrip",
@@ -112,4 +119,13 @@ export function buildLandingGraph(
 
   const graph: Thing[] = [touristTrip, organization, ...(faqPage !== undefined ? [faqPage] : [])];
   return { "@context": "https://schema.org", "@graph": graph };
+}
+
+/**
+ * Serializa el grafo para `<script type="application/ld+json">`, escapando
+ * `<` (p. ej. `</script>` dentro de un texto de la landing) para que no se
+ * interprete como HTML.
+ */
+export function serializeJsonLd(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
 }
