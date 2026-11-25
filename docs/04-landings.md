@@ -104,17 +104,22 @@ Los componentes viven en `apps/landings/components/` (Server Components sin esta
 
 ## Datos estructurados (SEO y GEO)
 
-Cada landing incluye JSON-LD generado desde el catálogo:
+Cada landing (`app/[slug]/page.tsx`) incluye un grafo JSON-LD tipado con `schema-dts`, generado en `apps/landings/lib/structured-data.ts` (`buildLandingGraph`, probado en `structured-data.test.ts`) a partir de su contenido, la configuración resuelta y la vista ya construida (`buildLandingView`, para no duplicar qué secciones se ven):
 
-- `TouristTrip` con `itinerary`, `touristType` y `provider` (la agencia).
-- `Offer` con `priceSpecification` marcado como orientativo y `availability` genérica.
-- `FAQPage` con las preguntas visibles.
-- `Organization` con los datos de contacto del socio en el mercado.
+- `TouristTrip`: `name`/`description` de `seo`, `url` (la canónica), `itinerary` si la landing tiene días, y `provider` (la `Organization`).
+- `Offer`: **solo** orientativo. Lleva `priceSpecification` (`PriceSpecification` con `minPrice: priceGuidance.from` y `priceCurrency`, la moneda del pack de mercado) y `description` con el `priceDisclaimer` del pack. Nunca lleva `price` ni `availability` (regla 2 de `AGENTS.md`: no confirmamos precio ni disponibilidad). Si la landing no tiene `priceGuidance`, no hay `Offer`.
+- `FAQPage`: solo con las preguntas que la página muestra de verdad (si `faq` no está en `sections` o no tiene elementos, no hay `FAQPage`).
+- `Organization`: `name` (`brand.displayName`), `url` (`https://<brand.domain>`, omitido si está vacío) y `legalName` (`partner.legalName`).
 
-Además:
+El `<script type="application/ld+json">` se serializa escapando `<` para evitar inyección HTML. `generateMetadata` añade `alternates.canonical` con la URL canónica (`apps/landings/lib/structured-data.ts`, `canonicalUrl`): `https://<brand.domain>/<slug>` con dominio, o `/<slug>` en `draft` sin dominio.
+
+Además (lógica en `apps/landings/lib/seo-index.ts`, probada en `seo-index.test.ts`):
 
 - Una página canónica por tour que actúe como **fuente de verdad** (lo que los asistentes de IA citarán).
-- `sitemap.xml`, `robots.txt` y `llms.txt` con un índice de los tours.
+- `app/robots.ts`: si la instancia está en `status: draft` o `brand.domain` está vacío, `Disallow: /` sin línea `Sitemap`; si no, `Allow: /` y `Sitemap: https://<domain>/sitemap.xml`.
+- `app/sitemap.xml/route.ts`: una URL por landing publicada. En `draft` o sin dominio responde **404** (no se publica). Es un route handler, no la convención `app/sitemap.ts`, porque esa convención siempre sirve XML y no permite devolver 404 condicionalmente; el handler sigue siendo estático (`dynamic = "force-static"`, la configuración resuelta no cambia en runtime).
+- `app/llms.txt/route.ts`: formato llms.txt (`# <brand.displayName>` y una lista `- [<título>](<url canónica>): <resumen de seo.description>` por landing publicada). Se sirve también en `draft`, pero nunca lista landings `draft: true`.
+- En los tres casos, "landings publicadas" excluye las `draft: true` **incluso** cuando la instancia entera está en `draft` (a diferencia de las páginas, que sí publican el contenido `draft` de una instancia en `draft`).
 - Contenido orientado a preguntas reales del mercado. En `ec-es`: "mejor época Galápagos", "cuánto cuesta viajar a Ecuador desde España", "vuelos directos Madrid Quito".
 
 ## Rendimiento
