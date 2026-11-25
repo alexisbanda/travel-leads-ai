@@ -75,9 +75,9 @@ function parseCount(value: string, range: { min: number; max: number }): number 
 }
 
 /**
- * Valida en cliente con los textos de `landingUi.form`. Los opcionales mal
- * formados (mes, personas) usan `errorRequired`: el pack no tiene un texto
- * de formato específico.
+ * Valida en cliente con los textos de `landingUi.form`. `name` y `phone`
+ * vacíos usan `errorRequired`; el mes, el número de personas mal formado o
+ * fuera de rango, y los niños sin adultos usan `errorInvalid`.
  */
 export function validateLeadForm(values: LeadFormValues, { phoneDefaultRegion, texts }: ValidateOptions): {
   fields: LeadFormErrors;
@@ -92,12 +92,12 @@ export function validateLeadForm(values: LeadFormValues, { phoneDefaultRegion, t
   const email = values.email.trim();
   if (email !== "" && !EMAIL.test(email)) fields.email = texts.errorEmail;
 
-  if (values.travelMonth !== "" && !MONTH.test(values.travelMonth)) fields.travelMonth = texts.errorRequired;
+  if (values.travelMonth !== "" && !MONTH.test(values.travelMonth)) fields.travelMonth = texts.errorInvalid;
 
   const adults = values.adults.trim();
   const children = values.children.trim();
-  if (adults === "" ? children !== "" : parseCount(adults, ADULTS) === undefined) fields.adults = texts.errorRequired;
-  if (children !== "" && parseCount(children, CHILDREN) === undefined) fields.children = texts.errorRequired;
+  if (adults === "" ? children !== "" : parseCount(adults, ADULTS) === undefined) fields.adults = texts.errorInvalid;
+  if (children !== "" && parseCount(children, CHILDREN) === undefined) fields.children = texts.errorInvalid;
 
   if (!values.consentContact) fields.consentContact = texts.errorConsent;
   return { fields };
@@ -169,6 +169,10 @@ function messageFor(field: LeadFormField, texts: LeadFormTexts): string {
       return texts.errorEmail;
     case "consentContact":
       return texts.errorConsent;
+    case "travelMonth":
+    case "adults":
+    case "children":
+      return texts.errorInvalid;
     default:
       return texts.errorRequired;
   }

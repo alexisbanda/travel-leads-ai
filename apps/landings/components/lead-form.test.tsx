@@ -233,6 +233,14 @@ describe("envío", () => {
     expect(input(texts.nameLabel).value).toBe("Viajera Ficticia");
   });
 
+  it("un número de adultos fuera de rango muestra errorInvalid junto al campo (#63)", async () => {
+    renderForm(vi.fn(async () => response(200)));
+    fillValid();
+    fireEvent.change(input(texts.adultsLabel), { target: { value: "0" } });
+    submit();
+    await waitFor(() => expect(describedError(input(texts.adultsLabel))).toBe(texts.errorInvalid));
+  });
+
   it("mientras envía, el botón muestra submitting y está deshabilitado", async () => {
     let resolve: (r: Response) => void = () => undefined;
     renderForm(vi.fn(() => new Promise<Response>((r) => (resolve = r))));

@@ -222,6 +222,7 @@ Las versiones (`aiDisclosure.version`, `legalTexts.version`) son `draft` o un id
 | `nameLabel`, `phoneLabel`, `emailLabel`, `travelMonthLabel`, `adultsLabel`, `childrenLabel` | Etiquetas de los campos |
 | `submit`, `submitting` | Botón de envío y su texto mientras se envía |
 | `errorRequired`, `errorPhone`, `errorEmail`, `errorConsent` | Errores de campo: obligatorio vacío, teléfono inválido, email inválido y consentimiento obligatorio sin aceptar |
+| `errorInvalid` | Formato no válido (mes, número de personas, niños sin adultos) |
 | `errorGeneric` | Error general (rechazo de App Check, límite de peticiones o fallo de red). No revela la causa |
 | `thanksTitle`, `thanksBody` | Título y cuerpo de la pantalla de gracias |
 | `thanksWhatsapp` | Texto del botón a WhatsApp de la pantalla de gracias |

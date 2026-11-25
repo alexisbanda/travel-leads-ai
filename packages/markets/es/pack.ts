@@ -131,6 +131,7 @@ export const es: MarketPack = MarketPack.parse({
       submit: "Quiero que me contactéis",
       submitting: "Enviando…",
       errorRequired: "Este campo es obligatorio.",
+      errorInvalid: "Revisa este dato: el formato no es válido.",
       errorPhone: "Revisa el teléfono: incluye el prefijo internacional.",
       errorEmail: "Revisa el email.",
       errorConsent: "Necesitamos tu consentimiento para contactarte.",

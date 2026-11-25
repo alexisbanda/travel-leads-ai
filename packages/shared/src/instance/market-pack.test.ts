@@ -76,6 +76,7 @@ const validPack = {
       submit: "submit (ficticio)",
       submitting: "submitting (ficticio)",
       errorRequired: "errorRequired (ficticio)",
+      errorInvalid: "errorInvalid (ficticio)",
       errorPhone: "errorPhone (ficticio)",
       errorEmail: "errorEmail (ficticio)",
       errorConsent: "errorConsent (ficticio)",
@@ -122,12 +123,20 @@ describe("MarketPack", () => {
     ["landingUi.trust.agencyLabel", ""],
     ["landingUi.whatsappCta", ""],
     ["landingUi.form.submit", ""],
+    ["landingUi.form.errorInvalid", ""],
     ["landingUi.form.errorGeneric", " "],
     ["landingUi.form.thanksWhatsapp", ""],
   ])("rechaza %s = %j en su ruta", (path, value) => {
     const result = MarketPack.safeParse(withValue(validPack, path, value));
     expect(result.success).toBe(false);
     expect(issuePaths(result)).toContain(path);
+  });
+
+  it("exige landingUi.form.errorInvalid: un pack sin esa clave falla", () => {
+    const { errorInvalid: _errorInvalid, ...formRest } = validPack.landingUi.form;
+    const pack = { ...validPack, landingUi: { ...validPack.landingUi, form: formRest } };
+    const result = MarketPack.safeParse(pack);
+    expect(issuePaths(result)).toContain("landingUi.form.errorInvalid");
   });
 
   it("landingUi es estricto: rechaza claves desconocidas", () => {

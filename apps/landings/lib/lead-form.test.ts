@@ -126,14 +126,20 @@ describe("validateLeadForm", () => {
       name: texts.errorRequired,
       phone: texts.errorPhone,
       email: texts.errorEmail,
-      travelMonth: texts.errorRequired,
-      adults: texts.errorRequired,
+      travelMonth: texts.errorInvalid,
+      adults: texts.errorInvalid,
       consentContact: texts.errorConsent,
     });
     expect(validate({ ...VALID, phone: "" }).phone).toBe(texts.errorRequired);
     expect(validate({ ...VALID, adults: "0", children: "11" })).toEqual({
-      adults: texts.errorRequired,
-      children: texts.errorRequired,
+      adults: texts.errorInvalid,
+      children: texts.errorInvalid,
+    });
+  });
+
+  it("marca errorInvalid en niños sin adultos (adults vacío y children no vacío)", () => {
+    expect(validate({ ...VALID, adults: "", children: "1" })).toEqual({
+      adults: texts.errorInvalid,
     });
   });
 });
@@ -182,7 +188,7 @@ describe("submitLead", () => {
         name: texts.errorRequired,
         phone: texts.errorPhone,
         email: texts.errorEmail,
-        children: texts.errorRequired,
+        children: texts.errorInvalid,
         consentContact: texts.errorConsent,
       },
     });
@@ -192,5 +198,14 @@ describe("submitLead", () => {
     expect(
       await send(vi.fn(async () => response(400, { error: "validation", fields: ["phone", "landingSlug"] }))),
     ).toEqual({ ok: false, fields: { phone: texts.errorPhone }, generic: true });
+  });
+
+  it("con 400 mapea pax.children y travelMonth a errorInvalid", async () => {
+    expect(
+      await send(vi.fn(async () => response(400, { error: "validation", fields: ["pax.children", "travelMonth"] }))),
+    ).toEqual({
+      ok: false,
+      fields: { children: texts.errorInvalid, travelMonth: texts.errorInvalid },
+    });
   });
 });
