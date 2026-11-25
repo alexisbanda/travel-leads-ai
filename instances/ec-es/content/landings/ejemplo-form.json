@@ -1,0 +1,68 @@
+{
+  "slug": "ejemplo-form",
+  "segment": "adventure",
+  "tourIds": ["tour-ejemplo-8d"],
+  "seo": {
+    "title": "Viaje de aventura de ejemplo con formulario: 8 días con guía local",
+    "description": "Itinerario de ejemplo, mejor época y precio orientativo. Déjanos tus datos y te asesoramos."
+  },
+  "hero": {
+    "headline": "Un viaje de aventura como lo viven los locales",
+    "subheadline": "8 días, grupos pequeños y asesoramiento en tu idioma",
+    "media": {
+      "src": "/media/ejemplo-hero.mp4",
+      "kind": "video",
+      "poster": "/media/ejemplo-hero.jpg",
+      "alt": "Grupo pequeño de viajeros caminando por un sendero con guía local",
+      "aiGenerated": false
+    }
+  },
+  "sections": ["itinerary", "includes", "bestSeason", "priceGuidance", "faq", "trust", "cta"],
+  "itinerary": [
+    {
+      "day": 1,
+      "title": "Llegada y bienvenida",
+      "description": "Recogida en el aeropuerto, traslado al alojamiento y reunión informativa con el guía."
+    },
+    {
+      "day": 2,
+      "title": "Ruta de senderismo con guía local",
+      "description": "Caminata de nivel medio por un parque natural, con almuerzo en una comunidad local."
+    },
+    {
+      "day": 3,
+      "title": "Actividad de aventura y tarde libre",
+      "description": "Mañana de actividad en la naturaleza adaptada al grupo y tarde libre para descansar."
+    }
+  ],
+  "includes": {
+    "included": [
+      "Alojamiento en habitación doble",
+      "Traslados terrestres durante el circuito",
+      "Guía local en español",
+      "Desayunos y almuerzos indicados en el itinerario"
+    ],
+    "notIncluded": ["Vuelos internacionales", "Seguro de viaje", "Propinas y gastos personales"]
+  },
+  "bestSeason": {
+    "summary": "Se puede viajar todo el año; la época seca suele ser la más cómoda para las rutas a pie. Te asesoramos según tus fechas."
+  },
+  "priceGuidance": {
+    "from": 2490
+  },
+  "faq": [
+    {
+      "q": "¿Cuál es la mejor época para ir?",
+      "a": "Depende de la actividad; te lo detallamos."
+    },
+    {
+      "q": "¿Es seguro viajar?",
+      "a": "Trabajamos con una agencia receptiva registrada en el destino."
+    }
+  ],
+  "cta": {
+    "type": "form",
+    "prefill": "Hola, acabo de enviar el formulario del viaje de ejemplo [EJ-02]"
+  },
+  "draft": true
+}
