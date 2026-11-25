@@ -6,6 +6,8 @@ import type {
   ResolvedInstanceConfig,
 } from "@tla/shared";
 import { formatDay, formatPhoneForMarket, formatPriceFrom, whatsappHref } from "./format.js";
+import { firebaseProjectId, leadEndpointUrl, type LeadEndpointEnv } from "./lead-endpoint.js";
+import type { LeadFormView } from "./lead-form.js";
 
 /**
  * Vista de UI de una landing: datos ya resueltos (textos del pack de
@@ -54,7 +56,8 @@ export type SectionView =
       phone?: { label: string; display: string; href: string };
       agency?: { label: string; name: string };
     }
-  | { kind: "cta"; label: string; href: string };
+  | { kind: "cta"; label: string; href: string }
+  | { kind: "form"; form: LeadFormView };
 
 export interface LandingView {
   hero: HeroView;
@@ -62,10 +65,61 @@ export interface LandingView {
   sections: SectionView[];
 }
 
+export interface BuildLandingViewOptions {
+  /** Entorno del servidor (`process.env`): `LEAD_ENDPOINT_URL` y `TLA_ENV`. */
+  env?: LeadEndpointEnv;
+}
+
+/**
+ * Formulario de lead. Sin región o proyecto en la config no hay endpoint: no
+ * se renderiza y se avisa en el servidor (sin PII). En draft las claves web
+ * pueden venir vacías: se renderiza igual y el envío acaba en error genérico.
+ */
+function buildFormSection(
+  landing: LandingContent,
+  instance: ResolvedInstanceConfig,
+  env: LeadEndpointEnv,
+): SectionView | undefined {
+  const endpoint = leadEndpointUrl(instance, env);
+  if (endpoint === undefined) {
+    console.warn(
+      `apps/landings: sin infra.region o infra.firebaseProjects en ${instance.id}; la landing ${landing.slug} se publica sin formulario de lead.`,
+    );
+    return undefined;
+  }
+  const { version, privacyNotice, commercialConsent, marketingConsent } = instance.marketPack.legalTexts;
+  const web = instance.channels.web;
+  const href = whatsappHref(instance.channels.whatsapp.number, landing.cta.prefill);
+  return {
+    kind: "form",
+    form: {
+      texts: instance.marketPack.landingUi.form,
+      legal: {
+        version,
+        privacyNotice,
+        commercialConsent,
+        ...(marketingConsent !== undefined ? { marketingConsent } : {}),
+      },
+      phoneDefaultRegion: instance.market.phoneDefaultRegion,
+      endpoint,
+      appCheck: {
+        apiKey: web.firebaseApiKey,
+        appId: web.firebaseAppId,
+        projectId: firebaseProjectId(instance, env) ?? "",
+        recaptchaSiteKey: web.recaptchaSiteKey,
+      },
+      landingSlug: landing.slug,
+      tourIds: [...landing.tourIds],
+      ...(href !== undefined ? { whatsappHref: href } : {}),
+    },
+  };
+}
+
 function buildSection(
   section: LandingSection,
   landing: LandingContent,
   instance: ResolvedInstanceConfig,
+  env: LeadEndpointEnv,
 ): SectionView | undefined {
   const ui = instance.marketPack.landingUi;
   const titles = ui.sectionTitles;
@@ -132,8 +186,7 @@ function buildSection(
       };
     }
     case "cta": {
-      // Solo hay CTA de WhatsApp por ahora; el formulario llegará en otro ticket.
-      if (landing.cta.type !== "whatsapp") return undefined;
+      if (landing.cta.type === "form") return buildFormSection(landing, instance, env);
       const href = whatsappHref(instance.channels.whatsapp.number, landing.cta.prefill);
       if (href === undefined) return undefined;
       return { kind: "cta", label: ui.whatsappCta, href };
@@ -142,7 +195,11 @@ function buildSection(
 }
 
 /** Construye la vista de la landing a partir de su contenido y la configuración resuelta. */
-export function buildLandingView(landing: LandingContent, instance: ResolvedInstanceConfig): LandingView {
+export function buildLandingView(
+  landing: LandingContent,
+  instance: ResolvedInstanceConfig,
+  options: BuildLandingViewOptions = {},
+): LandingView {
   const media = landing.hero.media;
   const hero: HeroView = {
     headline: landing.hero.headline,
@@ -162,7 +219,7 @@ export function buildLandingView(landing: LandingContent, instance: ResolvedInst
 
   const sections: SectionView[] = [];
   for (const section of new Set(landing.sections)) {
-    const view = buildSection(section, landing, instance);
+    const view = buildSection(section, landing, instance, options.env ?? {});
     if (view) sections.push(view);
   }
   return { hero, sections };

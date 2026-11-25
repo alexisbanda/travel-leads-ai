@@ -42,5 +42,7 @@ export default async function LandingPage({
   if (!landing) notFound();
 
   const { instance } = loadLandingsConfig();
-  return <LandingView view={buildLandingView(landing, instance)} />;
+  // El endpoint del formulario se calcula aquí, en el servidor (LEAD_ENDPOINT_URL, TLA_ENV).
+  const env = { LEAD_ENDPOINT_URL: process.env.LEAD_ENDPOINT_URL, TLA_ENV: process.env.TLA_ENV };
+  return <LandingView view={buildLandingView(landing, instance, { env })} />;
 }

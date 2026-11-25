@@ -15,6 +15,7 @@
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.5",
     "@tla/shared": "workspace:*",
+    "firebase": "^13.4.0",
     "libphonenumber-js": "^1.13.17",
     "next": "15.5.29",
     "react": "^19.0.0",
