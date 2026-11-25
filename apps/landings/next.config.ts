@@ -4,6 +4,11 @@ const nextConfig: NextConfig = {
   // La plantilla genera una ruta estática por slug (generateStaticParams +
   // dynamicParams = false); sin páginas dinámicas desconocidas en producción.
   reactStrictMode: true,
+  // Presupuesto de rendimiento (docs/04-landings.md#rendimiento): formatos
+  // modernos para que next/image sirva AVIF o WebP según soporte del navegador.
+  images: {
+    formats: ["image/avif", "image/webp"],
+  },
   // @tla/shared se consume desde sus fuentes TypeScript (condición `source`),
   // igual que en vitest y tsc.
   transpilePackages: ["@tla/shared"],

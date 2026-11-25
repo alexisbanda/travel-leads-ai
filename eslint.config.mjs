@@ -1,6 +1,7 @@
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import eslintConfigPrettier from "eslint-config-prettier";
+import nextPlugin from "@next/eslint-plugin-next";
 
 export default tseslint.config(
   {
@@ -35,6 +36,25 @@ export default tseslint.config(
       globals: {
         process: "readonly",
         console: "readonly",
+      },
+    },
+  },
+  {
+    // Presupuesto de rendimiento (docs/04-landings.md#rendimiento): reglas de
+    // @next/eslint-plugin-next sobre apps/landings (único consumidor de Next
+    // en el repo). Next detecta el plugin vía settings.next.rootDir.
+    files: ["apps/landings/**/*.{ts,tsx}"],
+    plugins: {
+      "@next/next": nextPlugin,
+    },
+    rules: {
+      ...nextPlugin.flatConfig.recommended.rules,
+      ...nextPlugin.flatConfig.coreWebVitals.rules,
+      "@next/next/no-img-element": "error",
+    },
+    settings: {
+      next: {
+        rootDir: "apps/landings",
       },
     },
   },
