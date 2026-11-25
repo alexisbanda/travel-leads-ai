@@ -87,6 +87,15 @@ describe("buildLandingGraph", () => {
     expect(touristTrip?.offers).toBeUndefined();
   });
 
+  it("con priceGuidance pero sin la sección priceGuidance en sections, no hay Offer (no se ve)", () => {
+    const landing = buildFullLanding({ sections: ["faq", "cta"] });
+    const view = buildLandingView(landing, instance);
+    expect(view.sections.some((section) => section.kind === "priceGuidance")).toBe(false);
+    const graph = buildLandingGraph(landing, instance, view);
+    const touristTrip = graph["@graph"].find((node) => hasType<TouristTrip>(node, "TouristTrip"));
+    expect(touristTrip?.offers).toBeUndefined();
+  });
+
   it("Organization sin url cuando brand.domain está vacío", () => {
     const withoutDomain = withResolvedInstance((clone) => {
       clone.brand.domain = "";

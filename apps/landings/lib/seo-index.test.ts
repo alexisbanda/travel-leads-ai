@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildLlmsTxt, buildRobotsTxt, buildSitemapEntries } from "./seo-index.js";
+import { buildLlmsTxt, buildRobots, buildSitemapEntries } from "./seo-index.js";
 import { buildLanding, withResolvedInstance } from "./test-fixtures.js";
 import type { LandingContent } from "@tla/shared";
 
@@ -13,30 +13,27 @@ vi.mock("./content.js", () => ({
   loadLandings: () => landings.filter((landing) => !landing.draft),
 }));
 
-describe("buildRobotsTxt", () => {
+describe("buildRobots", () => {
   it("con dominio y sin draft, permite todo y apunta al sitemap", () => {
     const instance = withResolvedInstance(() => {});
-    expect(buildRobotsTxt(instance)).toBe(
-      ["User-agent: *", "Allow: /", "Sitemap: https://ejemplo.test/sitemap.xml", ""].join("\n"),
-    );
+    expect(buildRobots(instance)).toEqual({
+      rules: { userAgent: "*", allow: "/" },
+      sitemap: "https://ejemplo.test/sitemap.xml",
+    });
   });
 
-  it("en draft, bloquea todo y no hay línea Sitemap", () => {
+  it("en draft, bloquea todo y no hay sitemap", () => {
     const instance = withResolvedInstance((clone) => {
       clone.status = "draft";
     });
-    const robots = buildRobotsTxt(instance);
-    expect(robots).toContain("Disallow: /");
-    expect(robots).not.toContain("Sitemap:");
+    expect(buildRobots(instance)).toEqual({ rules: { userAgent: "*", disallow: "/" } });
   });
 
   it("sin brand.domain, bloquea todo aunque no esté en draft", () => {
     const instance = withResolvedInstance((clone) => {
       clone.brand.domain = "";
     });
-    const robots = buildRobotsTxt(instance);
-    expect(robots).toContain("Disallow: /");
-    expect(robots).not.toContain("Sitemap:");
+    expect(buildRobots(instance)).toEqual({ rules: { userAgent: "*", disallow: "/" } });
   });
 });
 
@@ -66,6 +63,19 @@ describe("buildSitemapEntries", () => {
 });
 
 describe("buildLlmsTxt", () => {
+  it("solo el título (brand.displayName) y la lista: sin textos propios del motor", () => {
+    const instance = withResolvedInstance(() => {});
+    const txt = buildLlmsTxt(instance);
+    expect(txt).toBe(
+      [
+        `# ${instance.brand.displayName}`,
+        "",
+        "- [Tour uno](https://ejemplo.test/ejemplo-uno): Resumen uno.",
+        "- [Tour dos](https://ejemplo.test/ejemplo-dos): Resumen dos.",
+      ].join("\n"),
+    );
+  });
+
   it("lista las landings publicadas con su URL canónica y resumen, sin las draft", () => {
     const instance = withResolvedInstance(() => {});
     const txt = buildLlmsTxt(instance);
