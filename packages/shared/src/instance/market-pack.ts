@@ -137,6 +137,8 @@ export const MarketLandingUi = z
         submitting: NonEmptyText,
         /** Campo obligatorio vacío. */
         errorRequired: NonEmptyText,
+        /** Formato inválido (mes, número de personas, niños sin adultos). */
+        errorInvalid: NonEmptyText,
         /** Teléfono inválido. */
         errorPhone: NonEmptyText,
         /** Email inválido. */

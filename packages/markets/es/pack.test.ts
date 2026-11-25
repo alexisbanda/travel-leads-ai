@@ -89,6 +89,7 @@ describe("pack de mercado es", () => {
         "submit",
         "submitting",
         "errorRequired",
+        "errorInvalid",
         "errorPhone",
         "errorEmail",
         "errorConsent",

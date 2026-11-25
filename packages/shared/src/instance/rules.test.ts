@@ -80,6 +80,7 @@ const market = MarketPack.parse({
       submit: "submit (ficticio)",
       submitting: "submitting (ficticio)",
       errorRequired: "errorRequired (ficticio)",
+      errorInvalid: "errorInvalid (ficticio)",
       errorPhone: "errorPhone (ficticio)",
       errorEmail: "errorEmail (ficticio)",
       errorConsent: "errorConsent (ficticio)",
