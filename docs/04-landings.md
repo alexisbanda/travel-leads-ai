@@ -89,7 +89,7 @@ Una landing con `draft: true` solo se incluye en `generateStaticParams` si la in
 | `Itinerary` | Día a día desde el catálogo |
 | `PriceGuidance` | "Desde X" por persona, formateado con `Intl.NumberFormat` en el `locale` y la moneda del mercado, más el `priceDisclaimer` del pack |
 | `Trust` | Número local del mercado, agencia registrada en el destino, reseñas reales enlazadas |
-| `LeadForm` | Nombre, teléfono, email opcional, mes, personas, checkbox de consentimiento |
+| `LeadForm` | Con `cta.type: "form"`. Nombre, teléfono (validado con `phoneDefaultRegion`), email opcional, mes, personas y consentimientos de `legalTexts` (contacto obligatorio, marketing opcional). Envía a `ingestLandingLead` con App Check y muestra la pantalla de gracias con enlace a WhatsApp. Textos en `landingUi.form`; detalles en `apps/landings/README.md` |
 | `WhatsAppCTA` | Enlace `wa.me` con mensaje predefinido y código de campaña |
 | `ConsentBanner` | Consent Mode v2; sin consentimiento no se carga el Pixel |
 
