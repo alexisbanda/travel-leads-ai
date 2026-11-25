@@ -72,7 +72,7 @@ Esquema Zod en `packages/shared/src/landing/landing-content.ts`, exportado como 
 | `experiment` | Opcional: `{ id, variant }`, referencia a un experimento A/B en curso |
 | `draft` | Booleano, por defecto `false`. Ver [Borrador](#borrador) |
 
-Los datos de las secciones (`itinerary`, `includes`, `bestSeason`, `priceGuidance`, `faq`) son opcionales: una sección incluida en `sections` pero sin datos no se renderiza. Los textos fijos de la interfaz (títulos de sección, «Día N», «Desde X por persona», etiqueta de medio generado con IA, botón de WhatsApp...) no están en el contenido ni en el código: salen de `marketPack.landingUi` de la configuración resuelta (ver [11-instancias-y-configuracion.md](11-instancias-y-configuracion.md#marketpack-packagesmarketsiso)).
+Los datos de las secciones (`itinerary`, `includes`, `bestSeason`, `priceGuidance`, `faq`) son opcionales: una sección incluida en `sections` pero sin datos no se renderiza. Los textos fijos de la interfaz (títulos de sección, «Día N», «Desde X por persona», etiqueta de medio generado con IA, botón de WhatsApp, etiquetas, errores y pantalla de gracias del formulario de lead en `landingUi.form`...) no están en el contenido ni en el código: salen de `marketPack.landingUi` de la configuración resuelta (ver [11-instancias-y-configuracion.md](11-instancias-y-configuracion.md#marketpack-packagesmarketsiso)).
 
 ## Rutas y borrador
 

@@ -90,6 +90,7 @@ channels:
   crm: { provider: hubspot, tokenSecret: secret:CRM_API_TOKEN }
   whatsapp: { bsp: respond_io, number: "", webhookSecret: secret:WHATSAPP_BSP_WEBHOOK_SECRET }
   email: { from: "", smtpSecret: secret:SMTP_CONNECTION_URI }
+  web: { recaptchaSiteKey: "", firebaseApiKey: "", firebaseAppId: "" }   # obligatorias fuera de draft
 segments:
   - { id: adventure, label: "Aventura y naturaleza" }
   - { id: couple, label: "Parejas y luna de miel" }
@@ -108,7 +109,7 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 - **Objetos cerrados.** Una clave desconocida (por ejemplo, una errata) es un error.
 - **Formatos sin listas de países.** País: ISO 3166-1 alfa-2 por formato (dos letras mayúsculas, sin lista cerrada, así que `XX`/`YY` de la plantilla son válidos). Moneda: ISO 4217, idioma: BCP 47 y zona horaria: IANA, comprobados con la API `Intl` del entorno de ejecución. Cada error indica el campo (`market.country`) y el estándar incumplido.
 - **Secretos.** `agency.notify.target`, `partner.notify.target`, `channels.email.smtpSecret`, `channels.crm.tokenSecret`, `channels.whatsapp.webhookSecret`, `channels.meta.capiTokenSecret` y `channels.meta.pageTokenSecret` deben ser `secret:NOMBRE` (mayúsculas, dígitos y `_`). Un valor en claro se rechaza.
-- **Campos pendientes.** Los campos de texto que la plantilla deja en `""` admiten la cadena vacía en cualquier `status`; si traen valor, se valida su formato. Excepción: fuera de `draft` (es decir, en `pilot`, `active` y `paused`) son obligatorios `agency.legalName`, `partner.legalName`, `channels.whatsapp.number` (E.164) y `commission.rate > 0`, con un error por cada campo que falte.
+- **Campos pendientes.** Los campos de texto que la plantilla deja en `""` admiten la cadena vacía en cualquier `status`; si traen valor, se valida su formato. Excepción: fuera de `draft` (es decir, en `pilot`, `active` y `paused`) son obligatorios `agency.legalName`, `partner.legalName`, `channels.whatsapp.number` (E.164), `channels.email.from` (si existe `channels.email`), `channels.web.recaptchaSiteKey`, `channels.web.firebaseApiKey`, `channels.web.firebaseAppId` y `commission.rate > 0`, con un error por cada campo que falte en su ruta (p. ej. `channels.web.recaptchaSiteKey: obligatorio cuando status no es draft`).
 
 ### `InstanceConfig` (`instances/<id>/instance.yaml`)
 
@@ -156,6 +157,10 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 | `channels.meta.capiTokenSecret` | `secret:NOMBRE`: token de la Conversions API con el que `metaCapiLeadTask` envía el evento `Lead` (ver [Meta Conversions API](#meta-conversions-api)). Solo se ata a la función si `pixelId` no está vacío | No |
 | `channels.meta.pageTokenSecret` | `secret:NOMBRE`: token de página con el que `processMetaInbox` lee los leads de la Graph API ([spec 004](specs/004-meta-lead-ads-ingesta.md)) | No |
 | `channels.meta.leadForm.fieldMap` | Opcional (por defecto `{}`). Clave de la pregunta personalizada del formulario de Lead Ads → campo destino (`travelMonth` · `paxAdults` · `paxChildren` · `budgetRange` · `segment` · `notes` · `marketingConsent`) o `{ field, values }` para opción múltiple (respuesta → valor). Se rechazan destinos desconocidos y valores de `values` que no validen contra su destino (p. ej. `travelMonth` en `AAAA-MM`) | Sí |
+| `channels.web` | Obligatorio en el YAML (sin valor por defecto, como `channels.whatsapp`). Claves de la app web de Firebase que usa el formulario de lead de las landings con App Check (ver [Formulario web: App Check](#formulario-web-app-check)). Objeto estricto | — |
+| `channels.web.recaptchaSiteKey` | Clave del sitio de reCAPTCHA Enterprise que usa App Check (letras, dígitos, `-` y `_`; 20 caracteres o más) | Solo en `draft` |
+| `channels.web.firebaseApiKey` | `apiKey` de la app web de Firebase (`AIza…`) | Solo en `draft` |
+| `channels.web.firebaseAppId` | `appId` de la app web de Firebase (`1:<número>:web:<hex>`) | Solo en `draft` |
 | `channels.gtmId` | `GTM-…` | Sí |
 | `channels.ga4MeasurementId` | `G-…` | Sí |
 | `segments[]` | Lista no vacía de objetos `{ id, label }`; `id` es un identificador único en la lista; `label` en el idioma del mercado | `label`: sí |
@@ -208,6 +213,18 @@ Las versiones (`aiDisclosure.version`, `legalTexts.version`) son `draft` o un id
 | `includedLabel`, `notIncludedLabel` | Encabezados de las listas de lo que incluye y no incluye el viaje |
 | `trust` | `{ phoneLabel, agencyLabel }`: etiquetas del bloque de confianza |
 | `whatsappCta` | Texto del botón de WhatsApp |
+| `form` | Textos del formulario de lead (ver abajo) |
+
+`landingUi.form` es un objeto estricto con estos textos, todos no vacíos. No incluye los textos de consentimiento ni el aviso de privacidad: el formulario los toma de `legalTexts` (`commercialConsent`, `marketingConsent`, `privacyNotice`, `version`). Ningún texto puede prometer precio, disponibilidad ni reserva.
+
+| Campo | Uso |
+| --- | --- |
+| `nameLabel`, `phoneLabel`, `emailLabel`, `travelMonthLabel`, `adultsLabel`, `childrenLabel` | Etiquetas de los campos |
+| `submit`, `submitting` | Botón de envío y su texto mientras se envía |
+| `errorRequired`, `errorPhone`, `errorEmail`, `errorConsent` | Errores de campo: obligatorio vacío, teléfono inválido, email inválido y consentimiento obligatorio sin aceptar |
+| `errorGeneric` | Error general (rechazo de App Check, límite de peticiones o fallo de red). No revela la causa |
+| `thanksTitle`, `thanksBody` | Título y cuerpo de la pantalla de gracias |
+| `thanksWhatsapp` | Texto del botón a WhatsApp de la pantalla de gracias |
 
 En la configuración resuelta queda en `marketPack.landingUi` de `generated/instance.json`.
 
@@ -312,6 +329,13 @@ La tarea `metaCapiLeadTask` (`meta.capi.lead`, [spec 003](specs/003-on-lead-crea
 
 - **Consentimiento.** El email y el teléfono (`em`, `ph`, normalizados y en SHA-256) solo se envían si el lead tiene el consentimiento de `marketing` concedido y no retirado. Sin él, el evento va solo con `fbc`/`fbp` si existen, o con `user_data` vacío. Nunca se envían IP, _user agent_ ni nombre.
 - **`META_CAPI_TEST_EVENT_CODE`.** Parámetro de Cloud Functions (`defineString`, vacío por defecto) con el código de prueba del Administrador de eventos de Meta. **Solo en dev**, para validar el evento con un Pixel de pruebas; **nunca se define en prod**. Vacío: no se envía `test_event_code`.
+
+### Formulario web: App Check
+
+El formulario de lead de las landings envía con Firebase App Check y reCAPTCHA Enterprise. Para ello la plantilla necesita tres claves de `channels.web`. Son **públicas** (acaban en el JavaScript del navegador y no son secretos, así que van en claro en `instance.yaml`, no en Secret Manager), pero **cambian por instancia**, porque cada instancia tiene sus propios proyectos de Firebase. Pueden quedar vacías en `draft`; fuera de `draft` son obligatorias.
+
+- `firebaseApiKey` y `firebaseAppId`: consola de Firebase del proyecto de la instancia → **Configuración del proyecto** → **General** → **Tus apps** → app web (si no existe, se registra una) → objeto `firebaseConfig` (`apiKey` y `appId`).
+- `recaptchaSiteKey`: consola de Google Cloud del mismo proyecto → **Security** → **reCAPTCHA** → crear una clave de tipo sitio web con los dominios de las landings de la instancia. Después, en la consola de Firebase → **App Check** → app web → proveedor **reCAPTCHA Enterprise**, se registra esa misma clave.
 
 ### Configuración resuelta (`generated/instance.json`)
 
