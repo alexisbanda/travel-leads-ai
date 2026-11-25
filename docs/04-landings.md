@@ -125,8 +125,13 @@ Además (lógica en `apps/landings/lib/seo-index.ts`, probada en `seo-index.test
 ## Rendimiento
 
 - LCP < 2,5 s en 4G. El vídeo del hero con `poster` y carga diferida.
-- Imágenes con `next/image`, AVIF/WebP.
-- Revisión con Lighthouse en CI para las landings activas.
+- Imágenes con `next/image`, formatos modernos (`images.formats: ["image/avif", "image/webp"]` en `apps/landings/next.config.ts`). `eslint.config.mjs` registra `@next/eslint-plugin-next` sobre `apps/landings` y marca `<img>` como error (`@next/next/no-img-element`) para forzar `next/image`.
+- Presupuesto de rendimiento con Lighthouse CI (`apps/landings/lighthouserc.json`): perfil móvil, 3 ejecuciones por URL y mediana (`aggregationMethod: "median-run"`) sobre las landings de ejemplo de `ec-es` (`/ejemplo` y `/ejemplo-form`). Falla (`error`) si no se cumple:
+  - `largest-contentful-paint` < 2500 ms.
+  - `cumulative-layout-shift` < 0,1.
+  - `categories:performance` ≥ 0,90.
+- El job `lighthouse` de `.github/workflows/ci.yml` construye la instancia `ec-es`, compila `apps/landings` y ejecuta `pnpm --filter landings lhci` (`lhci autorun`); sube los informes (`apps/landings/.lighthouseci`) como artefacto aunque falle.
+- En local: `pnpm instance:build ec-es && pnpm --filter landings build && pnpm --filter landings lhci`. Si LHCI no encuentra Chrome, exporta `CHROME_PATH` (p. ej. `CHROME_PATH=/usr/bin/google-chrome`). Los informes (HTML y JSON) quedan en `apps/landings/.lighthouseci/` (no se versiona).
 
 ## Páginas legales obligatorias
 

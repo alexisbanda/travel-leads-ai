@@ -11,6 +11,7 @@ dist/
 .next/
 coverage/
 *.tsbuildinfo
+.lighthouseci/
 
 # Logs de Firebase
 firebase-debug*.log

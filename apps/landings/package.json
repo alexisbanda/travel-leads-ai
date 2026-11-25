@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "lhci": "lhci autorun"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.5",
@@ -27,6 +28,7 @@
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
+    "@lhci/cli": "0.16.1",
     "axe-core": "^4.14.1",
     "jsdom": "^26.1.0",
     "schema-dts": "^2.1.0",
