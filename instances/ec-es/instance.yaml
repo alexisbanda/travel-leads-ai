@@ -67,6 +67,10 @@ channels:
             marzo_2027: "2027-03"
             abril_2027: "2027-04"
             mayo_2027: "2027-05"
+  web:                          # claves públicas de la app web de Firebase (formulario de lead)
+    recaptchaSiteKey: ""        # TODO: clave de sitio de reCAPTCHA Enterprise (App Check)
+    firebaseApiKey: ""          # TODO: apiKey de la app web de Firebase
+    firebaseAppId: ""           # TODO: appId de la app web de Firebase (1:<n>:web:<hex>)
   gtmId: ""
   ga4MeasurementId: ""
 

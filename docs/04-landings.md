@@ -72,7 +72,7 @@ Esquema Zod en `packages/shared/src/landing/landing-content.ts`, exportado como 
 | `experiment` | Opcional: `{ id, variant }`, referencia a un experimento A/B en curso |
 | `draft` | Booleano, por defecto `false`. Ver [Borrador](#borrador) |
 
-Los datos de las secciones (`itinerary`, `includes`, `bestSeason`, `priceGuidance`, `faq`) son opcionales: una sección incluida en `sections` pero sin datos no se renderiza. Los textos fijos de la interfaz (títulos de sección, «Día N», «Desde X por persona», etiqueta de medio generado con IA, botón de WhatsApp...) no están en el contenido ni en el código: salen de `marketPack.landingUi` de la configuración resuelta (ver [11-instancias-y-configuracion.md](11-instancias-y-configuracion.md#marketpack-packagesmarketsiso)).
+Los datos de las secciones (`itinerary`, `includes`, `bestSeason`, `priceGuidance`, `faq`) son opcionales: una sección incluida en `sections` pero sin datos no se renderiza. Los textos fijos de la interfaz (títulos de sección, «Día N», «Desde X por persona», etiqueta de medio generado con IA, botón de WhatsApp, etiquetas, errores y pantalla de gracias del formulario de lead en `landingUi.form`...) no están en el contenido ni en el código: salen de `marketPack.landingUi` de la configuración resuelta (ver [11-instancias-y-configuracion.md](11-instancias-y-configuracion.md#marketpack-packagesmarketsiso)).
 
 ## Rutas y borrador
 
@@ -89,7 +89,7 @@ Una landing con `draft: true` solo se incluye en `generateStaticParams` si la in
 | `Itinerary` | Día a día desde el catálogo |
 | `PriceGuidance` | "Desde X" por persona, formateado con `Intl.NumberFormat` en el `locale` y la moneda del mercado, más el `priceDisclaimer` del pack |
 | `Trust` | Número local del mercado, agencia registrada en el destino, reseñas reales enlazadas |
-| `LeadForm` | Nombre, teléfono, email opcional, mes, personas, checkbox de consentimiento |
+| `LeadForm` | Con `cta.type: "form"`. Nombre, teléfono (validado con `phoneDefaultRegion`), email opcional, mes, personas y consentimientos de `legalTexts` (contacto obligatorio, marketing opcional). Envía a `ingestLandingLead` con App Check y muestra la pantalla de gracias con enlace a WhatsApp. Textos en `landingUi.form`; detalles en `apps/landings/README.md` |
 | `WhatsAppCTA` | Enlace `wa.me` con mensaje predefinido y código de campaña |
 | `ConsentBanner` | Consent Mode v2; sin consentimiento no se carga el Pixel |
 

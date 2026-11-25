@@ -76,6 +76,38 @@ describe("pack de mercado es", () => {
     expect(es.landingUi.whatsappCta).toBe("Escríbenos por WhatsApp");
   });
 
+  it("define los textos del formulario de lead (landingUi.form) sin prometer precio ni reserva", () => {
+    const form = es.landingUi.form;
+    expect(Object.keys(form).sort()).toEqual(
+      [
+        "nameLabel",
+        "phoneLabel",
+        "emailLabel",
+        "travelMonthLabel",
+        "adultsLabel",
+        "childrenLabel",
+        "submit",
+        "submitting",
+        "errorRequired",
+        "errorPhone",
+        "errorEmail",
+        "errorConsent",
+        "errorGeneric",
+        "thanksTitle",
+        "thanksBody",
+        "thanksWhatsapp",
+      ].sort(),
+    );
+    for (const text of Object.values(form)) expect(text.trim()).not.toBe("");
+    expect(form.thanksBody).toBe(
+      "Hemos recibido tu solicitud. Te escribiremos en breve para preparar tu viaje.",
+    );
+    const all = Object.values(form).join(" ").toLowerCase();
+    for (const word of ["reserva", "confirmad", "disponib", "precio"]) {
+      expect(all).not.toContain(word);
+    }
+  });
+
   it("textos legales y aviso de IA en borrador y en es-ES", () => {
     expect(es.legalTexts.version).toBe("draft");
     expect(es.aiDisclosure.version).toBe("draft");

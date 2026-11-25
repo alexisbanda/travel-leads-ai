@@ -119,6 +119,40 @@ export const MarketLandingUi = z
       .strict(),
     /** Texto del botón de WhatsApp. */
     whatsappCta: NonEmptyText,
+    /**
+     * Textos del formulario de lead. Los de consentimiento y privacidad no van
+     * aquí: salen de `legalTexts`.
+     */
+    form: z
+      .object({
+        nameLabel: NonEmptyText,
+        phoneLabel: NonEmptyText,
+        emailLabel: NonEmptyText,
+        travelMonthLabel: NonEmptyText,
+        adultsLabel: NonEmptyText,
+        childrenLabel: NonEmptyText,
+        /** Botón de envío. */
+        submit: NonEmptyText,
+        /** Botón mientras se envía. */
+        submitting: NonEmptyText,
+        /** Campo obligatorio vacío. */
+        errorRequired: NonEmptyText,
+        /** Teléfono inválido. */
+        errorPhone: NonEmptyText,
+        /** Email inválido. */
+        errorEmail: NonEmptyText,
+        /** Falta aceptar el consentimiento obligatorio. */
+        errorConsent: NonEmptyText,
+        /** Error general (401, 429, red). No revela la causa. */
+        errorGeneric: NonEmptyText,
+        /** Título de la pantalla de gracias. */
+        thanksTitle: NonEmptyText,
+        /** Cuerpo de la pantalla de gracias. */
+        thanksBody: NonEmptyText,
+        /** Texto del botón a WhatsApp en la pantalla de gracias. */
+        thanksWhatsapp: NonEmptyText,
+      })
+      .strict(),
   })
   .strict();
 export type MarketLandingUi = z.infer<typeof MarketLandingUi>;

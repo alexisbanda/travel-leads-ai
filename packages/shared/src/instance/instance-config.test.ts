@@ -55,7 +55,29 @@ const REQUIRED_OUTSIDE_DRAFT = [
   "channels.whatsapp.number",
   "commission.rate",
   "channels.email.from",
+  "channels.web.recaptchaSiteKey",
+  "channels.web.firebaseApiKey",
+  "channels.web.firebaseAppId",
 ];
+
+/** Claves públicas ficticias de la app web de Firebase. */
+const FAKE_WEB = {
+  "channels.web.recaptchaSiteKey": "fake-recaptcha-site-key-0000",
+  "channels.web.firebaseApiKey": "AIzaFAKE-test-api-key",
+  "channels.web.firebaseAppId": "1:123456789:web:abc123",
+};
+
+/** ec-es en pilot con todos los obligatorios rellenos (valores ficticios). */
+function pilotReady(): unknown {
+  let raw = withValue(ecEs, "status", "pilot");
+  raw = withValue(raw, "channels.email.from", "avisos@example.test");
+  raw = withValue(raw, "agency.legalName", "Agencia Ficticia S.A.");
+  raw = withValue(raw, "partner.legalName", "Socio Ficticio");
+  raw = withValue(raw, "channels.whatsapp.number", FAKE_E164);
+  raw = withValue(raw, "commission.rate", 0.1);
+  for (const [path, value] of Object.entries(FAKE_WEB)) raw = withValue(raw, path, value);
+  return raw;
+}
 
 const SECRET_FIELDS = [
   "agency.notify.target",
@@ -212,13 +234,40 @@ describe("InstanceConfig: campos obligatorios según status", () => {
   );
 
   it("en pilot pasa con los campos obligatorios rellenos", () => {
-    let raw = withValue(ecEs, "status", "pilot");
-    raw = withValue(raw, "channels.email.from", "avisos@example.test");
-    raw = withValue(raw, "agency.legalName", "Agencia Ficticia S.A.");
-    raw = withValue(raw, "partner.legalName", "Socio Ficticio");
-    raw = withValue(raw, "channels.whatsapp.number", FAKE_E164);
-    raw = withValue(raw, "commission.rate", 0.1);
-    expect(issuePaths(InstanceConfig.safeParse(raw))).toEqual([]);
+    expect(issuePaths(InstanceConfig.safeParse(pilotReady()))).toEqual([]);
+  });
+
+  it("en draft admite vacías las claves de channels.web", () => {
+    const raw = withValue(ecEs, "status", "draft") as { channels: { web: object } };
+    expect(raw.channels.web).toEqual({
+      recaptchaSiteKey: "",
+      firebaseApiKey: "",
+      firebaseAppId: "",
+    });
+    expect(InstanceConfig.safeParse(raw).success).toBe(true);
+  });
+
+  it.each(Object.keys(FAKE_WEB))("en pilot sin %s falla con esa ruta", (path) => {
+    const result = InstanceConfig.safeParse(withValue(pilotReady(), path, ""));
+    expect(result.success).toBe(false);
+    expect(issuePaths(result)).toEqual([path]);
+    expect(issuesAt(result, path)[0]?.message).toBe("obligatorio cuando status no es draft");
+  });
+
+  it("channels.web es obligatorio en el YAML y no admite claves desconocidas", () => {
+    const raw = structuredClone(ecEs) as { channels: Record<string, unknown> };
+    delete raw.channels.web;
+    expect(issuePaths(InstanceConfig.safeParse(raw))).toEqual(["channels.web"]);
+    const extra = withValue(ecEs, "channels.web.measurementId", "x");
+    expect(issuePaths(InstanceConfig.safeParse(extra))).toEqual(["channels.web"]);
+  });
+
+  it.each([
+    ["channels.web.recaptchaSiteKey", "corta"],
+    ["channels.web.firebaseApiKey", "no-es-una-api-key"],
+    ["channels.web.firebaseAppId", "1:123:android:abc"],
+  ])("rechaza %s con formato inválido", (path, value) => {
+    expect(issuePaths(InstanceConfig.safeParse(withValue(ecEs, path, value)))).toEqual([path]);
   });
 
   it("rechaza un número de WhatsApp que no está en E.164", () => {

@@ -56,6 +56,9 @@ const LIVE_FIELDS = {
   "channels.whatsapp.number": `+${"1".repeat(10)}`,
   "commission.rate": 0.1,
   "channels.email.from": "avisos@example.test",
+  "channels.web.recaptchaSiteKey": "fake-recaptcha-site-key-0000",
+  "channels.web.firebaseApiKey": "AIzaFAKE-test-api-key",
+  "channels.web.firebaseAppId": "1:123456789:web:abc123",
 };
 
 describe("instance:validate sobre el repositorio", () => {
@@ -143,6 +146,15 @@ describe("instance:validate --dir con packs reales", () => {
       expect(issues.some((issue) => issue.message.includes("legalTexts.version"))).toBe(true);
     },
   );
+
+  it("fuera de draft informa de la clave de channels.web que falta con su ruta", () => {
+    const dir = copyWith({ ...LIVE_FIELDS, status: "pilot", "channels.web.recaptchaSiteKey": "" });
+    const schema = validateInstanceDir(dir).issues.filter((issue) => issue.rule === "schema");
+    expect(schema.map((issue) => issue.path)).toEqual(["channels.web.recaptchaSiteKey"]);
+    const { code, stdout } = run(["--dir", dir]);
+    expect(code).toBe(1);
+    expect(stdout.join("\n")).toContain("channels.web.recaptchaSiteKey");
+  });
 
   it("informa de errores de esquema con su ruta e id distinto de la carpeta", () => {
     const dir = copyWith({ "infra.region": "Not A Region" });

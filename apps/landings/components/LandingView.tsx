@@ -4,6 +4,7 @@ import { FAQ } from "./FAQ.js";
 import { Hero } from "./Hero.js";
 import { Includes } from "./Includes.js";
 import { Itinerary } from "./Itinerary.js";
+import { LeadForm } from "./LeadForm.js";
 import { PriceGuidance } from "./PriceGuidance.js";
 import { Trust } from "./Trust.js";
 import { WhatsAppCTA } from "./WhatsAppCTA.js";
@@ -40,6 +41,8 @@ function renderSection(section: SectionView) {
       return <Trust key={section.kind} title={section.title} phone={section.phone} agency={section.agency} />;
     case "cta":
       return <WhatsAppCTA key={section.kind} label={section.label} href={section.href} />;
+    case "form":
+      return <LeadForm key={section.kind} {...section.form} />;
   }
 }
 

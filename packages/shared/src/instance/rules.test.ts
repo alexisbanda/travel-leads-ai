@@ -70,6 +70,24 @@ const market = MarketPack.parse({
     notIncludedLabel: "No incluido (ficticio)",
     trust: { phoneLabel: "Teléfono (ficticio)", agencyLabel: "Agencia (ficticio)" },
     whatsappCta: "WhatsApp (ficticio)",
+    form: {
+      nameLabel: "nameLabel (ficticio)",
+      phoneLabel: "phoneLabel (ficticio)",
+      emailLabel: "emailLabel (ficticio)",
+      travelMonthLabel: "travelMonthLabel (ficticio)",
+      adultsLabel: "adultsLabel (ficticio)",
+      childrenLabel: "childrenLabel (ficticio)",
+      submit: "submit (ficticio)",
+      submitting: "submitting (ficticio)",
+      errorRequired: "errorRequired (ficticio)",
+      errorPhone: "errorPhone (ficticio)",
+      errorEmail: "errorEmail (ficticio)",
+      errorConsent: "errorConsent (ficticio)",
+      errorGeneric: "errorGeneric (ficticio)",
+      thanksTitle: "thanksTitle (ficticio)",
+      thanksBody: "thanksBody (ficticio)",
+      thanksWhatsapp: "thanksWhatsapp (ficticio)",
+    },
   },
   locked: ["dataRegions", "bigqueryLocation", "dataRetentionMonths"],
 });
@@ -107,6 +125,9 @@ function live(status: "pilot" | "active" | "paused"): InstanceConfig {
   instance = withValue(instance, "partner.legalName", "Socio de prueba");
   instance = withValue(instance, "channels.whatsapp.number", FAKE_PHONE);
   instance = withValue(instance, "commission.rate", 0.1);
+  instance = withValue(instance, "channels.web.recaptchaSiteKey", "fake-recaptcha-site-key-0000");
+  instance = withValue(instance, "channels.web.firebaseApiKey", "AIzaFAKE-test-api-key");
+  instance = withValue(instance, "channels.web.firebaseAppId", "1:123456789:web:abc123");
   return InstanceConfig.parse(instance);
 }
 
