@@ -225,6 +225,30 @@ export const InstanceConfigObject = z
           })
           .strict()
           .optional(),
+        /**
+         * Claves públicas de la app web de Firebase que usa el formulario de lead
+         * de las landings (App Check). Cambian por instancia. Obligatorias fuera de draft.
+         */
+        web: z
+          .object({
+            /** Clave del sitio de reCAPTCHA Enterprise que usa App Check. */
+            recaptchaSiteKey: emptyOr(
+              z.string().regex(/^[A-Za-z0-9_-]{20,}$/, {
+                message: "clave de sitio de reCAPTCHA inválida",
+              }),
+            ),
+            /** `apiKey` de la app web de Firebase. */
+            firebaseApiKey: emptyOr(
+              z.string().regex(/^AIza[A-Za-z0-9_-]+$/, { message: "apiKey de Firebase inválida" }),
+            ),
+            /** `appId` de la app web de Firebase (`1:<número>:web:<hex>`). */
+            firebaseAppId: emptyOr(
+              z.string().regex(/^1:[0-9]+:web:[0-9a-f]+$/, {
+                message: "appId de Firebase inválido",
+              }),
+            ),
+          })
+          .strict(),
         gtmId: emptyOr(z.string().regex(/^GTM-[A-Z0-9]+$/, { message: "ID de GTM inválido" })),
         ga4MeasurementId: emptyOr(
           z.string().regex(/^G-[A-Z0-9]+$/, { message: "ID de medición de GA4 inválido" }),
@@ -329,6 +353,9 @@ export function refineInstanceConfig(config: RefinableInstance, ctx: z.Refinemen
     [["channels", "whatsapp", "number"], config.channels.whatsapp.number === ""],
     [["commission", "rate"], !(config.commission.rate > 0)],
     [["channels", "email", "from"], config.channels.email?.from.trim() === ""],
+    [["channels", "web", "recaptchaSiteKey"], config.channels.web.recaptchaSiteKey === ""],
+    [["channels", "web", "firebaseApiKey"], config.channels.web.firebaseApiKey === ""],
+    [["channels", "web", "firebaseAppId"], config.channels.web.firebaseAppId === ""],
   ];
   for (const [path, missing] of required) {
     if (!missing) continue;
