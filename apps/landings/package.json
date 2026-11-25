@@ -29,6 +29,7 @@
     "@types/react-dom": "^19.0.2",
     "axe-core": "^4.14.1",
     "jsdom": "^26.1.0",
+    "schema-dts": "^2.1.0",
     "typescript": "^5.7.2"
   }
 }
