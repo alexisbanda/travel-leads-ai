@@ -6,12 +6,12 @@ export type HeaderProps = HeaderView;
 /**
  * Cabecera de la instancia: logo de marca si lo hay (`brand.logo`), o si no,
  * su nombre en texto (`buildHeaderView` ya aplica el mismo criterio que
- * `brandName`). Landmark `banner`.
+ * `brandName`). Landmark `banner`. Alto fijo: sin saltos de diseño (CLS).
  */
 export function Header({ logo, name }: HeaderProps) {
   return (
-    <header className="border-b border-gray-200 bg-white">
-      <div className="mx-auto flex max-w-3xl items-center px-4 py-3 sm:px-6">
+    <header className="border-t-4 border-brand bg-white shadow-sm">
+      <div className="mx-auto flex h-16 w-full max-w-6xl items-center px-5 sm:px-8">
         {logo ? (
           <Image
             src={logo}
@@ -22,7 +22,7 @@ export function Header({ logo, name }: HeaderProps) {
             unoptimized={/^https?:\/\//.test(logo)}
           />
         ) : (
-          <span className="text-lg font-semibold text-gray-900">{name}</span>
+          <span className="font-display text-xl font-extrabold tracking-tight text-slate-900">{name}</span>
         )}
       </div>
     </header>

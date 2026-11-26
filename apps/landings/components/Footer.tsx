@@ -9,16 +9,23 @@ export type FooterProps = FooterView;
  */
 export function Footer({ links, legalNames }: FooterProps) {
   return (
-    <footer className="border-t border-gray-200 bg-white">
-      <div className="mx-auto max-w-3xl px-4 py-6 text-sm text-gray-600 sm:px-6">
-        <ul className="flex flex-wrap gap-4">
+    <footer className="bg-slate-950 text-slate-300">
+      <div className="mx-auto w-full max-w-6xl px-5 py-12 text-sm sm:px-8">
+        <ul className="flex flex-wrap gap-x-8 gap-y-1">
           {links.map((link) => (
             <li key={link.slug}>
-              <a href={`/legal/${link.slug}`}>{link.title}</a>
+              <a
+                href={`/legal/${link.slug}`}
+                className="inline-flex min-h-[44px] items-center font-semibold text-white underline-offset-4 hover:underline focus-visible:outline-white"
+              >
+                {link.title}
+              </a>
             </li>
           ))}
         </ul>
-        {legalNames.length > 0 ? <p className="mt-4">{legalNames.join(" · ")}</p> : null}
+        {legalNames.length > 0 ? (
+          <p className="mt-6 border-t border-white/10 pt-6 text-slate-400">{legalNames.join(" · ")}</p>
+        ) : null}
       </div>
     </footer>
   );

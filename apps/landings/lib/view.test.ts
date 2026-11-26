@@ -123,3 +123,82 @@ describe("buildLandingView: medios del hero", () => {
     expect(warn).toHaveBeenCalled();
   });
 });
+
+describe("buildLandingView: highlights, CTA del hero y galería", () => {
+  const gallery = [
+    { src: "/media/g1.jpg", kind: "image" as const, alt: "Imagen de ejemplo uno", aiGenerated: false },
+    { src: "/media/g2.jpg", kind: "image" as const, alt: "Imagen de ejemplo dos", aiGenerated: true },
+    { src: "/media/g3.jpg", kind: "image" as const, alt: "Imagen de ejemplo tres", aiGenerated: false },
+  ];
+  const ui = BASE_RESOLVED_INSTANCE.marketPack.landingUi;
+
+  it("expone highlights y el CTA del hero hacia #contact cuando hay bloque de contacto", () => {
+    const view = buildLandingView(buildFullLanding({ highlights: ["Uno", "Dos"] }), BASE_RESOLVED_INSTANCE);
+    expect(view.hero.highlights).toEqual(["Uno", "Dos"]);
+    expect(view.hero.cta).toEqual({ label: ui.heroCta, href: "#contact" });
+    expect(view.hero.media?.controls).toEqual({ play: ui.videoPlay, pause: ui.videoPause });
+  });
+
+  it("traduce hero.media.focus a object-position", () => {
+    const landing = buildFullLanding();
+    landing.hero.media = { src: "/media/i.jpg", kind: "image", alt: "Alt de ejemplo", aiGenerated: false, focus: { x: 74, y: 45 } };
+    expect(buildLandingView(landing, BASE_RESOLVED_INSTANCE).hero.media?.objectPosition).toBe("74% 45%");
+  });
+
+  it("sin bloque de contacto no hay CTA del hero", () => {
+    const view = buildLandingView(buildFullLanding({ sections: ["faq"] }), BASE_RESOLVED_INSTANCE);
+    expect(view.hero.cta).toBeUndefined();
+    expect(view.hero.highlights).toBeUndefined();
+  });
+
+  it("construye la galería con alt y etiqueta IA solo en las imágenes aiGenerated", () => {
+    const view = buildLandingView(buildFullLanding({ sections: ["gallery"], gallery }), BASE_RESOLVED_INSTANCE);
+    expect(view.sections).toEqual([
+      {
+        kind: "gallery",
+        title: ui.sectionTitles.gallery,
+        images: [
+          { src: "/media/g1.jpg", alt: "Imagen de ejemplo uno" },
+          { src: "/media/g2.jpg", alt: "Imagen de ejemplo dos", aiLabel: ui.aiImageLabel },
+          { src: "/media/g3.jpg", alt: "Imagen de ejemplo tres" },
+        ],
+      },
+    ]);
+  });
+
+  it("la sección gallery sin datos no se renderiza", () => {
+    const view = buildLandingView(buildFullLanding({ sections: ["gallery", "faq"] }), BASE_RESOLVED_INSTANCE);
+    expect(view.sections.map((section) => section.kind)).toEqual(["faq"]);
+  });
+
+  it("fuera de draft, una imagen de galería inexistente lanza nombrando el archivo", () => {
+    const mediaDir = mediaDirWith(["ejemplo.mp4", "ejemplo.jpg", "g1.jpg", "g3.jpg"]);
+    expect(() =>
+      buildLandingView(buildFullLanding({ sections: ["gallery"], gallery }), BASE_RESOLVED_INSTANCE, {
+        media: { mediaDir, isDraft: false },
+      }),
+    ).toThrow(/\/media\/g2\.jpg.*gallery\[1\]/);
+  });
+
+  it("en draft, una imagen de galería inexistente se avisa y se descarta", () => {
+    const mediaDir = mediaDirWith(["ejemplo.mp4", "ejemplo.jpg", "g1.jpg", "g3.jpg"]);
+    const warn = vi.fn();
+    const view = buildLandingView(buildFullLanding({ sections: ["gallery"], gallery }), BASE_RESOLVED_INSTANCE, {
+      media: { mediaDir, isDraft: true, warn },
+    });
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]?.[0]).toContain("gallery[1]");
+    const section = view.sections[0];
+    expect(section?.kind === "gallery" ? section.images.map((image) => image.src) : []).toEqual([
+      "/media/g1.jpg",
+      "/media/g3.jpg",
+    ]);
+  });
+
+  it("no comprueba la galería si la sección no está en sections", () => {
+    const mediaDir = mediaDirWith(["ejemplo.mp4", "ejemplo.jpg"]);
+    expect(() =>
+      buildLandingView(buildFullLanding({ gallery }), BASE_RESOLVED_INSTANCE, { media: { mediaDir, isDraft: false } }),
+    ).not.toThrow();
+  });
+});

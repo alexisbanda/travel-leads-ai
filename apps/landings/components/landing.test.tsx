@@ -102,15 +102,19 @@ describe("WhatsAppCTA", () => {
 });
 
 describe("Hero", () => {
-  it("vídeo con poster y preload=none, sin autoplay", () => {
+  it("vídeo con portada prioritaria y preload=none, sin autoplay si no hay matchMedia", () => {
     const { container } = render(
-      <Hero headline="Titular" media={{ src: "/v.mp4", kind: "video", poster: "/p.jpg", alt: "Alt" }} />,
+      <Hero
+        headline="Titular"
+        media={{ src: "/v.mp4", kind: "video", poster: "/p.jpg", alt: "Alt", controls: { play: "Play", pause: "Pausa" } }}
+      />,
     );
     const video = container.querySelector("video");
     expect(video).not.toBeNull();
-    expect(video?.getAttribute("poster")).toBe("/p.jpg");
     expect(video?.getAttribute("preload")).toBe("none");
     expect(video?.hasAttribute("autoplay")).toBe(false);
+    // La portada la pinta next/image (LCP), no el atributo poster del vídeo.
+    expect(container.querySelector('img[src*="p.jpg"]')).not.toBeNull();
   });
 
   it("imagen con el alt del contenido", () => {
