@@ -8,7 +8,7 @@ status: draft
 
 agency:
   slug: agencia-ec              # TODO: slug de la agencia
-  legalName: ""                 # TODO
+  legalName: "Agencia receptiva de demostración (ficticia)" # FICTICIO: solo demo, sustituir por el de la agencia (#23)
   country: EC
   website: ""                   # TODO
   notify:
@@ -48,7 +48,7 @@ channels:
     tokenSecret: secret:CRM_API_TOKEN
   whatsapp:
     bsp: respond_io             # TODO: confirmar (ADR pendiente)
-    number: ""                  # TODO: línea española dedicada (+34)
+    number: "+34600000000"      # FICTICIO: solo demo, sustituir por el de la agencia (#23) — línea española dedicada (+34)
     webhookSecret: secret:WHATSAPP_BSP_WEBHOOK_SECRET
   email:
     from: ""                    # TODO: remitente del dominio de la instancia
