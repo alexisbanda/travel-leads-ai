@@ -115,6 +115,7 @@ export const MarketLandingUi = z
     sectionTitles: z
       .object({
         itinerary: NonEmptyText,
+        gallery: NonEmptyText,
         includes: NonEmptyText,
         bestSeason: NonEmptyText,
         priceGuidance: NonEmptyText,
@@ -139,6 +140,15 @@ export const MarketLandingUi = z
       .strict(),
     /** Texto del botón de WhatsApp. */
     whatsappCta: NonEmptyText,
+    /**
+     * Botón principal del hero y de la barra fija de contacto en móvil; lleva
+     * al formulario o al botón de WhatsApp de la landing.
+     */
+    heroCta: NonEmptyText,
+    /** Etiqueta accesible del control para reproducir el vídeo del hero. */
+    videoPlay: NonEmptyText,
+    /** Etiqueta accesible del control para pausar el vídeo del hero. */
+    videoPause: NonEmptyText,
     /**
      * Textos del formulario de lead. Los de consentimiento y privacidad no van
      * aquí: salen de `legalTexts`.

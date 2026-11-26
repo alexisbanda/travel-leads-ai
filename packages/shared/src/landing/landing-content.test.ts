@@ -153,3 +153,67 @@ describe("LandingContent", () => {
     expect(result.success).toBe(false);
   });
 });
+
+describe("LandingContent.highlights", () => {
+  it("acepta de 1 a 4 highlights y es opcional", () => {
+    expect(LandingContent.safeParse({ ...validContent, highlights: ["Chip de ejemplo"] }).success).toBe(true);
+    expect(
+      LandingContent.safeParse({ ...validContent, highlights: ["Uno", "Dos", "Tres", "Cuatro"] }).success,
+    ).toBe(true);
+    expect(LandingContent.safeParse(validContent).success).toBe(true);
+  });
+
+  it.each([
+    ["vacío", []],
+    ["más de 4", ["Uno", "Dos", "Tres", "Cuatro", "Cinco"]],
+    ["con un texto vacío", ["Uno", " "]],
+    ["con un texto de más de 40 caracteres", ["x".repeat(41)]],
+  ])("rechaza highlights %s", (_name, highlights) => {
+    const result = LandingContent.safeParse({ ...validContent, highlights });
+    expect(result.success).toBe(false);
+    expect(issuePaths(result).every((path) => path.startsWith("highlights"))).toBe(true);
+  });
+
+  it("acepta un highlight de exactamente 40 caracteres", () => {
+    expect(LandingContent.safeParse({ ...validContent, highlights: ["x".repeat(40)] }).success).toBe(true);
+  });
+});
+
+describe("LandingContent.gallery", () => {
+  const image = (n: number) => ({ src: `/media/galeria-${n}.jpg`, kind: "image", alt: `Imagen de ejemplo ${n}` });
+
+  it("acepta de 3 a 12 imágenes y pone aiGenerated a false por defecto", () => {
+    const result = LandingContent.safeParse({ ...validContent, gallery: [image(1), image(2), image(3)] });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.gallery?.every((item) => item.aiGenerated === false)).toBe(true);
+    const twelve = Array.from({ length: 12 }, (_, i) => image(i));
+    expect(LandingContent.safeParse({ ...validContent, gallery: twelve }).success).toBe(true);
+  });
+
+  it("rechaza menos de 3 o más de 12 imágenes", () => {
+    expect(issuePaths(LandingContent.safeParse({ ...validContent, gallery: [image(1), image(2)] }))).toEqual([
+      "gallery",
+    ]);
+    const thirteen = Array.from({ length: 13 }, (_, i) => image(i));
+    expect(issuePaths(LandingContent.safeParse({ ...validContent, gallery: thirteen }))).toEqual(["gallery"]);
+  });
+
+  it("rechaza un vídeo en la galería con un mensaje claro en gallery.N.kind", () => {
+    const gallery = [image(1), { ...image(2), kind: "video" }, image(3)];
+    const result = LandingContent.safeParse({ ...validContent, gallery });
+    expect(result.success).toBe(false);
+    expect(issuePaths(result)).toEqual(["gallery.1.kind"]);
+    if (!result.success) expect(result.error.issues[0]?.message).toContain('kind: "image"');
+  });
+
+  it("rechaza una imagen sin alt", () => {
+    const { alt: _alt, ...noAlt } = image(2);
+    const result = LandingContent.safeParse({ ...validContent, gallery: [image(1), noAlt, image(3)] });
+    expect(issuePaths(result)).toEqual(["gallery.1.alt"]);
+  });
+
+  it("admite la sección gallery en sections", () => {
+    const result = LandingContent.safeParse({ ...validContent, sections: ["gallery", "cta"] });
+    expect(result.success).toBe(true);
+  });
+});

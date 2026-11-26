@@ -14,6 +14,7 @@ export type LandingSlug = z.infer<typeof LandingSlug>;
 /** Secciones disponibles en la plantilla de landing, en el orden en que se renderizan. */
 export const LandingSection = z.enum([
   "itinerary",
+  "gallery",
   "includes",
   "bestSeason",
   "priceGuidance",
@@ -55,6 +56,19 @@ export const LandingMedia = z
   })
   .strict();
 export type LandingMedia = z.infer<typeof LandingMedia>;
+
+/** Longitud máxima de cada chip de `highlights` del hero. */
+export const LANDING_HIGHLIGHT_MAX_LENGTH = 40;
+
+/**
+ * Imagen de la galería: un `LandingMedia` con `kind: "image"` obligatorio
+ * (la galería no admite vídeos).
+ */
+export const LandingGalleryImage = LandingMedia.refine((media) => media.kind === "image", {
+  message: 'la galería solo admite imágenes (kind: "image")',
+  path: ["kind"],
+});
+export type LandingGalleryImage = z.infer<typeof LandingGalleryImage>;
 
 /** Contenido del bloque principal (hero). */
 export const LandingHero = z
@@ -154,6 +168,16 @@ export const LandingContent = z
     tourIds: z.array(NonEmptyText).min(1, { message: "indica al menos un tour" }),
     seo: LandingSeo,
     hero: LandingHero,
+    /** Chips cortos del hero (p. ej. duración, tipo de viaje). Opcional, de 1 a 4. */
+    highlights: z
+      .array(
+        NonEmptyText.refine((text) => text.length <= LANDING_HIGHLIGHT_MAX_LENGTH, {
+          message: `cada highlight admite como máximo ${LANDING_HIGHLIGHT_MAX_LENGTH} caracteres`,
+        }),
+      )
+      .min(1, { message: "indica al menos un highlight" })
+      .max(4, { message: "indica como máximo 4 highlights" })
+      .optional(),
     sections: z
       .array(LandingSection)
       .min(1, { message: "indica al menos una sección" }),
@@ -169,6 +193,12 @@ export const LandingContent = z
     /** Precio orientativo. Sin datos, la sección no se renderiza. */
     priceGuidance: LandingPriceGuidance.optional(),
     faq: z.array(LandingFaqItem).optional(),
+    /** Galería de imágenes (solo `kind: "image"`), de 3 a 12. Sin datos, la sección no se renderiza. */
+    gallery: z
+      .array(LandingGalleryImage)
+      .min(3, { message: "la galería necesita al menos 3 imágenes" })
+      .max(12, { message: "la galería admite como máximo 12 imágenes" })
+      .optional(),
     cta: LandingCta,
     experiment: LandingExperiment.optional(),
     draft: z.boolean().default(false),

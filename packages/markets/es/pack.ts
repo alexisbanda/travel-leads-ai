@@ -109,6 +109,7 @@ export const es: MarketPack = MarketPack.parse({
     priceFrom: "Desde {price} por persona",
     sectionTitles: {
       itinerary: "Itinerario",
+      gallery: "Galería",
       includes: "Qué incluye",
       bestSeason: "Mejor época",
       priceGuidance: "Precio orientativo",
@@ -123,6 +124,9 @@ export const es: MarketPack = MarketPack.parse({
       agencyLabel: "Agencia receptiva",
     },
     whatsappCta: "Escríbenos por WhatsApp",
+    heroCta: "Quiero mi propuesta",
+    videoPlay: "Reproducir vídeo",
+    videoPause: "Pausar vídeo",
     form: {
       title: "Cuéntanos tu viaje",
       intro:
