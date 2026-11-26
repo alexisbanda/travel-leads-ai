@@ -16,7 +16,16 @@ const displayFont = Plus_Jakarta_Sans({
   display: "swap",
   variable: "--font-display-family",
 });
-const bodyFont = Inter({ subsets: ["latin"], display: "swap", variable: "--font-body-family" });
+// La fuente de titulares (`displayFont`) sí se precarga: pinta el `<h1>` del
+// hero. La de texto no se precarga para no competir con la imagen del hero
+// (LCP) en el primer pantallazo; `display: "swap"` y el ajuste automático de
+// métricas de `next/font` evitan CLS al intercambiarla.
+const bodyFont = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-body-family",
+  preload: false,
+});
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   const { instance, isDraft } = loadLandingsConfig();

@@ -122,6 +122,11 @@ describe("Hero", () => {
     expect(getByRole("img", { name: "Alt" })).toBeTruthy();
   });
 
+  it("imagen con fetchpriority alta (LCP del hero, además de priority)", () => {
+    const { getByRole } = render(<Hero headline="Titular" media={{ src: "/i.jpg", kind: "image", alt: "Alt" }} />);
+    expect(getByRole("img", { name: "Alt" }).getAttribute("fetchpriority")).toBe("high");
+  });
+
   it("aiGenerated: true → etiqueta visible con aiImageLabel", () => {
     const landing = buildFullLanding({
       hero: { headline: "Titular", media: { src: "/i.jpg", kind: "image", alt: "Alt", aiGenerated: true } },
