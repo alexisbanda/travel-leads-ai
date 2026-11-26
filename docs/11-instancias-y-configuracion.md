@@ -211,11 +211,13 @@ Las versiones (`aiDisclosure.version`, `legalTexts.version`) son `draft` o un id
 | `aiImageLabel` | Etiqueta visible junto a un medio con `aiGenerated: true` |
 | `draftNotice` | Texto de la banda de borrador que se muestra junto al icono ⚠ mientras la instancia está en `status: draft` |
 | `priceFrom` | Plantilla del precio orientativo; debe contener `{price}`, que se sustituye por el precio ya formateado (p. ej. «Desde {price} por persona») |
-| `sectionTitles` | `{ itinerary, includes, bestSeason, priceGuidance, faq, trust }`: títulos de las secciones |
+| `sectionTitles` | `{ itinerary, gallery, includes, bestSeason, priceGuidance, faq, trust }`: títulos de las secciones |
 | `dayLabel` | Plantilla de la etiqueta de cada día del itinerario; debe contener `{day}` (p. ej. «Día {day}») |
 | `includedLabel`, `notIncludedLabel` | Encabezados de las listas de lo que incluye y no incluye el viaje |
 | `trust` | `{ phoneLabel, agencyLabel }`: etiquetas del bloque de confianza |
 | `whatsappCta` | Texto del botón de WhatsApp |
+| `heroCta` | Texto del botón principal del `Hero` y de la barra fija de contacto en móvil; ambos enlazan a `#contact` |
+| `videoPlay`, `videoPause` | Etiquetas accesibles del control para reproducir o pausar el vídeo del hero (cuando `hero.media.kind === "video"`) |
 | `form` | Textos del formulario de lead (ver abajo) |
 
 `landingUi.form` es un objeto estricto con estos textos, todos no vacíos. No incluye los textos de consentimiento ni el aviso de privacidad: el formulario los toma de `legalTexts` (`commercialConsent`, `marketingConsent`, `privacyNotice`, `version`). Ningún texto puede prometer precio, disponibilidad ni reserva.
@@ -259,7 +261,7 @@ Fuera de `draft`, el build de la plantilla exige que `brand.displayName`, `brand
 
 ## Medios
 
-Los medios propios de una instancia (fotos del héroe, logo de marca) viven en `instances/<id>/content/media/`. `hero.media.src`, `hero.media.poster` y `brand.logo` usan rutas con el prefijo `/media/<ruta>`, que corresponden al archivo `instances/<id>/content/media/<ruta>`.
+Los medios propios de una instancia (fotos y vídeo del héroe, imágenes de la galería, logo de marca) viven en `instances/<id>/content/media/`. `hero.media.src`, `hero.media.poster`, cada `src` de `gallery` y `brand.logo` usan rutas con el prefijo `/media/<ruta>`, que corresponden al archivo `instances/<id>/content/media/<ruta>`. `hero.media.focus` (y el `focus` de cada imagen de la galería) no es un archivo: es un punto focal `{ x, y }` en porcentaje (0–100) que la plantilla traduce a `object-position` al recortar la imagen o el vídeo.
 
 El build de landings (`pnpm instance:build <id>`) copia esos archivos a `apps/landings/public/media/`, carpeta que no se versiona. Si un medio referenciado no existe:
 
