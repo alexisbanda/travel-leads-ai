@@ -18,7 +18,7 @@ export function Header({ logo, name }: HeaderProps) {
             alt={name}
             width={160}
             height={40}
-            className="h-10 w-auto"
+            className="h-10 w-auto sm:h-12"
             unoptimized={/^https?:\/\//.test(logo)}
           />
         ) : (
