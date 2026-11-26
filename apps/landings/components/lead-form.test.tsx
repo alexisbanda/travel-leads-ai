@@ -118,6 +118,14 @@ describe("textos desde el pack (#5)", () => {
     expect(screen.getByRole("button", { name: texts.submit })).toBeTruthy();
   });
 
+  it("el aviso de privacidad enlaza a la página legal correspondiente (legalTexts.privacyPageSlug)", () => {
+    renderForm(vi.fn());
+    const privacyPageSlug = legal.privacyPageSlug;
+    const privacyPage = legal.pages.find((page) => page.slug === privacyPageSlug)!;
+    const link = screen.getByRole("link", { name: privacyPage.title });
+    expect(link.getAttribute("href")).toBe(`/legal/${privacyPageSlug}`);
+  });
+
   it("sin marketingConsent en el pack no muestra esa casilla", () => {
     const instance = withResolvedInstance((c) => {
       delete c.marketPack.legalTexts.marketingConsent;

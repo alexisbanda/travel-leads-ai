@@ -227,6 +227,8 @@ export async function submitLead(body: LandingLeadInput, options: SubmitOptions)
 export interface LeadFormView {
   texts: LeadFormTexts;
   legal: Pick<LegalTexts, "version" | "privacyNotice" | "commercialConsent" | "marketingConsent">;
+  /** Página legal de privacidad (`legalTexts.privacyPageSlug`) a la que enlaza el aviso. */
+  privacyPage: { slug: string; title: string };
   phoneDefaultRegion: string;
   endpoint: string;
   appCheck: AppCheckWebConfig;
