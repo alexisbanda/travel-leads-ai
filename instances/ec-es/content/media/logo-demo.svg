@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100" role="img" aria-label="Ecuador Vivo, marca de demostración">
+  <rect width="400" height="100" fill="#ffffff"/>
+  <circle cx="34" cy="50" r="22" fill="#0f6b4c"/>
+  <path d="M18 54c4-14 16-22 30-20-3 9-8 15-16 19-6 3-10 3-14 1z" fill="#ffd34d"/>
+  <text x="68" y="58" font-family="system-ui, sans-serif" font-size="34" font-weight="700" fill="#0f2d26">Ecuador</text>
+  <text x="230" y="58" font-family="system-ui, sans-serif" font-size="34" font-weight="700" fill="#0f6b4c">Vivo</text>
+  <text x="70" y="78" font-family="system-ui, sans-serif" font-size="13" letter-spacing="2" fill="#7a7a7a">DEMO</text>
+</svg>

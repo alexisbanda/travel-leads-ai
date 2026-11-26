@@ -30,9 +30,9 @@ market:
     days: [1, 2, 3, 4, 5, 6]
 
 brand:
-  displayName: ""               # TODO: logo y nombre pendientes de la agencia
+  displayName: "Ecuador Vivo (demo)"  # TODO: marca provisional de demo, pendiente de la agencia (#23)
   domain: ""
-  logo: ""
+  logo: "/media/logo-demo.svg"   # TODO: logo provisional de demo, pendiente de la agencia (#23)
   primaryColor: "#000000"
 
 infra:
