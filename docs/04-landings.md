@@ -79,12 +79,14 @@ Los datos de las secciones (`itinerary`, `includes`, `bestSeason`, `priceGuidanc
 - `/<slug>`: una landing publicada (`apps/landings/app/[slug]/page.tsx`), generada por `generateStaticParams` a partir de `content/landings/*.json`, con `dynamicParams = false` (cualquier otro slug devuelve 404).
 - `/legal/<slug>`: una página legal (`apps/landings/app/legal/[slug]/page.tsx`) por cada entrada de `legalTexts.pages` del pack de mercado de la instancia (no de `content/landings/`).
 
-Una landing con `draft: true` solo se incluye en `generateStaticParams` si la instancia completa está en `status: draft`; en cualquier otro estado queda excluida, como si no existiera. Mientras la instancia está en `draft`, la plantilla añade una banda de borrador visible y `noindex` en todas las páginas, para que un sitio de prueba no se indexe ni se confunda con el definitivo.
+Una landing con `draft: true` solo se incluye en `generateStaticParams` si la instancia completa está en `status: draft`; en cualquier otro estado queda excluida, como si no existiera. Mientras la instancia está en `draft`, la plantilla añade una banda de borrador visible y `noindex` en todas las páginas, con el texto de `landingUi.draftNotice` junto al icono ⚠, para que un sitio de prueba no se indexe ni se confunda con el definitivo.
 
 ## Componentes
 
 | Componente | Notas |
 | --- | --- |
+| `Header` | Logo de `brand.logo` con `alt` igual al nombre de marca; sin logo, muestra `brand.displayName`; si ambos están vacíos, el nombre de la instancia |
+| `Footer` | Un enlace a `/legal/<slug>` por cada entrada de `legalTexts.pages`, con su `title`; y la razón social de `partner.legalName` y `agency.legalName` que no estén vacías |
 | `Hero` | Vídeo vertical real en móvil; nunca imágenes generadas que parezcan reales sin etiqueta |
 | `Itinerary` | Día a día desde el catálogo |
 | `PriceGuidance` | "Desde X" por persona, formateado con `Intl.NumberFormat` en el `locale` y la moneda del mercado, más el `priceDisclaimer` del pack |
@@ -135,7 +137,11 @@ Además (lógica en `apps/landings/lib/seo-index.ts`, probada en `seo-index.test
 
 ## Páginas legales obligatorias
 
-Las define el pack de mercado en `legalTexts.pages` (al menos una, slugs únicos en kebab-case), con textos revisados por un abogado de ese mercado. En mercados UE: privacidad, cookies y aviso legal. El texto del checkbox de consentimiento se versiona (`legalTexts.version`).
+Las define el pack de mercado en `legalTexts.pages` (al menos una, slugs únicos en kebab-case), con textos revisados por un abogado de ese mercado. En mercados UE: privacidad, cookies y aviso legal. El texto del checkbox de consentimiento se versiona (`legalTexts.version`). Todas comparten el mismo layout (`Header`, `Footer` y un ancho de lectura fijo). El aviso de privacidad del formulario (`LeadForm`) enlaza a `/legal/<legalTexts.privacyPageSlug>`.
+
+## Medios
+
+Los medios propios de la instancia (fotos y vídeo del héroe, logo de marca) viven en `instances/<id>/content/media/` y se referencian con rutas `/media/<ruta>` (`hero.media.src`, `hero.media.poster`, `brand.logo`). El build de landings los copia a `apps/landings/public/media/` (no se versiona). Fuera de `draft`, un medio referenciado que no existe hace fallar el build; en `draft`, solo avisa por consola y el `Hero` se pinta sin medio. Detalle completo en [docs/11-instancias-y-configuracion.md](11-instancias-y-configuracion.md#medios).
 
 ## Una instancia, un sitio
 

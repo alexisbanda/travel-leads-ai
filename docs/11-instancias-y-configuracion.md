@@ -58,7 +58,8 @@ instances/
     ├── instance.yaml          # Configuración de la instancia
     ├── README.md              # Contexto de negocio de esta instancia
     ├── content/
-    │   └── landings/*.json    # Contenido de landings (idioma del mercado)
+    │   ├── landings/*.json    # Contenido de landings (idioma del mercado)
+    │   └── media/             # Medios de la instancia (ver «Medios» más abajo)
     ├── prompts/               # Ajustes del agente propios de la agencia (opcional)
     └── evals/                 # Casos de evaluación propios (opcional)
 
@@ -195,6 +196,7 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 | `aiDisclosure` | `{ text, version }`: aviso de que el viajero habla con una IA, en el idioma del mercado |
 | `legalTexts` | `{ version, privacyNotice, commercialConsent, marketingConsent?, cookieBanner?, pages }`: textos legales base con una versión común |
 | `legalTexts.pages` | `[{ slug, title, body }]`: páginas legales completas que publica la plantilla de landings en `/legal/<slug>`. Al menos una, con slugs en kebab-case y sin repetidos |
+| `legalTexts.privacyPageSlug` | Slug (kebab-case) de `legalTexts.pages` con la página de privacidad. Debe coincidir con el `slug` de alguna página; si no, falla la validación. El aviso de privacidad del formulario enlaza a `/legal/<privacyPageSlug>` |
 | `priceDisclaimer` | Texto: aviso de precios orientativos |
 | `agentTone` | Texto: tono del agente para los prompts |
 | `landingUi` | Textos de interfaz de la plantilla de landings, en el idioma del mercado (ver abajo). Obligatorio; no es una clave bloqueable |
@@ -207,6 +209,7 @@ Las versiones (`aiDisclosure.version`, `legalTexts.version`) son `draft` o un id
 | Campo | Uso |
 | --- | --- |
 | `aiImageLabel` | Etiqueta visible junto a un medio con `aiGenerated: true` |
+| `draftNotice` | Texto de la banda de borrador que se muestra junto al icono ⚠ mientras la instancia está en `status: draft` |
 | `priceFrom` | Plantilla del precio orientativo; debe contener `{price}`, que se sustituye por el precio ya formateado (p. ej. «Desde {price} por persona») |
 | `sectionTitles` | `{ itinerary, includes, bestSeason, priceGuidance, faq, trust }`: títulos de las secciones |
 | `dayLabel` | Plantilla de la etiqueta de cada día del itinerario; debe contener `{day}` (p. ej. «Día {day}») |
@@ -250,6 +253,15 @@ Fuera de `draft`, el build de la plantilla exige que `brand.displayName`, `brand
 | `legalRegime`, `internationalTransferWithoutAdequacy`, `aiDisclosure`, `legalTexts`, `priceDisclaimer`, `agentTone` | — | Sin campo en `InstanceConfig`, que es estricto: la instancia no puede sobrescribirlas |
 
 `compliance.internationalTransfer` no se compara con `internationalTransferWithoutAdequacy`: depende de la decisión de adecuación del destino y es una regla cruzada aparte.
+
+## Medios
+
+Los medios propios de una instancia (fotos del héroe, logo de marca) viven en `instances/<id>/content/media/`. `hero.media.src`, `hero.media.poster` y `brand.logo` usan rutas con el prefijo `/media/<ruta>`, que corresponden al archivo `instances/<id>/content/media/<ruta>`.
+
+El build de landings (`pnpm instance:build <id>`) copia esos archivos a `apps/landings/public/media/`, carpeta que no se versiona. Si un medio referenciado no existe:
+
+- Fuera de `draft`, el build falla con un error que indica la ruta que falta.
+- En `draft`, solo avisa por consola y la landing sigue adelante: el hero se pinta sin medio.
 
 ### `DestinationPack` (`packages/destinations/<iso>`)
 
