@@ -29,13 +29,16 @@ export const VersionedText = z
   .strict();
 export type VersionedText = z.infer<typeof VersionedText>;
 
+/** Identificador en kebab-case (minúsculas, dígitos y guiones). */
+const KebabSlug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+  message: "identificador inválido: usa kebab-case (minúsculas, dígitos y -)",
+});
+
 /** Página legal completa (privacidad, cookies, aviso legal...) del mercado. */
 export const MarketLegalPage = z
   .object({
     /** Identificador en kebab-case; se usa como ruta `/legal/<slug>`. */
-    slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
-      message: "identificador inválido: usa kebab-case (minúsculas, dígitos y -)",
-    }),
+    slug: KebabSlug,
     title: NonEmptyText,
     body: NonEmptyText,
   })
@@ -56,6 +59,11 @@ export const MarketLegalTexts = z
     cookieBanner: NonEmptyText.optional(),
     /** Páginas legales completas que publica la plantilla de landings en `/legal/<slug>`. */
     pages: z.array(MarketLegalPage).min(1, { message: "indica al menos una página legal" }),
+    /**
+     * Slug de `pages` con la página de privacidad; el aviso de privacidad del
+     * formulario enlaza a `/legal/<privacyPageSlug>`.
+     */
+    privacyPageSlug: KebabSlug,
   })
   .strict()
   .superRefine((legal, ctx) => {
@@ -64,6 +72,13 @@ export const MarketLegalTexts = z
         code: z.ZodIssueCode.custom,
         path: ["pages"],
         message: `slug de página legal repetido: ${slug}`,
+      });
+    }
+    if (!legal.pages.some((page) => page.slug === legal.privacyPageSlug)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["privacyPageSlug"],
+        message: `privacyPageSlug "${legal.privacyPageSlug}" no coincide con ninguna página legal`,
       });
     }
   });
@@ -89,6 +104,11 @@ export const MarketLandingUi = z
   .object({
     /** Etiqueta visible junto a un medio generado con IA (`aiGenerated: true`). */
     aiImageLabel: NonEmptyText,
+    /**
+     * Texto de la banda de borrador que se muestra junto al icono ⚠ mientras
+     * la instancia está en `status: draft`.
+     */
+    draftNotice: NonEmptyText,
     /** Plantilla del precio orientativo con el marcador `{price}` (precio ya formateado). */
     priceFrom: templateText(PRICE_PLACEHOLDER),
     /** Títulos de las secciones de la landing. */

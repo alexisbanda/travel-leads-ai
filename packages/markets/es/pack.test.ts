@@ -76,6 +76,14 @@ describe("pack de mercado es", () => {
     expect(es.landingUi.whatsappCta).toBe("Escríbenos por WhatsApp");
   });
 
+  it("define draftNotice sin prometer precio, disponibilidad ni reserva", () => {
+    expect(es.landingUi.draftNotice.trim()).not.toBe("");
+    const text = es.landingUi.draftNotice.toLowerCase();
+    for (const word of ["reserva", "confirmad", "disponib", "precio"]) {
+      expect(text).not.toContain(word);
+    }
+  });
+
   it("define los textos del formulario de lead (landingUi.form) sin prometer precio ni reserva", () => {
     const form = es.landingUi.form;
     expect(Object.keys(form).sort()).toEqual(
@@ -126,6 +134,12 @@ describe("pack de mercado es", () => {
     for (const page of es.legalTexts.pages) {
       expect(page.body).toMatch(/Borrador pendiente de revisión legal/);
     }
+  });
+
+  it("privacyPageSlug apunta a una página legal existente", () => {
+    expect(es.legalTexts.privacyPageSlug).toBe("privacidad");
+    const slugs = es.legalTexts.pages.map((page) => page.slug);
+    expect(slugs).toContain(es.legalTexts.privacyPageSlug);
   });
 
   it("retención de 24 meses, transferencia scc y aviso de precios orientativos", () => {
