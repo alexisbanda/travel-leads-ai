@@ -88,10 +88,13 @@ describe("pack de mercado es", () => {
     const form = es.landingUi.form;
     expect(Object.keys(form).sort()).toEqual(
       [
+        "title",
+        "intro",
         "nameLabel",
         "phoneLabel",
         "emailLabel",
         "travelMonthLabel",
+        "travelMonthHint",
         "adultsLabel",
         "childrenLabel",
         "submit",
@@ -115,6 +118,10 @@ describe("pack de mercado es", () => {
     for (const word of ["reserva", "confirmad", "disponib", "precio"]) {
       expect(all).not.toContain(word);
     }
+  });
+
+  it("el error de teléfono no exige prefijo", () => {
+    expect(es.landingUi.form.errorPhone.toLowerCase()).not.toContain("prefijo");
   });
 
   it("textos legales y aviso de IA en borrador y en es-ES", () => {
