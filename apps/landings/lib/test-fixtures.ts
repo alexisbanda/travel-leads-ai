@@ -106,10 +106,13 @@ export const BASE_RESOLVED_INSTANCE: ResolvedInstanceConfig = {
       trust: { phoneLabel: "Teléfono (ficticio)", agencyLabel: "Agencia (ficticio)" },
       whatsappCta: "WhatsApp (ficticio)",
       form: {
+        title: "title (ficticio)",
+        intro: "intro (ficticio)",
         nameLabel: "nameLabel (ficticio)",
         phoneLabel: "phoneLabel (ficticio)",
         emailLabel: "emailLabel (ficticio)",
         travelMonthLabel: "travelMonthLabel (ficticio)",
+        travelMonthHint: "travelMonthHint (ficticio)",
         adultsLabel: "adultsLabel (ficticio)",
         childrenLabel: "childrenLabel (ficticio)",
         submit: "submit (ficticio)",

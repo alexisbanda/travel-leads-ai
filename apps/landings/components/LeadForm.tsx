@@ -38,7 +38,9 @@ const errorClass = "mt-1 text-sm text-red-800";
 export function LeadForm(props: LeadFormProps) {
   const { texts, legal, privacyPage, endpoint, landingSlug, tourIds, phoneDefaultRegion, whatsappHref } = props;
   const baseId = useId();
-  const idOf = (field: LeadFormField | "website" | "marketing" | "privacy" | "thanks") => `${baseId}-${field}`;
+  const idOf = (
+    field: LeadFormField | "website" | "marketing" | "privacy" | "thanks" | "title" | "travelMonthHint",
+  ) => `${baseId}-${field}`;
   const errorIdOf = (field: LeadFormField) => `${baseId}-${field}-error`;
 
   const [values, setValues] = useState<LeadFormValues>(EMPTY_LEAD_FORM_VALUES);
@@ -130,11 +132,16 @@ export function LeadForm(props: LeadFormProps) {
   }
 
   const submitting = status === "submitting";
-  const fieldProps = (field: LeadFormField) => ({
-    id: idOf(field),
-    "aria-invalid": errors[field] !== undefined,
-    ...(errors[field] !== undefined ? { "aria-describedby": errorIdOf(field) } : {}),
-  });
+  const fieldProps = (field: LeadFormField, extraDescribedBy?: string) => {
+    const describedBy = [extraDescribedBy, errors[field] !== undefined ? errorIdOf(field) : undefined]
+      .filter((id): id is string => id !== undefined)
+      .join(" ");
+    return {
+      id: idOf(field),
+      "aria-invalid": errors[field] !== undefined,
+      ...(describedBy !== "" ? { "aria-describedby": describedBy } : {}),
+    };
+  };
   const fieldError = (field: LeadFormField) =>
     errors[field] !== undefined ? (
       <p id={errorIdOf(field)} className={errorClass}>
@@ -145,30 +152,40 @@ export function LeadForm(props: LeadFormProps) {
     field: "name" | "phone" | "email" | "travelMonth" | "adults" | "children",
     label: string,
     input: { type: string; autoComplete?: string; inputMode?: "numeric"; min?: number; max?: number; required?: boolean },
+    extraDescribedBy?: string,
   ) => (
     <div>
       <label htmlFor={idOf(field)} className="block font-medium">
         {label}
       </label>
       <input
-        {...fieldProps(field)}
+        {...fieldProps(field, extraDescribedBy)}
         {...input}
         name={field}
         value={values[field]}
         onChange={update(field)}
         className={inputClass}
       />
+      {field === "travelMonth" ? (
+        <p id={idOf("travelMonthHint")} className="mt-1 text-sm text-gray-500">
+          {texts.travelMonthHint}
+        </p>
+      ) : null}
       {fieldError(field)}
     </div>
   );
 
   return (
-    <section className="px-4 py-10 sm:px-6">
-      <form noValidate onSubmit={onSubmit} className="mx-auto grid max-w-xl gap-4">
+    <section aria-labelledby={idOf("title")} className="px-4 py-10 sm:px-6">
+      <h2 id={idOf("title")} className="mx-auto max-w-xl text-center text-2xl font-bold">
+        {texts.title}
+      </h2>
+      <p className="mx-auto mt-3 max-w-xl text-center">{texts.intro}</p>
+      <form noValidate onSubmit={onSubmit} className="mx-auto mt-6 grid max-w-xl gap-4">
         {textField("name", texts.nameLabel, { type: "text", autoComplete: "name", required: true })}
         {textField("phone", texts.phoneLabel, { type: "tel", autoComplete: "tel", required: true })}
         {textField("email", texts.emailLabel, { type: "email", autoComplete: "email" })}
-        {textField("travelMonth", texts.travelMonthLabel, { type: "month" })}
+        {textField("travelMonth", texts.travelMonthLabel, { type: "month" }, idOf("travelMonthHint"))}
         <div className="grid grid-cols-2 gap-4">
           {textField("adults", texts.adultsLabel, { type: "number", inputMode: "numeric", ...ADULTS })}
           {textField("children", texts.childrenLabel, { type: "number", inputMode: "numeric", ...CHILDREN })}

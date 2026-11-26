@@ -222,7 +222,10 @@ Las versiones (`aiDisclosure.version`, `legalTexts.version`) son `draft` o un id
 
 | Campo | Uso |
 | --- | --- |
+| `title` | Título encima del formulario |
+| `intro` | Frase de contexto bajo el título |
 | `nameLabel`, `phoneLabel`, `emailLabel`, `travelMonthLabel`, `adultsLabel`, `childrenLabel` | Etiquetas de los campos |
+| `travelMonthHint` | Ayuda bajo el campo de mes |
 | `submit`, `submitting` | Botón de envío y su texto mientras se envía |
 | `errorRequired`, `errorPhone`, `errorEmail`, `errorConsent` | Errores de campo: obligatorio vacío, teléfono inválido, email inválido y consentimiento obligatorio sin aceptar |
 | `errorInvalid` | Formato no válido (mes, número de personas, niños sin adultos) |

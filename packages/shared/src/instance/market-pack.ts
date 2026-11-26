@@ -145,10 +145,16 @@ export const MarketLandingUi = z
      */
     form: z
       .object({
+        /** Título encima del formulario. */
+        title: NonEmptyText,
+        /** Frase de contexto bajo el título. */
+        intro: NonEmptyText,
         nameLabel: NonEmptyText,
         phoneLabel: NonEmptyText,
         emailLabel: NonEmptyText,
         travelMonthLabel: NonEmptyText,
+        /** Ayuda bajo el campo de mes. */
+        travelMonthHint: NonEmptyText,
         adultsLabel: NonEmptyText,
         childrenLabel: NonEmptyText,
         /** Botón de envío. */

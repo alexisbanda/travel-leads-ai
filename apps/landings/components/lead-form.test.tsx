@@ -72,6 +72,12 @@ function describedError(el: HTMLElement): string | null | undefined {
   return id ? document.getElementById(id)?.textContent : undefined;
 }
 
+/** Textos de todos los elementos referenciados por `aria-describedby` (puede haber varios ids). */
+function describedByTexts(el: HTMLElement): string[] {
+  const ids = el.getAttribute("aria-describedby")?.split(" ") ?? [];
+  return ids.map((id) => document.getElementById(id)?.textContent ?? "");
+}
+
 async function blockingViolations(container: HTMLElement): Promise<string[]> {
   const results = await axe.run(container);
   return results.violations
@@ -116,6 +122,28 @@ describe("textos desde el pack (#5)", () => {
     expect(input(legal.marketingConsent!).checked).toBe(false);
     expect(screen.getByText(legal.privacyNotice)).toBeTruthy();
     expect(screen.getByRole("button", { name: texts.submit })).toBeTruthy();
+  });
+
+  it("muestra el título y la introducción del formulario, y nombran la región (#67)", () => {
+    const { container } = renderForm(vi.fn());
+    const heading = screen.getByRole("heading", { name: texts.title });
+    expect(screen.getByText(texts.intro)).toBeTruthy();
+    const region = container.querySelector(`[aria-labelledby="${heading.id}"]`);
+    expect(region).toBeTruthy();
+  });
+
+  it("el campo de mes incluye la ayuda travelMonthHint en su descripción accesible (#67)", () => {
+    renderForm(vi.fn());
+    expect(describedByTexts(input(texts.travelMonthLabel))).toEqual([texts.travelMonthHint]);
+  });
+
+  it("con error de mes (respuesta 400), la descripción accesible incluye la ayuda y el error (#67)", async () => {
+    renderForm(vi.fn(async () => response(400, { error: "validation", fields: ["travelMonth"] })));
+    fillValid();
+    submit();
+    const month = input(texts.travelMonthLabel);
+    await waitFor(() => expect(month.getAttribute("aria-invalid")).toBe("true"));
+    expect(describedByTexts(month)).toEqual([texts.travelMonthHint, texts.errorInvalid]);
   });
 
   it("el aviso de privacidad enlaza a la página legal correspondiente (legalTexts.privacyPageSlug)", () => {

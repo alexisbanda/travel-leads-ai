@@ -69,10 +69,13 @@ const validPack = {
     trust: { phoneLabel: "Teléfono (ficticio)", agencyLabel: "Agencia (ficticio)" },
     whatsappCta: "WhatsApp (ficticio)",
     form: {
+      title: "title (ficticio)",
+      intro: "intro (ficticio)",
       nameLabel: "nameLabel (ficticio)",
       phoneLabel: "phoneLabel (ficticio)",
       emailLabel: "emailLabel (ficticio)",
       travelMonthLabel: "travelMonthLabel (ficticio)",
+      travelMonthHint: "travelMonthHint (ficticio)",
       adultsLabel: "adultsLabel (ficticio)",
       childrenLabel: "childrenLabel (ficticio)",
       submit: "submit (ficticio)",
@@ -139,6 +142,27 @@ describe("MarketPack", () => {
     const pack = { ...validPack, landingUi: { ...validPack.landingUi, form: formRest } };
     const result = MarketPack.safeParse(pack);
     expect(issuePaths(result)).toContain("landingUi.form.errorInvalid");
+  });
+
+  it("exige landingUi.form.title: un pack sin esa clave falla", () => {
+    const { title: _title, ...formRest } = validPack.landingUi.form;
+    const pack = { ...validPack, landingUi: { ...validPack.landingUi, form: formRest } };
+    const result = MarketPack.safeParse(pack);
+    expect(issuePaths(result)).toContain("landingUi.form.title");
+  });
+
+  it("exige landingUi.form.intro: un pack sin esa clave falla", () => {
+    const { intro: _intro, ...formRest } = validPack.landingUi.form;
+    const pack = { ...validPack, landingUi: { ...validPack.landingUi, form: formRest } };
+    const result = MarketPack.safeParse(pack);
+    expect(issuePaths(result)).toContain("landingUi.form.intro");
+  });
+
+  it("exige landingUi.form.travelMonthHint: un pack sin esa clave falla", () => {
+    const { travelMonthHint: _travelMonthHint, ...formRest } = validPack.landingUi.form;
+    const pack = { ...validPack, landingUi: { ...validPack.landingUi, form: formRest } };
+    const result = MarketPack.safeParse(pack);
+    expect(issuePaths(result)).toContain("landingUi.form.travelMonthHint");
   });
 
   it("landingUi es estricto: rechaza claves desconocidas", () => {
