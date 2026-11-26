@@ -33,7 +33,7 @@ brand:
   displayName: "Ecuador Vivo (demo)"  # TODO: marca provisional de demo, pendiente de la agencia (#23)
   domain: ""
   logo: "/media/logo-demo.svg"   # TODO: logo provisional de demo, pendiente de la agencia (#23)
-  primaryColor: "#000000"
+  primaryColor: "#C8450D"  # TODO: color provisional de demo (naranja volcánico, 4,87:1 con blanco), pendiente de la agencia (#23)
 
 infra:
   firebaseProjects:

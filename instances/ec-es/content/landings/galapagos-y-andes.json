@@ -1,7 +1,9 @@
 {
   "slug": "galapagos-y-andes",
   "segment": "adventure",
-  "tourIds": ["tour-demo-galapagos-andes-11d"],
+  "tourIds": [
+    "tour-demo-galapagos-andes-11d"
+  ],
   "seo": {
     "title": "Galápagos y los Andes: itinerario de demostración de 11 días",
     "description": "Itinerario, mejor época y precio orientativos de demostración: Quito, la Sierra y Galápagos en 11 días. Déjanos tus datos y te asesoramos."
@@ -10,14 +12,32 @@
     "headline": "De los volcanes de los Andes a las islas Galápagos",
     "subheadline": "11 días de demostración entre la Sierra ecuatoriana y el archipiélago, con asesoramiento en español",
     "media": {
-      "src": "/media/galapagos-hero.webm",
-      "kind": "video",
-      "poster": "/media/galapagos-hero-poster.jpg",
-      "alt": "Costa rocosa de una isla de Galápagos con olas rompiendo y vegetación árida en primer plano",
-      "aiGenerated": false
+      "src": "/media/galapagos-bartolome-pinnacle-rock.jpg",
+      "kind": "image",
+      "alt": "Pinnacle Rock de la isla Bartolomé, en Galápagos, junto a una bahía de aguas turquesa y laderas volcánicas",
+      "aiGenerated": false,
+      "focus": {
+        "x": 74,
+        "y": 45
+      }
     }
   },
-  "sections": ["itinerary", "includes", "bestSeason", "priceGuidance", "faq", "trust", "cta"],
+  "highlights": [
+    "11 días",
+    "Andes + Galápagos",
+    "Grupos reducidos",
+    "Guías locales"
+  ],
+  "sections": [
+    "itinerary",
+    "gallery",
+    "includes",
+    "bestSeason",
+    "priceGuidance",
+    "faq",
+    "trust",
+    "cta"
+  ],
   "itinerary": [
     {
       "day": 1,
@@ -114,6 +134,32 @@
     {
       "q": "¿Se garantiza ver animales concretos en Galápagos?",
       "a": "No se puede garantizar el avistamiento de ninguna especie, ya que es fauna silvestre en libertad; sí es habitual, según la zona y la temporada, cruzarse con tortugas gigantes, lobos marinos, iguanas marinas y aves propias del archipiélago."
+    }
+  ],
+  "gallery": [
+    {
+      "src": "/media/galapagos-piquero-patas-azules.jpg",
+      "kind": "image",
+      "alt": "Piquero de patas azules posado sobre roca volcánica en las islas Galápagos",
+      "aiGenerated": false
+    },
+    {
+      "src": "/media/quito-centro-historico.jpg",
+      "kind": "image",
+      "alt": "Vista panorámica del centro histórico de Quito con sus tejados y la basílica",
+      "aiGenerated": false
+    },
+    {
+      "src": "/media/cotopaxi-paramo.jpg",
+      "kind": "image",
+      "alt": "Páramo andino del Parque Nacional Cotopaxi con el volcán nevado al fondo",
+      "aiGenerated": false
+    },
+    {
+      "src": "/media/quilotoa-laguna.jpg",
+      "kind": "image",
+      "alt": "Laguna de aguas verdes en el cráter del volcán Quilotoa, rodeada de laderas andinas",
+      "aiGenerated": false
     }
   ],
   "cta": {
