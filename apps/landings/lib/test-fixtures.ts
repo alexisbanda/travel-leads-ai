@@ -90,6 +90,7 @@ export const BASE_RESOLVED_INSTANCE: ResolvedInstanceConfig = {
     agentTone: "Tono de ejemplo.",
     landingUi: {
       aiImageLabel: "Etiqueta IA (ficticio)",
+      draftNotice: "Borrador (ficticio)",
       priceFrom: "Desde {price} (ficticio)",
       sectionTitles: {
         itinerary: "Itinerario (ficticio)",
@@ -143,6 +144,7 @@ export const BASE_RESOLVED_INSTANCE: ResolvedInstanceConfig = {
         { body: "Cuerpo de ejemplo.", slug: "aviso-legal", title: "Aviso legal" },
       ],
       privacyNotice: "Aviso de privacidad de ejemplo.",
+      privacyPageSlug: "privacidad",
       version: "draft",
     },
     locale: "es-ES", // hardcoding-ok: valor de prueba, no leído por apps/landings

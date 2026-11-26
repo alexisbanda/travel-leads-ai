@@ -47,11 +47,13 @@ const validPack = {
     privacyNotice: "Texto ficticio de privacidad.",
     commercialConsent: "Texto ficticio de consentimiento.",
     pages: [{ slug: "privacidad", title: "Privacidad (ficticio)", body: "Texto ficticio." }],
+    privacyPageSlug: "privacidad",
   },
   priceDisclaimer: "Precios orientativos (texto ficticio).",
   agentTone: "Cercano (texto ficticio).",
   landingUi: {
     aiImageLabel: "Etiqueta IA (ficticio)",
+    draftNotice: "Borrador (ficticio)",
     priceFrom: "Desde {price} (ficticio)",
     sectionTitles: {
       itinerary: "Itinerario (ficticio)",
@@ -100,8 +102,6 @@ describe("MarketPack", () => {
     ["dataRegions", []],
     ["aiDisclosure.text", " "],
     ["legalTexts.version", ""],
-    ["legalTexts.pages", []],
-    ["legalTexts.pages.0.slug", "No_Kebab"],
     ["locked", ["dataRegions", "dataRegions"]],
     ["businessHours.end", "08:00"],
   ])("rechaza un %s inválido", (path, value) => {
@@ -116,6 +116,8 @@ describe("MarketPack", () => {
 
   it.each([
     ["landingUi.aiImageLabel", ""],
+    ["landingUi.draftNotice", ""],
+    ["landingUi.draftNotice", "   "],
     ["landingUi.priceFrom", "Desde 100"],
     ["landingUi.priceFrom", " "],
     ["landingUi.dayLabel", "Día"],
@@ -156,5 +158,45 @@ describe("MarketPack", () => {
     ]);
     const result = MarketPack.safeParse(withDuplicate);
     expect(issuePaths(result)).toEqual(["legalTexts.pages"]);
+  });
+
+  it("exige landingUi.draftNotice: un pack sin esa clave falla", () => {
+    const { draftNotice: _draftNotice, ...landingUiRest } = validPack.landingUi;
+    const pack = { ...validPack, landingUi: landingUiRest };
+    const result = MarketPack.safeParse(pack);
+    expect(issuePaths(result)).toContain("landingUi.draftNotice");
+  });
+
+  it("exige legalTexts.privacyPageSlug: un pack sin esa clave falla", () => {
+    const { privacyPageSlug: _privacyPageSlug, ...legalTextsRest } = validPack.legalTexts;
+    const pack = { ...validPack, legalTexts: legalTextsRest };
+    const result = MarketPack.safeParse(pack);
+    expect(issuePaths(result)).toContain("legalTexts.privacyPageSlug");
+  });
+
+  it("rechaza legalTexts.pages vacío", () => {
+    const result = MarketPack.safeParse(withValue(validPack, "legalTexts.pages", []));
+    expect(issuePaths(result)).toContain("legalTexts.pages");
+  });
+
+  it("rechaza legalTexts.pages.0.slug con formato inválido", () => {
+    const result = MarketPack.safeParse(
+      withValue(validPack, "legalTexts.pages.0.slug", "No_Kebab"),
+    );
+    expect(issuePaths(result)).toContain("legalTexts.pages.0.slug");
+  });
+
+  it("rechaza privacyPageSlug con formato inválido", () => {
+    const result = MarketPack.safeParse(
+      withValue(validPack, "legalTexts.privacyPageSlug", "No_Kebab"),
+    );
+    expect(issuePaths(result)).toContain("legalTexts.privacyPageSlug");
+  });
+
+  it("rechaza privacyPageSlug que no coincide con ninguna página legal", () => {
+    const result = MarketPack.safeParse(
+      withValue(validPack, "legalTexts.privacyPageSlug", "no-existe"),
+    );
+    expect(issuePaths(result)).toEqual(["legalTexts.privacyPageSlug"]);
   });
 });

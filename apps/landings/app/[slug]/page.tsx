@@ -5,6 +5,7 @@ import { JsonLdScript } from "../../components/JsonLdScript.js";
 import { LandingView } from "../../components/LandingView.js";
 import { loadLandingsConfig } from "../../lib/config.js";
 import { loadLandings } from "../../lib/content.js";
+import { defaultMediaDir } from "../../lib/media.js";
 import { buildLandingParams } from "../../lib/params.js";
 import { buildLandingGraph, canonicalUrl } from "../../lib/structured-data.js";
 import { buildLandingView } from "../../lib/view.js";
@@ -48,10 +49,13 @@ export default async function LandingPage({
   const landing = findLanding(slug);
   if (!landing) notFound();
 
-  const { instance } = loadLandingsConfig();
+  const { instance, isDraft } = loadLandingsConfig();
   // El endpoint del formulario se calcula aquí, en el servidor (LEAD_ENDPOINT_URL, TLA_ENV).
   const env = { LEAD_ENDPOINT_URL: process.env.LEAD_ENDPOINT_URL, TLA_ENV: process.env.TLA_ENV };
-  const view = buildLandingView(landing, instance, { env });
+  const view = buildLandingView(landing, instance, {
+    env,
+    media: { mediaDir: defaultMediaDir(instance.id), isDraft },
+  });
   const graph = buildLandingGraph(landing, instance, view);
   return (
     <>

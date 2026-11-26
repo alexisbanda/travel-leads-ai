@@ -1,13 +1,18 @@
-import type {
-  LandingContent,
-  LandingFaqItem,
-  LandingMediaKind,
-  LandingSection,
-  ResolvedInstanceConfig,
+import {
+  brandName,
+  type LandingContent,
+  type LandingFaqItem,
+  type LandingMediaKind,
+  type LandingSection,
+  type ResolvedInstanceConfig,
 } from "@tla/shared";
 import { formatDay, formatPhoneForMarket, formatPriceFrom, whatsappHref } from "./format.js";
 import { firebaseProjectId, leadEndpointUrl, type LeadEndpointEnv } from "./lead-endpoint.js";
 import type { LeadFormView } from "./lead-form.js";
+import { checkMedia, type CheckMediaOptions } from "./media.js";
+
+/** Comprobación de medios para una vista; sin ella no se verifica existencia (uso en tests). */
+export type MediaCheck = CheckMediaOptions;
 
 /**
  * Vista de UI de una landing: datos ya resueltos (textos del pack de
@@ -68,6 +73,11 @@ export interface LandingView {
 export interface BuildLandingViewOptions {
   /** Entorno del servidor (`process.env`): `LEAD_ENDPOINT_URL` y `TLA_ENV`. */
   env?: LeadEndpointEnv;
+  /**
+   * Comprobación de `hero.media.src`/`poster` contra `instances/<id>/content/media`.
+   * Sin ella, el hero se construye tal cual (uso en tests unitarios de la vista).
+   */
+  media?: MediaCheck;
 }
 
 /**
@@ -87,9 +97,12 @@ function buildFormSection(
     );
     return undefined;
   }
-  const { version, privacyNotice, commercialConsent, marketingConsent } = instance.marketPack.legalTexts;
+  const { version, privacyNotice, commercialConsent, marketingConsent, privacyPageSlug, pages } =
+    instance.marketPack.legalTexts;
   const web = instance.channels.web;
   const href = whatsappHref(instance.channels.whatsapp.number, landing.cta.prefill);
+  // El pack de mercado garantiza (market-pack.ts) que privacyPageSlug coincide con una página.
+  const privacyPage = pages.find((page) => page.slug === privacyPageSlug)!;
   return {
     kind: "form",
     form: {
@@ -100,6 +113,7 @@ function buildFormSection(
         commercialConsent,
         ...(marketingConsent !== undefined ? { marketingConsent } : {}),
       },
+      privacyPage: { slug: privacyPage.slug, title: privacyPage.title },
       phoneDefaultRegion: instance.market.phoneDefaultRegion,
       endpoint,
       appCheck: {
@@ -201,15 +215,26 @@ export function buildLandingView(
   options: BuildLandingViewOptions = {},
 ): LandingView {
   const media = landing.hero.media;
+  let availableMedia: Set<string> | undefined;
+  if (media && options.media) {
+    const refs = [{ ref: media.src, context: `landing ${landing.slug} (hero.media.src)` }];
+    if (media.poster !== undefined) {
+      refs.push({ ref: media.poster, context: `landing ${landing.slug} (hero.media.poster)` });
+    }
+    availableMedia = checkMedia(refs, options.media);
+  }
+  const srcOk = media !== undefined && (availableMedia === undefined || availableMedia.has(media.src));
+  const posterOk =
+    media?.poster !== undefined && (availableMedia === undefined || availableMedia.has(media.poster));
   const hero: HeroView = {
     headline: landing.hero.headline,
     ...(landing.hero.subheadline !== undefined ? { subheadline: landing.hero.subheadline } : {}),
-    ...(media
+    ...(media && srcOk
       ? {
           media: {
             src: media.src,
             kind: media.kind,
-            ...(media.poster !== undefined ? { poster: media.poster } : {}),
+            ...(media.poster !== undefined && posterOk ? { poster: media.poster } : {}),
             alt: media.alt,
             ...(media.aiGenerated ? { aiLabel: instance.marketPack.landingUi.aiImageLabel } : {}),
           },
@@ -223,4 +248,49 @@ export function buildLandingView(
     if (view) sections.push(view);
   }
   return { hero, sections };
+}
+
+/** Vista de la cabecera: logo de marca, o su nombre en texto si no hay logo. */
+export interface HeaderView {
+  logo?: string;
+  name: string;
+}
+
+export interface BuildHeaderViewOptions {
+  /** Comprobación de `brand.logo`; sin ella no se verifica existencia (uso en tests). */
+  media?: MediaCheck;
+}
+
+/**
+ * Cabecera de la instancia (AGENTS.md: nada de nombres fijos en el código).
+ * `brandName` ya aplica el mismo criterio que el resto del motor: `displayName`
+ * y, si está vacío, el nombre de la instancia.
+ */
+export function buildHeaderView(
+  instance: ResolvedInstanceConfig,
+  options: BuildHeaderViewOptions = {},
+): HeaderView {
+  const name = brandName(instance);
+  const logo = instance.brand.logo.trim();
+  if (logo === "") return { name };
+  if (options.media) {
+    const available = checkMedia([{ ref: logo, context: "brand.logo" }], options.media);
+    if (!available.has(logo)) return { name };
+  }
+  return { logo, name };
+}
+
+/** Vista del pie: un enlace por página legal del pack de mercado y las razones sociales presentes. */
+export interface FooterView {
+  links: Array<{ slug: string; title: string }>;
+  legalNames: string[];
+}
+
+/** Pie de la instancia: enlaces `/legal/<slug>` y razón social de agencia/socio (sin duplicar). */
+export function buildFooterView(instance: ResolvedInstanceConfig): FooterView {
+  const links = instance.marketPack.legalTexts.pages.map(({ slug, title }) => ({ slug, title }));
+  const names = [instance.partner.legalName.trim(), instance.agency.legalName.trim()].filter(
+    (name) => name !== "",
+  );
+  return { links, legalNames: [...new Set(names)] };
 }

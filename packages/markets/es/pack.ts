@@ -95,6 +95,7 @@ export const es: MarketPack = MarketPack.parse({
           "titular del sitio, sus datos de contacto y las condiciones generales de uso.",
       },
     ],
+    privacyPageSlug: "privacidad",
   },
   priceDisclaimer:
     "Precio orientativo, sujeto a confirmación por la agencia. No es una oferta ni una reserva.",
@@ -104,6 +105,7 @@ export const es: MarketPack = MarketPack.parse({
     "viajero los use primero.",
   landingUi: {
     aiImageLabel: "Imagen generada con IA",
+    draftNotice: "Versión de prueba: esta página aún no es definitiva y puede cambiar.",
     priceFrom: "Desde {price} por persona",
     sectionTitles: {
       itinerary: "Itinerario",

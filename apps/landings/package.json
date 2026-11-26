@@ -5,7 +5,9 @@
   "type": "module",
   "description": "Plantilla Next.js única de landings por instancia, a partir del contenido de instances/<id>/content/landings (docs/04-landings.md).",
   "scripts": {
+    "predev": "node scripts/sync-media.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/sync-media.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

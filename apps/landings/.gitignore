@@ -2,6 +2,10 @@
 out/
 *.tsbuildinfo
 
+# Lo genera scripts/sync-media.mjs (predev/prebuild) desde
+# instances/<id>/content/media; no son medios del motor.
+public/media/
+
 # El .gitignore raíz ignora cualquier carpeta `lib/` (salida de build de
 # functions); aquí `lib/` es código fuente (ver AGENTS.md, apps/landings/lib).
 !lib/

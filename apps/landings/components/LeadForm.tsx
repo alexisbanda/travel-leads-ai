@@ -36,7 +36,7 @@ const errorClass = "mt-1 text-sm text-red-800";
  * (pack de mercado e instancia). Los valores solo viven en el estado de React.
  */
 export function LeadForm(props: LeadFormProps) {
-  const { texts, legal, endpoint, landingSlug, tourIds, phoneDefaultRegion, whatsappHref } = props;
+  const { texts, legal, privacyPage, endpoint, landingSlug, tourIds, phoneDefaultRegion, whatsappHref } = props;
   const baseId = useId();
   const idOf = (field: LeadFormField | "website" | "marketing" | "privacy" | "thanks") => `${baseId}-${field}`;
   const errorIdOf = (field: LeadFormField) => `${baseId}-${field}-error`;
@@ -204,6 +204,11 @@ export function LeadForm(props: LeadFormProps) {
         ) : null}
         <p id={idOf("privacy")} className="text-sm text-gray-700">
           {legal.privacyNotice}
+        </p>
+        <p className="text-sm text-gray-700">
+          <a href={`/legal/${privacyPage.slug}`} className="underline">
+            {privacyPage.title}
+          </a>
         </p>
 
         {/* Honeypot: invisible para personas y tecnologías de apoyo. */}

@@ -55,11 +55,13 @@ function syntheticConfig(): ResolvedInstanceConfig {
       privacyNotice: "Privacidad",
       commercialConsent: "Contacto",
       pages: [{ slug: "privacidad", title: "Privacidad", body: "Cuerpo de prueba" }],
+      privacyPageSlug: "privacidad",
     },
     priceDisclaimer: "Precio de prueba",
     agentTone: "Tono de prueba",
     landingUi: {
       aiImageLabel: "Etiqueta IA (ficticio)",
+      draftNotice: "Borrador (ficticio)",
       priceFrom: "Desde {price} (ficticio)",
       sectionTitles: {
         itinerary: "Itinerario (ficticio)",
