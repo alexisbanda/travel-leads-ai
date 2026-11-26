@@ -38,6 +38,19 @@ export const LandingMediaKind = z.enum(["video", "image"]);
 export type LandingMediaKind = z.infer<typeof LandingMediaKind>;
 
 /**
+ * Punto focal de un medio, en porcentaje desde la esquina superior izquierda
+ * (0–100). La plantilla lo usa para encuadrar el recorte (`object-position`)
+ * y que lo importante siga visible en móvil y escritorio.
+ */
+export const LandingMediaFocus = z
+  .object({
+    x: z.number().min(0, { message: "x va de 0 a 100" }).max(100, { message: "x va de 0 a 100" }),
+    y: z.number().min(0, { message: "y va de 0 a 100" }).max(100, { message: "y va de 0 a 100" }),
+  })
+  .strict();
+export type LandingMediaFocus = z.infer<typeof LandingMediaFocus>;
+
+/**
  * Medio (vídeo o imagen) de la landing. Si `aiGenerated` es `true`, la
  * plantilla muestra junto al medio la etiqueta `landingUi.aiImageLabel` del
  * pack de mercado (transparencia IA).
@@ -53,6 +66,8 @@ export const LandingMedia = z
     alt: NonEmptyText,
     /** Si el medio se generó con IA. Por defecto `false`. */
     aiGenerated: z.boolean().default(false),
+    /** Punto focal del recorte. Sin él, se centra. */
+    focus: LandingMediaFocus.optional(),
   })
   .strict();
 export type LandingMedia = z.infer<typeof LandingMedia>;

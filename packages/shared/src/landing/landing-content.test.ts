@@ -217,3 +217,18 @@ describe("LandingContent.gallery", () => {
     expect(result.success).toBe(true);
   });
 });
+
+describe("LandingMedia.focus", () => {
+  it("acepta un punto focal en porcentaje y es opcional", () => {
+    const content = withValue(validContent, "hero.media.focus", { x: 74, y: 45 });
+    expect(LandingContent.safeParse(content).success).toBe(true);
+  });
+
+  it.each([
+    [{ x: 101, y: 50 }, "hero.media.focus.x"],
+    [{ x: 50, y: -1 }, "hero.media.focus.y"],
+    [{ x: 50 }, "hero.media.focus.y"],
+  ])("rechaza %j", (focus, path) => {
+    expect(issuePaths(LandingContent.safeParse(withValue(validContent, "hero.media.focus", focus)))).toEqual([path]);
+  });
+});
