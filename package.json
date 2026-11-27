@@ -17,6 +17,7 @@
     "instance:validate": "pnpm --filter @tla/instance-cli --silent validate",
     "instance:build": "pnpm --filter @tla/instance-cli --silent instance:build",
     "instance:seed": "pnpm --filter @tla/instance-cli --silent instance:seed",
+    "instance:landing:generate": "pnpm --filter @tla/instance-cli --silent instance:landing:generate",
     "deploy:instance": "echo \"Pendiente (M0): despliega una instancia\" && exit 1",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
