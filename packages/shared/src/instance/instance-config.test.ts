@@ -154,6 +154,19 @@ describe("InstanceConfig: canales de CRM y aviso", () => {
     expect(issuePaths(InstanceConfig.safeParse(raw))).toEqual(["channels.crm.provider"]);
   });
 
+  it.each(["meta_cloud", "respond_io", "360dialog", "other"])(
+    "acepta el proveedor de WhatsApp %s",
+    (bsp) => {
+      const raw = withValue(ecEs, "channels.whatsapp.bsp", bsp);
+      expect(issuePaths(InstanceConfig.safeParse(raw))).toEqual([]);
+    },
+  );
+
+  it("rechaza un proveedor de WhatsApp desconocido", () => {
+    const raw = withValue(ecEs, "channels.whatsapp.bsp", "otro-bsp");
+    expect(issuePaths(InstanceConfig.safeParse(raw))).toEqual(["channels.whatsapp.bsp"]);
+  });
+
   it("admite omitir agency.notify", () => {
     const raw = structuredClone(ecEs) as { agency: Record<string, unknown> };
     delete raw.agency.notify;

@@ -10,5 +10,6 @@ Cada decisión relevante y difícil de revertir se documenta aquí. Copia `_plan
 | [0004](0004-catalogo-mcp.md) | Catálogo estructurado expuesto por MCP | Aceptada |
 | [0005](0005-agentes-modo-asistido.md) | Agentes en modo asistido al inicio | Aceptada |
 | [0006](0006-motor-generico-instancias.md) | Motor genérico con instancias configurables | Aceptada |
+| [0007](0007-whatsapp-cloud-api-adaptador.md) | WhatsApp: Cloud API de Meta detrás de un adaptador de BSP | Aceptada |
 
-Pendientes de decidir: consumo de modelos vía API directa o Vertex AI; proveedor de WhatsApp (BSP); HubSpot o Pipedrive.
+Pendientes de decidir: consumo de modelos vía API directa o Vertex AI; bandeja del modo asistido de WhatsApp (ADR 0007, con #58); HubSpot o Pipedrive.

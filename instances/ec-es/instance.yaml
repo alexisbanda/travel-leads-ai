@@ -47,7 +47,7 @@ channels:
     provider: hubspot           # TODO: confirmar con la agencia (ADR pendiente)
     tokenSecret: secret:CRM_API_TOKEN
   whatsapp:
-    bsp: respond_io             # TODO: confirmar (ADR pendiente)
+    bsp: meta_cloud             # Cloud API de Meta (ADR 0007)
     number: "+34600000000"      # FICTICIO: solo demo, sustituir por el de la agencia (#23) — línea española dedicada (+34)
     webhookSecret: secret:WHATSAPP_BSP_WEBHOOK_SECRET
   email:

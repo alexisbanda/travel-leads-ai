@@ -89,7 +89,7 @@ infra:
   bigqueryLocation: EU
 channels:
   crm: { provider: hubspot, tokenSecret: secret:CRM_API_TOKEN }
-  whatsapp: { bsp: respond_io, number: "", webhookSecret: secret:WHATSAPP_BSP_WEBHOOK_SECRET }
+  whatsapp: { bsp: meta_cloud, number: "", webhookSecret: secret:WHATSAPP_BSP_WEBHOOK_SECRET }
   email: { from: "", smtpSecret: secret:SMTP_CONNECTION_URI }
   web: { recaptchaSiteKey: "", firebaseApiKey: "", firebaseAppId: "" }   # obligatorias fuera de draft
 segments:
@@ -147,7 +147,7 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 | `infra.bigqueryLocation` | Multirregión en mayúsculas o región de Google Cloud | Sí |
 | `channels.crm.provider` | `hubspot` · `pipedrive` · `memory`. `memory` es un adaptador en memoria solo para desarrollo, hasta el ADR de CRM; `hubspot` y `pipedrive` aún no tienen adaptador y la tarea `crm.upsert` se registra como `skipped` ([spec 003](specs/003-on-lead-created.md)) | No |
 | `channels.crm.tokenSecret` | `secret:NOMBRE` | No |
-| `channels.whatsapp.bsp` | `respond_io` · `360dialog` · `other` | No |
+| `channels.whatsapp.bsp` | `meta_cloud` · `respond_io` · `360dialog` · `other`. `meta_cloud` es la Cloud API de Meta sin intermediario, el primer adaptador ([ADR 0007](adr/0007-whatsapp-cloud-api-adaptador.md)); los demás aún no tienen adaptador | No |
 | `channels.whatsapp.number` | E.164 (`+` y 7–15 dígitos) | Solo en `draft` |
 | `channels.whatsapp.webhookSecret` | `secret:NOMBRE` | No |
 | `channels.email` | Opcional. Obligatorio si `agency.notify.channel` o `partner.notify.channel` es `email`. Envío con la extensión Trigger Email (ver [Email: extensión Trigger Email](#email-extensión-trigger-email)) | — |

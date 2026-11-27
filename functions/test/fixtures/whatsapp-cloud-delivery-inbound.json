@@ -1,0 +1,49 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "100000000000001",
+      "changes": [
+        {
+          "field": "messages",
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "15550000000",
+              "phone_number_id": "123456789012345"
+            },
+            "contacts": [{ "profile": { "name": "Viajera Prueba" }, "wa_id": "15550001111" }],
+            "messages": [
+              {
+                "from": "15550001111",
+                "id": "wamid.TEST0001",
+                "timestamp": "1795000000",
+                "type": "text",
+                "text": { "body": "Hola, me interesa el viaje [GAL-01]" },
+                "referral": {
+                  "source_url": "https://example.test/ad/1",
+                  "source_id": "120000000000001",
+                  "source_type": "ad",
+                  "headline": "Anuncio de prueba",
+                  "body": "Texto de anuncio ficticio",
+                  "ctwa_clid": "ctwa-test-0001"
+                }
+              },
+              {
+                "from": "15550001111",
+                "id": "wamid.TEST0002",
+                "timestamp": "1795000060",
+                "type": "image",
+                "image": {
+                  "id": "900000000000001",
+                  "mime_type": "image/jpeg",
+                  "sha256": "dGVzdA=="
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
