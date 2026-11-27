@@ -11,14 +11,18 @@
     "test:emulator": "firebase emulators:exec --only firestore --project demo-tla-seed \"vitest run src/seed.emulator.test.ts\"",
     "validate": "tsx --conditions=source src/validate.ts",
     "instance:build": "tsx --conditions=source src/build.ts",
-    "instance:seed": "tsx --conditions=source src/seed.ts"
+    "instance:seed": "tsx --conditions=source src/seed.ts",
+    "instance:landing:generate": "tsx --conditions=source src/landing-generate.ts",
+    "evals": "tsx --conditions=source src/landing-generate.evals.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
     "@tla/destinations": "workspace:*",
     "@tla/markets": "workspace:*",
     "@tla/shared": "workspace:*",
     "firebase-admin": "^12.7.0",
-    "yaml": "^2.9.1"
+    "yaml": "^2.9.1",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "tsx": "^4.19.2"

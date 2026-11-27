@@ -80,6 +80,21 @@ describe("pack de mercado es", () => {
     expect(es.landingUi.videoPause).toBe("Pausar vídeo");
   });
 
+  it("define contentGuardrails con frases (no palabras sueltas) sobre reserva, disponibilidad y precio final", () => {
+    const claims = es.contentGuardrails?.forbiddenClaims ?? [];
+    expect(claims.length).toBeGreaterThan(0);
+    for (const claim of claims) expect(claim.trim().split(/\s+/).length).toBeGreaterThan(1);
+    const joined = claims.join(" | ");
+    for (const fragment of [
+      "reserva confirmada",
+      "plazas garantizadas",
+      "disponibilidad garantizada",
+      "precio final",
+    ]) {
+      expect(joined).toContain(fragment);
+    }
+  });
+
   it("heroCta no promete precio, disponibilidad ni reserva", () => {
     const text = es.landingUi.heroCta.toLowerCase();
     for (const word of ["reserva", "confirmad", "disponib", "precio"]) {

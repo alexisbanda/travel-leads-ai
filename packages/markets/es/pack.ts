@@ -151,6 +151,33 @@ export const es: MarketPack = MarketPack.parse({
       thanksWhatsapp: "Escríbenos ahora por WhatsApp",
     },
   },
+  // Frases que el contenido generado con IA no puede contener (regla 2: no se
+  // promete disponibilidad, reserva ni precio final). Frases completas, no
+  // palabras sueltas, para no bloquear FAQ legítimas como «¿cómo reservo?».
+  contentGuardrails: {
+    forbiddenClaims: [
+      "reserva confirmada",
+      "reservas confirmadas",
+      "plaza garantizada",
+      "plazas garantizadas",
+      "disponibilidad garantizada",
+      "disponibilidad confirmada",
+      "salida garantizada",
+      "salidas garantizadas",
+      "precio final",
+      "precio cerrado",
+      "precio garantizado",
+      "precio definitivo",
+      "reserva ya",
+      "reserva ahora",
+      "resérvalo ya",
+      "compra ahora",
+      "compra ya",
+      "paga ahora",
+      "últimas plazas",
+      "quedan pocas plazas",
+    ],
+  },
   locked: [
     "legalRegime",
     "dataRegions",

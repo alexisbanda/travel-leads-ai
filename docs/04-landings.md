@@ -82,6 +82,15 @@ Esquema Zod en `packages/shared/src/landing/landing-content.ts`, exportado como 
 
 Los datos de las secciones (`itinerary`, `gallery`, `includes`, `bestSeason`, `priceGuidance`, `faq`) son opcionales: una sección incluida en `sections` pero sin datos no se renderiza. Los textos fijos de la interfaz (títulos de sección, «Día N», «Desde X por persona», etiqueta de medio generado con IA, botón de WhatsApp, etiquetas, errores y pantalla de gracias del formulario de lead en `landingUi.form`...) no están en el contenido ni en el código: salen de `marketPack.landingUi` de la configuración resuelta (ver [11-instancias-y-configuracion.md](11-instancias-y-configuracion.md#marketpack-packagesmarketsiso)).
 
+## Cómo crear una landing
+
+Una landing es un archivo `instances/<id>/content/landings/<slug>.json` que cumple `LandingContent` (ver [Modelo de contenido](#modelo-de-contenido)). Hay dos formas de crearlo:
+
+- **A mano:** copia una landing existente de la instancia, cambia `slug` (igual al nombre del archivo) y los textos, y valida con `pnpm instance:validate <id>`.
+- **Con el generador:** escribe un brief corto (plantilla en `instances/_template/content/briefs/_ejemplo.md`: segmento, tours, días, precio orientativo opcional, tipo de CTA, código de campaña opcional y los hechos del producto) y ejecuta `pnpm instance:landing:generate <id> <slug> --brief <ruta>`. Claude redacta los textos en el idioma y con el tono del pack de mercado, solo con los hechos del brief; la CLI impone slug, segmento, tours, CTA y precio desde el brief, rechaza importes en los textos y frases que prometan disponibilidad, reserva o precio final (`contentGuardrails` del pack) y valida el resultado. Detalle de flags, credenciales y coste en [`packages/instance-cli/README.md`](../packages/instance-cli/README.md#instancelandinggenerate).
+
+En los dos casos la landing nace en `draft: true` y **siempre la revisa una persona** antes de publicarla: los textos generados pueden contener afirmaciones falsas sobre el destino. Para publicar, añade los medios (`hero.media` y, si quieres galería, de 3 a 12 imágenes en `gallery`, ver [Medios](#medios)) y cambia `draft` a `false`.
+
 ## Rutas y borrador
 
 - `/<slug>`: una landing publicada (`apps/landings/app/[slug]/page.tsx`), generada por `generateStaticParams` a partir de `content/landings/*.json`, con `dynamicParams = false` (cualquier otro slug devuelve 404).
