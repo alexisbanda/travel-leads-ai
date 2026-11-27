@@ -28,7 +28,8 @@ El contenido pertenece a la instancia, en el idioma de su mercado. La plantilla 
       "aiGenerated": false
     }
   },
-  "sections": ["itinerary", "includes", "bestSeason", "priceGuidance", "faq", "trust", "cta"],
+  "highlights": ["8 días", "Grupos pequeños", "Guía local"],
+  "sections": ["itinerary", "gallery", "includes", "bestSeason", "priceGuidance", "faq", "trust", "cta"],
   "itinerary": [
     { "day": 1, "title": "Llegada a Quito", "description": "..." },
     { "day": 2, "title": "Vuelo a Galápagos", "description": "..." }
@@ -42,6 +43,11 @@ El contenido pertenece a la instancia, en el idioma de su mercado. La plantilla 
   "faq": [
     { "q": "¿Cuál es la mejor época para ir?", "a": "..." },
     { "q": "¿Es seguro viajar a Ecuador?", "a": "..." }
+  ],
+  "gallery": [
+    { "src": "/media/galapagos-piquero.jpg", "kind": "image", "alt": "Piquero de patas azules en Galápagos", "aiGenerated": false },
+    { "src": "/media/quito-historico.jpg", "kind": "image", "alt": "Centro histórico de Quito", "aiGenerated": false },
+    { "src": "/media/cotopaxi.jpg", "kind": "image", "alt": "Volcán Cotopaxi", "aiGenerated": false }
   ],
   "cta": { "type": "whatsapp", "prefill": "Hola, me interesa Galápagos [GAL-01]" },
   "experiment": { "id": "hero-v2", "variant": "B" }
@@ -61,18 +67,20 @@ Esquema Zod en `packages/shared/src/landing/landing-content.ts`, exportado como 
 | `tourIds` | Lista no vacía de IDs del catálogo |
 | `seo` | `{ title, description }`, ambos obligatorios |
 | `hero` | `{ headline, subheadline?, media? }` |
-| `hero.media` | Opcional: `{ src, kind: "video" \| "image", poster?, alt, aiGenerated }`. `aiGenerated` es booleano, por defecto `false`; si es `true`, la plantilla muestra junto al medio la etiqueta `landingUi.aiImageLabel` del pack de mercado |
-| `sections` | Lista no vacía de `itinerary` · `includes` · `bestSeason` · `priceGuidance` · `faq` · `trust` · `cta`, en el orden en que se renderizan |
+| `hero.media` | Opcional: `{ src, kind: "video" \| "image", poster?, alt, aiGenerated, focus? }`. `aiGenerated` es booleano, por defecto `false`; si es `true`, la plantilla muestra junto al medio la etiqueta `landingUi.aiImageLabel` del pack de mercado. `focus` es opcional: `{ x, y }` en porcentaje (0–100) desde la esquina superior izquierda; la plantilla lo traduce a `object-position` para que el punto importante de la foto o el vídeo siga visible al recortar en móvil o escritorio. Sin `focus`, se centra |
+| `highlights` | Opcional: lista de 1 a 4 textos cortos (máximo 40 caracteres cada uno, p. ej. duración o tipo de viaje), que el `Hero` pinta como chips bajo el subtítulo |
+| `sections` | Lista no vacía de `itinerary` · `gallery` · `includes` · `bestSeason` · `priceGuidance` · `faq` · `trust` · `cta`, en el orden en que se renderizan |
 | `itinerary` | Opcional: lista no vacía de `{ day, title, description }`; `day` es un entero ≥ 1 |
 | `includes` | Opcional: `{ included, notIncluded? }`; `included` es una lista no vacía de textos |
 | `bestSeason` | Opcional: `{ summary }` |
 | `priceGuidance` | Opcional: `{ from }`, número positivo. Precio **orientativo** por persona en la moneda del mercado; no es una oferta ni confirma disponibilidad, y se muestra siempre con el `priceDisclaimer` del pack |
 | `faq` | Opcional: lista de `{ q, a }` |
+| `gallery` | Opcional: lista de 3 a 12 `LandingMedia` con `kind: "image"` obligatorio (la galería no admite vídeo). Sin datos, la sección `gallery` no se renderiza aunque esté en `sections` |
 | `cta` | `{ type: "whatsapp" \| "form", prefill? }` |
 | `experiment` | Opcional: `{ id, variant }`, referencia a un experimento A/B en curso |
 | `draft` | Booleano, por defecto `false`. Ver [Borrador](#borrador) |
 
-Los datos de las secciones (`itinerary`, `includes`, `bestSeason`, `priceGuidance`, `faq`) son opcionales: una sección incluida en `sections` pero sin datos no se renderiza. Los textos fijos de la interfaz (títulos de sección, «Día N», «Desde X por persona», etiqueta de medio generado con IA, botón de WhatsApp, etiquetas, errores y pantalla de gracias del formulario de lead en `landingUi.form`...) no están en el contenido ni en el código: salen de `marketPack.landingUi` de la configuración resuelta (ver [11-instancias-y-configuracion.md](11-instancias-y-configuracion.md#marketpack-packagesmarketsiso)).
+Los datos de las secciones (`itinerary`, `gallery`, `includes`, `bestSeason`, `priceGuidance`, `faq`) son opcionales: una sección incluida en `sections` pero sin datos no se renderiza. Los textos fijos de la interfaz (títulos de sección, «Día N», «Desde X por persona», etiqueta de medio generado con IA, botón de WhatsApp, etiquetas, errores y pantalla de gracias del formulario de lead en `landingUi.form`...) no están en el contenido ni en el código: salen de `marketPack.landingUi` de la configuración resuelta (ver [11-instancias-y-configuracion.md](11-instancias-y-configuracion.md#marketpack-packagesmarketsiso)).
 
 ## Rutas y borrador
 
@@ -87,7 +95,9 @@ Una landing con `draft: true` solo se incluye en `generateStaticParams` si la in
 | --- | --- |
 | `Header` | Logo de `brand.logo` con `alt` igual al nombre de marca; sin logo, muestra `brand.displayName`; si ambos están vacíos, el nombre de la instancia |
 | `Footer` | Un enlace a `/legal/<slug>` por cada entrada de `legalTexts.pages`, con su `title`; y la razón social de `partner.legalName` y `agency.legalName` que no estén vacías |
-| `Hero` | Vídeo vertical real en móvil; nunca imágenes generadas que parezcan reales sin etiqueta |
+| `Hero` | Titular, subtítulo, chips de `highlights` y botón `landingUi.heroCta` hacia `#contact`; imagen o vídeo de fondo (`HeroVideo` si `hero.media.kind === "video"`). Nunca imágenes generadas que parezcan reales sin etiqueta. Ver «Vídeo del hero» más abajo |
+| `Gallery` | Rejilla de imágenes de `gallery`, con el título `landingUi.sectionTitles.gallery`. Solo imágenes (nunca vídeo); sin `gallery` o con menos de 3 elementos, la sección no existe |
+| `MobileCtaBar` | Barra fija de contacto en móvil (oculta desde `md`, `position: fixed`, sin CLS): aparece al dejar atrás el `Hero` y se oculta al llegar al bloque de contacto (`#contact`) o pasarlo, con `IntersectionObserver`. Enlaza a `#contact` con el texto `landingUi.heroCta` |
 | `Itinerary` | Día a día desde el catálogo |
 | `PriceGuidance` | "Desde X" por persona, formateado con `Intl.NumberFormat` en el `locale` y la moneda del mercado, más el `priceDisclaimer` del pack |
 | `Trust` | Número local del mercado, agencia registrada en el destino, reseñas reales enlazadas |
@@ -95,7 +105,24 @@ Una landing con `draft: true` solo se incluye en `generateStaticParams` si la in
 | `WhatsAppCTA` | Enlace `wa.me` con mensaje predefinido y código de campaña |
 | `ConsentBanner` | Consent Mode v2; sin consentimiento no se carga el Pixel |
 
-Los componentes viven en `apps/landings/components/` (Server Components sin estado). No leen configuración: `lib/view.ts` (`buildLandingView`) resuelve antes los textos de `marketPack.landingUi`, el precio con `Intl.NumberFormat`, el número con `libphonenumber-js` y el enlace `wa.me`, y descarta las secciones sin datos. La página renderiza el `Hero` y después las secciones en el orden de `sections`. Los estilos usan Tailwind CSS 4 (`app/globals.css`); el color de marca sale de `brand.primaryColor` (variable `--brand-primary`, utilidades `bg-brand`, `text-brand`, `border-brand`). `LeadForm` y `ConsentBanner` llegan en otros tickets.
+La mayoría de los componentes son Server Components sin estado; `HeroVideo` y `MobileCtaBar` son Client Components (`"use client"`) porque necesitan `IntersectionObserver` o controlar la reproducción. Ninguno lee configuración directamente: `lib/view.ts` (`buildLandingView`) resuelve antes los textos de `marketPack.landingUi`, el precio con `Intl.NumberFormat`, el número con `libphonenumber-js` y el enlace `wa.me`, y descarta las secciones sin datos. La página renderiza el `Hero` y después las secciones en el orden de `sections`. `LeadForm` y `ConsentBanner` llegan en otros tickets.
+
+### Vídeo del hero
+
+Cuando `hero.media.kind === "video"`, el `Hero` delega en `HeroVideo` (`apps/landings/components/HeroVideo.tsx`):
+
+- El `poster` (si existe) se pinta con `next/image` y `priority` (es el candidato a LCP); el `<video>` no lo duplica mientras no arranca.
+- Autorreproducción (silenciada, en bucle) solo si se cumple `AUTOPLAY_QUERY`: `(min-width: 768px) and (prefers-reduced-motion: no-preference)`. En móvil, o con preferencia de movimiento reducido, el vídeo se queda en el `poster` hasta que la persona pulsa reproducir.
+- Siempre hay un botón visible para pausar o reproducir (WCAG 2.2.2), con las etiquetas accesibles `landingUi.videoPlay` / `landingUi.videoPause`.
+- `hero.media.focus` (si existe) se aplica como `object-position` tanto al `poster` como al `<video>`.
+
+### Ancla de contacto y barra fija en móvil
+
+El primer bloque de contacto (CTA) de la página lleva el id `#contact` (`apps/landings/components/LandingView.tsx`). El botón `landingUi.heroCta` del `Hero` y, en móvil, la `MobileCtaBar`, enlazan ahí. En escritorio no hay barra fija: el botón del `Hero` basta.
+
+### Tokens de color y tipografías
+
+Los estilos usan Tailwind CSS 4 (`app/globals.css`). El color de marca sale de `brand.primaryColor` (variable `--brand-primary`, fijada en `layout.tsx`); sin color, cae a un gris pizarra neutro. El resto de tokens se derivan de ahí con `color-mix()`, así el motor no conoce ningún color concreto: `--color-brand` (botones y acentos, debe dar ≥ 4,5:1 con blanco), `--color-brand-dark` (hover, tarjetas destacadas), `--color-brand-deep` (bandas oscuras como el bloque de contacto), `--color-brand-light` (bordes suaves) y `--color-brand-tint` (fondo alterno de secciones), con las utilidades `bg-brand`, `text-brand`, `border-brand`, `bg-brand-dark`, etc. Las tipografías son Plus Jakarta Sans (`--font-display`, titulares) e Inter (`--font-sans`, cuerpo), cargadas con `next/font/google` en `app/layout.tsx` (autohospedadas, sin bloqueo de render por red externa).
 
 ## Tracking
 
@@ -128,7 +155,7 @@ Además (lógica en `apps/landings/lib/seo-index.ts`, probada en `seo-index.test
 
 - LCP < 2,5 s en 4G. El vídeo del hero con `poster` y carga diferida.
 - Imágenes con `next/image`, formatos modernos (`images.formats: ["image/avif", "image/webp"]` en `apps/landings/next.config.ts`). `eslint.config.mjs` registra `@next/eslint-plugin-next` sobre `apps/landings` y marca `<img>` como error (`@next/next/no-img-element`) para forzar `next/image`.
-- Presupuesto de rendimiento con Lighthouse CI (`apps/landings/lighthouserc.json`): perfil móvil, 3 ejecuciones por URL y mediana (`aggregationMethod: "median-run"`) sobre las landings de ejemplo de `ec-es` (`/ejemplo` y `/ejemplo-form`). Falla (`error`) si no se cumple:
+- Presupuesto de rendimiento con Lighthouse CI (`apps/landings/lighthouserc.json`): perfil móvil, 3 ejecuciones por URL y mediana (`aggregationMethod: "median-run"`) sobre las landings de ejemplo de `ec-es` (`/ejemplo`, `/ejemplo-form` y la landing de demostración `/galapagos-y-andes`, con galería e hero con imagen). Falla (`error`) si no se cumple:
   - `largest-contentful-paint` < 2500 ms.
   - `cumulative-layout-shift` < 0,1.
   - `categories:performance` ≥ 0,90.
@@ -141,7 +168,7 @@ Las define el pack de mercado en `legalTexts.pages` (al menos una, slugs únicos
 
 ## Medios
 
-Los medios propios de la instancia (fotos y vídeo del héroe, logo de marca) viven en `instances/<id>/content/media/` y se referencian con rutas `/media/<ruta>` (`hero.media.src`, `hero.media.poster`, `brand.logo`). El build de landings los copia a `apps/landings/public/media/` (no se versiona). Fuera de `draft`, un medio referenciado que no existe hace fallar el build; en `draft`, solo avisa por consola y el `Hero` se pinta sin medio. Detalle completo en [docs/11-instancias-y-configuracion.md](11-instancias-y-configuracion.md#medios).
+Los medios propios de la instancia (fotos y vídeo del héroe, imágenes de `gallery`, logo de marca) viven en `instances/<id>/content/media/` y se referencian con rutas `/media/<ruta>` (`hero.media.src`, `hero.media.poster`, `brand.logo`). El build de landings los copia a `apps/landings/public/media/` (no se versiona). Fuera de `draft`, un medio referenciado que no existe hace fallar el build; en `draft`, solo avisa por consola y el `Hero` se pinta sin medio. Detalle completo en [docs/11-instancias-y-configuracion.md](11-instancias-y-configuracion.md#medios).
 
 ## Una instancia, un sitio
 

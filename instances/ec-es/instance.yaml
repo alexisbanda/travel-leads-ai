@@ -8,7 +8,7 @@ status: draft
 
 agency:
   slug: agencia-ec              # TODO: slug de la agencia
-  legalName: ""                 # TODO
+  legalName: "Agencia receptiva de demostración (ficticia)" # FICTICIO: solo demo, sustituir por el de la agencia (#23)
   country: EC
   website: ""                   # TODO
   notify:
@@ -30,10 +30,10 @@ market:
     days: [1, 2, 3, 4, 5, 6]
 
 brand:
-  displayName: ""               # TODO: logo y nombre pendientes de la agencia
+  displayName: "Ecuador Vivo (demo)"  # TODO: marca provisional de demo, pendiente de la agencia (#23)
   domain: ""
-  logo: ""
-  primaryColor: "#000000"
+  logo: "/media/logo-demo.svg"   # TODO: logo provisional de demo, pendiente de la agencia (#23)
+  primaryColor: "#C8450D"  # TODO: color provisional de demo (naranja volcánico, 4,87:1 con blanco), pendiente de la agencia (#23)
 
 infra:
   firebaseProjects:
@@ -48,7 +48,7 @@ channels:
     tokenSecret: secret:CRM_API_TOKEN
   whatsapp:
     bsp: respond_io             # TODO: confirmar (ADR pendiente)
-    number: ""                  # TODO: línea española dedicada (+34)
+    number: "+34600000000"      # FICTICIO: solo demo, sustituir por el de la agencia (#23) — línea española dedicada (+34)
     webhookSecret: secret:WHATSAPP_BSP_WEBHOOK_SECRET
   email:
     from: ""                    # TODO: remitente del dominio de la instancia

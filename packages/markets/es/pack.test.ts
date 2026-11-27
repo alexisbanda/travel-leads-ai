@@ -63,6 +63,7 @@ describe("pack de mercado es", () => {
     expect(es.landingUi.dayLabel).toBe("Día {day}");
     expect(es.landingUi.sectionTitles).toEqual({
       itinerary: "Itinerario",
+      gallery: "Galería",
       includes: "Qué incluye",
       bestSeason: "Mejor época",
       priceGuidance: "Precio orientativo",
@@ -74,6 +75,16 @@ describe("pack de mercado es", () => {
     expect(es.landingUi.trust.phoneLabel).toBe("Atención por WhatsApp");
     expect(es.landingUi.trust.agencyLabel).toBe("Agencia receptiva");
     expect(es.landingUi.whatsappCta).toBe("Escríbenos por WhatsApp");
+    expect(es.landingUi.heroCta).toBe("Quiero mi propuesta");
+    expect(es.landingUi.videoPlay).toBe("Reproducir vídeo");
+    expect(es.landingUi.videoPause).toBe("Pausar vídeo");
+  });
+
+  it("heroCta no promete precio, disponibilidad ni reserva", () => {
+    const text = es.landingUi.heroCta.toLowerCase();
+    for (const word of ["reserva", "confirmad", "disponib", "precio"]) {
+      expect(text).not.toContain(word);
+    }
   });
 
   it("define draftNotice sin prometer precio, disponibilidad ni reserva", () => {

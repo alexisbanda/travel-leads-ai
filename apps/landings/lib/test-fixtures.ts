@@ -94,6 +94,7 @@ export const BASE_RESOLVED_INSTANCE: ResolvedInstanceConfig = {
       priceFrom: "Desde {price} (ficticio)",
       sectionTitles: {
         itinerary: "Itinerario (ficticio)",
+        gallery: "Galería (ficticio)",
         includes: "Incluye (ficticio)",
         bestSeason: "Época (ficticio)",
         priceGuidance: "Precio (ficticio)",
@@ -105,6 +106,9 @@ export const BASE_RESOLVED_INSTANCE: ResolvedInstanceConfig = {
       notIncludedLabel: "No incluido (ficticio)",
       trust: { phoneLabel: "Teléfono (ficticio)", agencyLabel: "Agencia (ficticio)" },
       whatsappCta: "WhatsApp (ficticio)",
+      heroCta: "CTA hero (ficticio)",
+      videoPlay: "Reproducir (ficticio)",
+      videoPause: "Pausar (ficticio)",
       form: {
         title: "title (ficticio)",
         intro: "intro (ficticio)",

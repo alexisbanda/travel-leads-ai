@@ -1,3 +1,5 @@
+import { ChatIcon } from "./icons.js";
+
 export interface WhatsAppCTAProps {
   /** Texto del botón (`landingUi.whatsappCta`). */
   label: string;
@@ -8,11 +10,12 @@ export interface WhatsAppCTAProps {
 /** Llamada a la acción principal: abre WhatsApp con el mensaje predefinido. */
 export function WhatsAppCTA({ label, href }: WhatsAppCTAProps) {
   return (
-    <section aria-label={label} className="px-4 py-10 text-center sm:px-6">
+    <section aria-label={label} className="px-5 text-center">
       <a
         href={href}
-        className="inline-block rounded-full bg-brand px-8 py-4 text-lg font-semibold text-white shadow focus:outline-none focus-visible:ring-4 focus-visible:ring-gray-400"
+        className="inline-flex min-h-[56px] items-center gap-3 rounded-full bg-brand px-9 py-4 text-lg font-bold text-white shadow-xl shadow-black/30 transition hover:bg-brand-dark focus-visible:outline-white"
       >
+        <ChatIcon className="h-6 w-6" />
         {label}
       </a>
     </section>

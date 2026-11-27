@@ -1,0 +1,170 @@
+{
+  "slug": "galapagos-y-andes",
+  "segment": "adventure",
+  "tourIds": [
+    "tour-demo-galapagos-andes-11d"
+  ],
+  "seo": {
+    "title": "Galápagos y los Andes: itinerario de demostración de 11 días",
+    "description": "Itinerario, mejor época y precio orientativos de demostración: Quito, la Sierra y Galápagos en 11 días. Déjanos tus datos y te asesoramos."
+  },
+  "hero": {
+    "headline": "De los volcanes de los Andes a las islas Galápagos",
+    "subheadline": "11 días de demostración entre la Sierra ecuatoriana y el archipiélago, con asesoramiento en español",
+    "media": {
+      "src": "/media/galapagos-bartolome-pinnacle-rock.jpg",
+      "kind": "image",
+      "alt": "Pinnacle Rock de la isla Bartolomé, en Galápagos, junto a una bahía de aguas turquesa y laderas volcánicas",
+      "aiGenerated": false,
+      "focus": {
+        "x": 74,
+        "y": 45
+      }
+    }
+  },
+  "highlights": [
+    "11 días",
+    "Andes + Galápagos",
+    "Grupos reducidos",
+    "Guías locales"
+  ],
+  "sections": [
+    "itinerary",
+    "gallery",
+    "includes",
+    "bestSeason",
+    "priceGuidance",
+    "faq",
+    "trust",
+    "cta"
+  ],
+  "itinerary": [
+    {
+      "day": 1,
+      "title": "Llegada a Quito",
+      "description": "Recogida en el aeropuerto y traslado al alojamiento en el centro histórico. Tarde libre para aclimatarse a la altitud."
+    },
+    {
+      "day": 2,
+      "title": "Centro histórico de Quito",
+      "description": "Recorrido a pie por el casco antiguo, Patrimonio de la Humanidad: plazas, iglesias coloniales y miradores sobre la ciudad."
+    },
+    {
+      "day": 3,
+      "title": "Mitad del Mundo y Otavalo",
+      "description": "Visita al monumento de la línea equinoccial y al mercado artesanal de Otavalo, uno de los más conocidos de los Andes."
+    },
+    {
+      "day": 4,
+      "title": "Volcán Cotopaxi",
+      "description": "Excursión al Parque Nacional Cotopaxi, con paseo junto a la laguna de Limpiopungo y vistas del volcán, nieves permitiendo."
+    },
+    {
+      "day": 5,
+      "title": "Laguna del Quilotoa",
+      "description": "Ruta panorámica por la Sierra hasta el mirador de la laguna de cráter del Quilotoa, con tiempo libre para caminar por el borde."
+    },
+    {
+      "day": 6,
+      "title": "Traslado y vuelo a Galápagos",
+      "description": "Traslado a Quito o Guayaquil y vuelo al archipiélago (Baltra o San Cristóbal, según disponibilidad de vuelos). Llegada a Puerto Ayora, en Santa Cruz."
+    },
+    {
+      "day": 7,
+      "title": "Estación Charles Darwin y tierras altas de Santa Cruz",
+      "description": "Visita a la Estación Científica Charles Darwin y a las zonas altas de la isla, donde es habitual ver tortugas gigantes en su hábitat natural."
+    },
+    {
+      "day": 8,
+      "title": "Excursión de día a Isabela",
+      "description": "Salida en lancha a la isla Isabela para una jornada de snorkel y observación de fauna costera; es habitual ver lobos marinos, iguanas marinas y pingüinos de Galápagos."
+    },
+    {
+      "day": 9,
+      "title": "Excursión de día a Bartolomé",
+      "description": "Navegación hasta la isla Bartolomé para subir al mirador del Pináculo y bañarse junto a la playa, con paisajes volcánicos característicos del archipiélago."
+    },
+    {
+      "day": 10,
+      "title": "Mañana libre en Puerto Ayora y vuelo de regreso",
+      "description": "Mañana libre para paseos por Puerto Ayora o la playa de la Estación y vuelo de regreso al continente (Guayaquil o Quito)."
+    },
+    {
+      "day": 11,
+      "title": "Salida",
+      "description": "Tiempo libre según la hora del vuelo internacional y traslado al aeropuerto para la salida."
+    }
+  ],
+  "includes": {
+    "included": [
+      "Alojamiento en habitación doble durante todo el circuito",
+      "Vuelo interno continente-Galápagos-continente",
+      "Traslados terrestres, marítimos y aéreos internos del itinerario",
+      "Guía de habla hispana en la Sierra y guía naturalista autorizado en Galápagos",
+      "Desayunos diarios y almuerzos indicados en el itinerario",
+      "Excursiones y entradas a los puntos de visita señalados en el itinerario"
+    ],
+    "notIncluded": [
+      "Vuelos internacionales de ida y vuelta",
+      "Tasa de entrada al Parque Nacional Galápagos y tarjeta de control de tránsito (TCT)",
+      "Seguro de viaje",
+      "Propinas y gastos personales",
+      "Comidas no indicadas en el itinerario"
+    ]
+  },
+  "bestSeason": {
+    "summary": "En líneas generales, Galápagos tiene una temporada más cálida y húmeda, con mares en calma y mejor visibilidad para el snorkel, y otra más fresca y seca, con aguas algo más agitadas y mayor actividad de aves marinas; en la Sierra alternan una época más seca, con cielos despejados en los volcanes, y otra más lluviosa. Te asesoramos según tus fechas concretas de viaje."
+  },
+  "priceGuidance": {
+    "from": 3890
+  },
+  "faq": [
+    {
+      "q": "¿Este itinerario y este precio son definitivos?",
+      "a": "No: esta landing es un itinerario y un precio de demostración, orientativos. Cada viaje se adapta a tus fechas, tu grupo y tus preferencias, y la agencia receptiva te confirma el detalle final después de contactar contigo."
+    },
+    {
+      "q": "¿Cuál es la mejor época para hacer este viaje?",
+      "a": "Depende de si priorizas Galápagos o la Sierra y de tu tolerancia al agua fresca o a la lluvia ocasional; te damos recomendaciones concretas según el mes en que viajes."
+    },
+    {
+      "q": "¿Qué nivel físico se necesita y cómo afecta la altitud?",
+      "a": "Las caminatas de la Sierra son de nivel moderado y se realizan a gran altitud (Quito y el Cotopaxi superan los 2.800 y 3.500 metros), por lo que conviene llegar con un día de aclimatación; en Galápagos el ritmo es más suave, con tramos cortos a pie y actividades en el agua."
+    },
+    {
+      "q": "¿Se garantiza ver animales concretos en Galápagos?",
+      "a": "No se puede garantizar el avistamiento de ninguna especie, ya que es fauna silvestre en libertad; sí es habitual, según la zona y la temporada, cruzarse con tortugas gigantes, lobos marinos, iguanas marinas y aves propias del archipiélago."
+    }
+  ],
+  "gallery": [
+    {
+      "src": "/media/galapagos-piquero-patas-azules.jpg",
+      "kind": "image",
+      "alt": "Piquero de patas azules posado sobre roca volcánica en las islas Galápagos",
+      "aiGenerated": false
+    },
+    {
+      "src": "/media/quito-centro-historico.jpg",
+      "kind": "image",
+      "alt": "Vista panorámica del centro histórico de Quito con sus tejados y la basílica",
+      "aiGenerated": false
+    },
+    {
+      "src": "/media/cotopaxi-paramo.jpg",
+      "kind": "image",
+      "alt": "Páramo andino del Parque Nacional Cotopaxi con el volcán nevado al fondo",
+      "aiGenerated": false
+    },
+    {
+      "src": "/media/quilotoa-laguna.jpg",
+      "kind": "image",
+      "alt": "Laguna de aguas verdes en el cráter del volcán Quilotoa, rodeada de laderas andinas",
+      "aiGenerated": false
+    }
+  ],
+  "cta": {
+    "type": "form",
+    "prefill": "Hola, acabo de enviar el formulario de la landing de demostración Galápagos y Andes [DEMO-GA]"
+  },
+  "draft": true
+}

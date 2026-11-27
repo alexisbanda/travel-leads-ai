@@ -57,6 +57,7 @@ const validPack = {
     priceFrom: "Desde {price} (ficticio)",
     sectionTitles: {
       itinerary: "Itinerario (ficticio)",
+      gallery: "Galería (ficticio)",
       includes: "Incluye (ficticio)",
       bestSeason: "Época (ficticio)",
       priceGuidance: "Precio (ficticio)",
@@ -68,6 +69,9 @@ const validPack = {
     notIncludedLabel: "No incluido (ficticio)",
     trust: { phoneLabel: "Teléfono (ficticio)", agencyLabel: "Agencia (ficticio)" },
     whatsappCta: "WhatsApp (ficticio)",
+    heroCta: "CTA hero (ficticio)",
+    videoPlay: "Reproducir (ficticio)",
+    videoPause: "Pausar (ficticio)",
     form: {
       title: "title (ficticio)",
       intro: "intro (ficticio)",
@@ -127,6 +131,10 @@ describe("MarketPack", () => {
     ["landingUi.sectionTitles.faq", ""],
     ["landingUi.trust.agencyLabel", ""],
     ["landingUi.whatsappCta", ""],
+    ["landingUi.heroCta", ""],
+    ["landingUi.videoPlay", " "],
+    ["landingUi.videoPause", ""],
+    ["landingUi.sectionTitles.gallery", ""],
     ["landingUi.form.submit", ""],
     ["landingUi.form.errorInvalid", ""],
     ["landingUi.form.errorGeneric", " "],

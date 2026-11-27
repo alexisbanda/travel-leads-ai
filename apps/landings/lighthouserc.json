@@ -3,7 +3,11 @@
     "collect": {
       "startServerCommand": "pnpm start -p 3200",
       "startServerReadyPattern": "Ready in",
-      "url": ["http://localhost:3200/ejemplo", "http://localhost:3200/ejemplo-form"],
+      "url": [
+        "http://localhost:3200/ejemplo",
+        "http://localhost:3200/ejemplo-form",
+        "http://localhost:3200/galapagos-y-andes"
+      ],
       "numberOfRuns": 3,
       "settings": {
         "formFactor": "mobile",

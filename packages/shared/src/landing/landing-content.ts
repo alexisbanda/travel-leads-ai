@@ -14,6 +14,7 @@ export type LandingSlug = z.infer<typeof LandingSlug>;
 /** Secciones disponibles en la plantilla de landing, en el orden en que se renderizan. */
 export const LandingSection = z.enum([
   "itinerary",
+  "gallery",
   "includes",
   "bestSeason",
   "priceGuidance",
@@ -37,6 +38,19 @@ export const LandingMediaKind = z.enum(["video", "image"]);
 export type LandingMediaKind = z.infer<typeof LandingMediaKind>;
 
 /**
+ * Punto focal de un medio, en porcentaje desde la esquina superior izquierda
+ * (0–100). La plantilla lo usa para encuadrar el recorte (`object-position`)
+ * y que lo importante siga visible en móvil y escritorio.
+ */
+export const LandingMediaFocus = z
+  .object({
+    x: z.number().min(0, { message: "x va de 0 a 100" }).max(100, { message: "x va de 0 a 100" }),
+    y: z.number().min(0, { message: "y va de 0 a 100" }).max(100, { message: "y va de 0 a 100" }),
+  })
+  .strict();
+export type LandingMediaFocus = z.infer<typeof LandingMediaFocus>;
+
+/**
  * Medio (vídeo o imagen) de la landing. Si `aiGenerated` es `true`, la
  * plantilla muestra junto al medio la etiqueta `landingUi.aiImageLabel` del
  * pack de mercado (transparencia IA).
@@ -52,9 +66,24 @@ export const LandingMedia = z
     alt: NonEmptyText,
     /** Si el medio se generó con IA. Por defecto `false`. */
     aiGenerated: z.boolean().default(false),
+    /** Punto focal del recorte. Sin él, se centra. */
+    focus: LandingMediaFocus.optional(),
   })
   .strict();
 export type LandingMedia = z.infer<typeof LandingMedia>;
+
+/** Longitud máxima de cada chip de `highlights` del hero. */
+export const LANDING_HIGHLIGHT_MAX_LENGTH = 40;
+
+/**
+ * Imagen de la galería: un `LandingMedia` con `kind: "image"` obligatorio
+ * (la galería no admite vídeos).
+ */
+export const LandingGalleryImage = LandingMedia.refine((media) => media.kind === "image", {
+  message: 'la galería solo admite imágenes (kind: "image")',
+  path: ["kind"],
+});
+export type LandingGalleryImage = z.infer<typeof LandingGalleryImage>;
 
 /** Contenido del bloque principal (hero). */
 export const LandingHero = z
@@ -154,6 +183,16 @@ export const LandingContent = z
     tourIds: z.array(NonEmptyText).min(1, { message: "indica al menos un tour" }),
     seo: LandingSeo,
     hero: LandingHero,
+    /** Chips cortos del hero (p. ej. duración, tipo de viaje). Opcional, de 1 a 4. */
+    highlights: z
+      .array(
+        NonEmptyText.refine((text) => text.length <= LANDING_HIGHLIGHT_MAX_LENGTH, {
+          message: `cada highlight admite como máximo ${LANDING_HIGHLIGHT_MAX_LENGTH} caracteres`,
+        }),
+      )
+      .min(1, { message: "indica al menos un highlight" })
+      .max(4, { message: "indica como máximo 4 highlights" })
+      .optional(),
     sections: z
       .array(LandingSection)
       .min(1, { message: "indica al menos una sección" }),
@@ -169,6 +208,12 @@ export const LandingContent = z
     /** Precio orientativo. Sin datos, la sección no se renderiza. */
     priceGuidance: LandingPriceGuidance.optional(),
     faq: z.array(LandingFaqItem).optional(),
+    /** Galería de imágenes (solo `kind: "image"`), de 3 a 12. Sin datos, la sección no se renderiza. */
+    gallery: z
+      .array(LandingGalleryImage)
+      .min(3, { message: "la galería necesita al menos 3 imágenes" })
+      .max(12, { message: "la galería admite como máximo 12 imágenes" })
+      .optional(),
     cta: LandingCta,
     experiment: LandingExperiment.optional(),
     draft: z.boolean().default(false),

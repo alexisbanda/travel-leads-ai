@@ -50,9 +50,9 @@ const ecEs = loadInstanceYaml("ec-es");
 const FAKE_E164 = ["+", "999", "0000000"].join("");
 
 const REQUIRED_OUTSIDE_DRAFT = [
-  "agency.legalName",
+  // "agency.legalName" y "channels.whatsapp.number" ya tienen datos ficticios
+  // de demo en instances/ec-es/instance.yaml (#68, #23).
   "partner.legalName",
-  "channels.whatsapp.number",
   "commission.rate",
   "channels.email.from",
   "channels.web.recaptchaSiteKey",

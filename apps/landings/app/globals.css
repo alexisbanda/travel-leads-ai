@@ -1,10 +1,47 @@
 @import "tailwindcss";
 
 /*
- * Color de marca de la instancia: el layout fija `--brand-primary` desde
- * `brand.primaryColor` de la configuración resuelta. `inline` hace que las
- * utilidades (`bg-brand`, `text-brand`, `border-brand`) lean la variable.
+ * Tokens de color de la instancia. El layout fija `--brand-primary` desde
+ * `brand.primaryColor` de la configuración resuelta; sin color, todo cae a un
+ * gris pizarra neutro. Las variantes se derivan con `color-mix()`, así que el
+ * motor no conoce ningún color concreto de marca. `inline` hace que las
+ * utilidades (`bg-brand`, `text-brand-dark`, `bg-brand-tint`…) lean la variable.
+ *
+ * - brand: color principal (botones, insignias, acentos). Debe dar ≥ 4,5:1 con blanco.
+ * - brand-dark: hover y fondos de tarjetas destacadas.
+ * - brand-deep: bandas oscuras (contacto) y fondo del hero sin medio.
+ * - brand-light: líneas y bordes suaves.
+ * - brand-tint: fondo alterno de secciones.
  */
 @theme inline {
-  --color-brand: var(--brand-primary, #111827);
+  --color-brand: var(--brand-primary, #334155);
+  --color-brand-dark: color-mix(in oklab, var(--brand-primary, #334155) 78%, black);
+  --color-brand-deep: color-mix(in oklab, var(--brand-primary, #334155) 16%, #0b1120);
+  --color-brand-light: color-mix(in oklab, var(--brand-primary, #334155) 28%, white);
+  --color-brand-tint: color-mix(in oklab, var(--brand-primary, #334155) 6%, white);
+
+  --font-display: var(--font-display-family), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-body-family), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+  body {
+    @apply bg-white text-slate-800 antialiased;
+  }
+  /* Foco visible en todo elemento interactivo (WCAG 2.4.7). */
+  a:focus-visible,
+  button:focus-visible,
+  summary:focus-visible,
+  input:focus-visible {
+    outline: 3px solid var(--color-brand);
+    outline-offset: 3px;
+  }
 }

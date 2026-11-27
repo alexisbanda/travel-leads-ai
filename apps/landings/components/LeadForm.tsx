@@ -27,7 +27,7 @@ type Status = "idle" | "submitting" | "done";
 const FIELD_ORDER: LeadFormField[] = ["name", "phone", "email", "travelMonth", "adults", "children", "consentContact"];
 
 const inputClass =
-  "mt-1 block w-full rounded-lg border border-gray-400 px-3 py-2 text-base aria-[invalid=true]:border-red-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-gray-400";
+  "mt-1.5 block min-h-[48px] w-full rounded-xl border border-slate-400 bg-white px-4 py-3 text-base text-slate-900 shadow-sm transition focus:border-brand focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/30 aria-[invalid=true]:border-red-700";
 const errorClass = "mt-1 text-sm text-red-800";
 
 /**
@@ -114,15 +114,18 @@ export function LeadForm(props: LeadFormProps) {
 
   if (status === "done") {
     return (
-      <section aria-labelledby={idOf("thanks")} className="px-4 py-10 text-center sm:px-6">
-        <h2 id={idOf("thanks")} ref={thanksHeading} tabIndex={-1} className="text-2xl font-bold">
+      <section
+        aria-labelledby={idOf("thanks")}
+        className="mx-auto max-w-2xl rounded-3xl border-t-8 border-brand bg-white p-7 text-center text-slate-800 shadow-2xl sm:p-12"
+      >
+        <h2 id={idOf("thanks")} ref={thanksHeading} tabIndex={-1} className="font-display text-3xl font-extrabold text-slate-900">
           {texts.thanksTitle}
         </h2>
-        <p className="mt-3">{texts.thanksBody}</p>
+        <p className="mt-4 text-lg leading-relaxed">{texts.thanksBody}</p>
         {whatsappHref !== undefined ? (
           <a
             href={whatsappHref}
-            className="mt-6 inline-block rounded-full bg-brand px-8 py-4 text-lg font-semibold text-white shadow focus:outline-none focus-visible:ring-4 focus-visible:ring-gray-400"
+            className="mt-8 inline-flex min-h-[52px] items-center rounded-full bg-brand px-8 py-4 text-lg font-bold text-white shadow-lg transition hover:bg-brand-dark"
           >
             {texts.thanksWhatsapp}
           </a>
@@ -155,7 +158,7 @@ export function LeadForm(props: LeadFormProps) {
     extraDescribedBy?: string,
   ) => (
     <div>
-      <label htmlFor={idOf(field)} className="block font-medium">
+      <label htmlFor={idOf(field)} className="block font-semibold text-slate-900">
         {label}
       </label>
       <input
@@ -167,7 +170,7 @@ export function LeadForm(props: LeadFormProps) {
         className={inputClass}
       />
       {field === "travelMonth" ? (
-        <p id={idOf("travelMonthHint")} className="mt-1 text-sm text-gray-500">
+        <p id={idOf("travelMonthHint")} className="mt-1.5 text-sm text-slate-600">
           {texts.travelMonthHint}
         </p>
       ) : null}
@@ -176,12 +179,15 @@ export function LeadForm(props: LeadFormProps) {
   );
 
   return (
-    <section aria-labelledby={idOf("title")} className="px-4 py-10 sm:px-6">
-      <h2 id={idOf("title")} className="mx-auto max-w-xl text-center text-2xl font-bold">
+    <section
+      aria-labelledby={idOf("title")}
+      className="mx-auto max-w-2xl rounded-3xl border-t-8 border-brand bg-white p-6 text-slate-800 shadow-2xl sm:p-12"
+    >
+      <h2 id={idOf("title")} className="text-center font-display text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
         {texts.title}
       </h2>
-      <p className="mx-auto mt-3 max-w-xl text-center">{texts.intro}</p>
-      <form noValidate onSubmit={onSubmit} className="mx-auto mt-6 grid max-w-xl gap-4">
+      <p className="mx-auto mt-4 max-w-xl text-center text-lg leading-relaxed text-slate-600">{texts.intro}</p>
+      <form noValidate onSubmit={onSubmit} className="mx-auto mt-8 grid max-w-xl gap-5">
         {textField("name", texts.nameLabel, { type: "text", autoComplete: "name", required: true })}
         {textField("phone", texts.phoneLabel, { type: "tel", autoComplete: "tel", required: true })}
         {textField("email", texts.emailLabel, { type: "email", autoComplete: "email" })}
@@ -200,9 +206,9 @@ export function LeadForm(props: LeadFormProps) {
               checked={values.consentContact}
               onChange={update("consentContact")}
               required
-              className="mt-1 h-5 w-5"
+              className="mt-0.5 h-6 w-6 flex-none accent-brand"
             />
-            <label htmlFor={idOf("consentContact")}>{legal.commercialConsent}</label>
+            <label htmlFor={idOf("consentContact")} className="text-sm leading-relaxed">{legal.commercialConsent}</label>
           </div>
           {fieldError("consentContact")}
         </div>
@@ -214,16 +220,16 @@ export function LeadForm(props: LeadFormProps) {
               name="consentMarketing"
               checked={values.consentMarketing}
               onChange={update("consentMarketing")}
-              className="mt-1 h-5 w-5"
+              className="mt-0.5 h-6 w-6 flex-none accent-brand"
             />
-            <label htmlFor={idOf("marketing")}>{legal.marketingConsent}</label>
+            <label htmlFor={idOf("marketing")} className="text-sm leading-relaxed">{legal.marketingConsent}</label>
           </div>
         ) : null}
-        <p id={idOf("privacy")} className="text-sm text-gray-700">
+        <p id={idOf("privacy")} className="text-sm leading-relaxed text-slate-600">
           {legal.privacyNotice}
         </p>
-        <p className="text-sm text-gray-700">
-          <a href={`/legal/${privacyPage.slug}`} className="underline">
+        <p className="text-sm text-slate-600">
+          <a href={`/legal/${privacyPage.slug}`} className="font-semibold text-slate-900 underline decoration-brand decoration-2 underline-offset-4">
             {privacyPage.title}
           </a>
         </p>
@@ -240,7 +246,7 @@ export function LeadForm(props: LeadFormProps) {
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-full bg-brand px-8 py-4 text-lg font-semibold text-white shadow focus:outline-none focus-visible:ring-4 focus-visible:ring-gray-400 disabled:opacity-70"
+          className="mt-1 inline-flex min-h-[56px] w-full items-center justify-center rounded-full bg-brand px-8 py-4 text-lg font-bold text-white shadow-lg transition hover:bg-brand-dark disabled:opacity-70"
         >
           {submitting ? texts.submitting : texts.submit}
         </button>

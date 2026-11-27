@@ -9,7 +9,7 @@ import {
 import { formatDay, formatPhoneForMarket, formatPriceFrom, whatsappHref } from "./format.js";
 import { firebaseProjectId, leadEndpointUrl, type LeadEndpointEnv } from "./lead-endpoint.js";
 import type { LeadFormView } from "./lead-form.js";
-import { checkMedia, type CheckMediaOptions } from "./media.js";
+import { checkMedia, type CheckMediaOptions, type MediaRef } from "./media.js";
 
 /** Comprobación de medios para una vista; sin ella no se verifica existencia (uso en tests). */
 export type MediaCheck = CheckMediaOptions;
@@ -27,12 +27,34 @@ export interface HeroMediaView {
   alt: string;
   /** Etiqueta visible de contenido generado con IA; solo si `aiGenerated`. */
   aiLabel?: string;
+  /** Punto focal del recorte, como valor CSS de `object-position` (p. ej. `74% 45%`). */
+  objectPosition?: string;
+  /** Etiquetas del control de reproducción (`landingUi.videoPlay`/`videoPause`); solo en vídeos. */
+  controls?: { play: string; pause: string };
 }
+
+/** Ancla del bloque de contacto (formulario o botón de WhatsApp). */
+export const CONTACT_ANCHOR = "contact";
 
 export interface HeroView {
   headline: string;
   subheadline?: string;
   media?: HeroMediaView;
+  /** Chips del hero (`highlights` del contenido). */
+  highlights?: string[];
+  /**
+   * Botón principal (`landingUi.heroCta`) hacia el bloque de contacto. Solo
+   * si la landing tiene formulario o botón de WhatsApp; lo reutiliza la
+   * barra fija de contacto en móvil.
+   */
+  cta?: { label: string; href: string };
+}
+
+export interface GalleryImageView {
+  src: string;
+  alt: string;
+  /** Etiqueta visible de contenido generado con IA; solo si `aiGenerated`. */
+  aiLabel?: string;
 }
 
 export interface ItineraryDayView {
@@ -44,6 +66,7 @@ export interface ItineraryDayView {
 
 export type SectionView =
   | { kind: "itinerary"; title: string; days: ItineraryDayView[] }
+  | { kind: "gallery"; title: string; images: GalleryImageView[] }
   | {
       kind: "includes";
       title: string;
@@ -74,8 +97,9 @@ export interface BuildLandingViewOptions {
   /** Entorno del servidor (`process.env`): `LEAD_ENDPOINT_URL` y `TLA_ENV`. */
   env?: LeadEndpointEnv;
   /**
-   * Comprobación de `hero.media.src`/`poster` contra `instances/<id>/content/media`.
-   * Sin ella, el hero se construye tal cual (uso en tests unitarios de la vista).
+   * Comprobación de `hero.media.src`/`poster` y de las imágenes de `gallery`
+   * contra `instances/<id>/content/media`. Sin ella, el hero y la galería se
+   * construyen tal cual (uso en tests unitarios de la vista).
    */
   media?: MediaCheck;
 }
@@ -134,6 +158,7 @@ function buildSection(
   landing: LandingContent,
   instance: ResolvedInstanceConfig,
   env: LeadEndpointEnv,
+  isAvailable: (ref: string) => boolean,
 ): SectionView | undefined {
   const ui = instance.marketPack.landingUi;
   const titles = ui.sectionTitles;
@@ -151,6 +176,17 @@ function buildSection(
           description: item.description,
         })),
       };
+    }
+    case "gallery": {
+      const images = (landing.gallery ?? [])
+        .filter((image) => isAvailable(image.src))
+        .map((image) => ({
+          src: image.src,
+          alt: image.alt,
+          ...(image.aiGenerated ? { aiLabel: ui.aiImageLabel } : {}),
+        }));
+      if (images.length === 0) return undefined;
+      return { kind: "gallery", title: titles.gallery, images };
     }
     case "includes": {
       if (!landing.includes?.included.length) return undefined;
@@ -215,17 +251,31 @@ export function buildLandingView(
   options: BuildLandingViewOptions = {},
 ): LandingView {
   const media = landing.hero.media;
-  let availableMedia: Set<string> | undefined;
-  if (media && options.media) {
-    const refs = [{ ref: media.src, context: `landing ${landing.slug} (hero.media.src)` }];
+  const ui = instance.marketPack.landingUi;
+  const refs: MediaRef[] = [];
+  if (media) {
+    refs.push({ ref: media.src, context: `landing ${landing.slug} (hero.media.src)` });
     if (media.poster !== undefined) {
       refs.push({ ref: media.poster, context: `landing ${landing.slug} (hero.media.poster)` });
     }
-    availableMedia = checkMedia(refs, options.media);
   }
-  const srcOk = media !== undefined && (availableMedia === undefined || availableMedia.has(media.src));
-  const posterOk =
-    media?.poster !== undefined && (availableMedia === undefined || availableMedia.has(media.poster));
+  if (landing.sections.includes("gallery")) {
+    (landing.gallery ?? []).forEach((image, index) => {
+      refs.push({ ref: image.src, context: `landing ${landing.slug} (gallery[${index}].src)` });
+    });
+  }
+  const availableMedia = options.media && refs.length > 0 ? checkMedia(refs, options.media) : undefined;
+  const isAvailable = (ref: string) => availableMedia === undefined || availableMedia.has(ref);
+
+  const sections: SectionView[] = [];
+  for (const section of new Set(landing.sections)) {
+    const view = buildSection(section, landing, instance, options.env ?? {}, isAvailable);
+    if (view) sections.push(view);
+  }
+  const hasContact = sections.some((section) => section.kind === "form" || section.kind === "cta");
+
+  const srcOk = media !== undefined && isAvailable(media.src);
+  const posterOk = media?.poster !== undefined && isAvailable(media.poster);
   const hero: HeroView = {
     headline: landing.hero.headline,
     ...(landing.hero.subheadline !== undefined ? { subheadline: landing.hero.subheadline } : {}),
@@ -236,17 +286,16 @@ export function buildLandingView(
             kind: media.kind,
             ...(media.poster !== undefined && posterOk ? { poster: media.poster } : {}),
             alt: media.alt,
-            ...(media.aiGenerated ? { aiLabel: instance.marketPack.landingUi.aiImageLabel } : {}),
+            ...(media.aiGenerated ? { aiLabel: ui.aiImageLabel } : {}),
+            ...(media.focus ? { objectPosition: `${media.focus.x}% ${media.focus.y}%` } : {}),
+            ...(media.kind === "video" ? { controls: { play: ui.videoPlay, pause: ui.videoPause } } : {}),
           },
         }
       : {}),
+    ...(landing.highlights?.length ? { highlights: [...landing.highlights] } : {}),
+    ...(hasContact ? { cta: { label: ui.heroCta, href: `#${CONTACT_ANCHOR}` } } : {}),
   };
 
-  const sections: SectionView[] = [];
-  for (const section of new Set(landing.sections)) {
-    const view = buildSection(section, landing, instance, options.env ?? {});
-    if (view) sections.push(view);
-  }
   return { hero, sections };
 }
 
