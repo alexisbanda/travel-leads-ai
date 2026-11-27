@@ -200,6 +200,7 @@ Los tres esquemas Zod viven en `packages/shared/src/instance/` y se exportan des
 | `priceDisclaimer` | Texto: aviso de precios orientativos |
 | `agentTone` | Texto: tono del agente para los prompts |
 | `landingUi` | Textos de interfaz de la plantilla de landings, en el idioma del mercado (ver abajo). Obligatorio; no es una clave bloqueable |
+| `contentGuardrails` | Opcional. `{ forbiddenClaims }`: lista no vacía y sin repetidos de frases, en el idioma del mercado, que el contenido generado con IA no puede contener porque prometen disponibilidad, una reserva confirmada o un precio final (regla 2). Se comparan sin mayúsculas ni tildes y como frase completa; usa frases, no palabras sueltas, para no bloquear preguntas legítimas. `pnpm instance:landing:generate` se niega a ejecutarse si el pack no lo define. No es una clave bloqueable: `InstanceConfig` no tiene campo para sobrescribirlo. En la configuración resuelta queda en `marketPack.contentGuardrails` |
 | `locked` | Lista sin repetidos de claves de este pack que la instancia no puede sobrescribir: `locale`, `currency`, `timezone`, `phoneDefaultRegion`, `businessHours`, `legalRegime`, `dataRegions`, `bigqueryLocation`, `dataRetentionMonths`, `internationalTransferWithoutAdequacy`, `aiDisclosure`, `legalTexts`, `priceDisclaimer`, `agentTone` |
 
 Las versiones (`aiDisclosure.version`, `legalTexts.version`) son `draft` o un identificador como `1.0.0` o `2026-01`. Los textos no pueden estar vacíos.
