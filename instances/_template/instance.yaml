@@ -59,7 +59,7 @@ channels:
     provider: hubspot           # hubspot | pipedrive | memory (memory: solo desarrollo)
     tokenSecret: secret:CRM_API_TOKEN
   whatsapp:
-    bsp: respond_io             # respond_io | 360dialog | other
+    bsp: meta_cloud             # meta_cloud | respond_io | 360dialog | other (ADR 0007)
     number: ""                  # número del mercado en E.164
     webhookSecret: secret:WHATSAPP_BSP_WEBHOOK_SECRET
   # email:                      # obligatorio si algún notify usa el canal email

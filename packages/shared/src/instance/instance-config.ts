@@ -32,7 +32,8 @@ export const InstanceId = z.string().regex(/^[a-z]{2}-[a-z]{2}(-[a-z0-9]+)?$/, {
 export const NotifyChannel = z.enum(["whatsapp_group", "email", "slack"]);
 /** `memory`: adaptador en memoria, solo para desarrollo hasta el ADR de CRM. */
 export const CrmProvider = z.enum(["hubspot", "pipedrive", "memory"]);
-export const WhatsappBsp = z.enum(["respond_io", "360dialog", "other"]);
+/** Proveedor de WhatsApp. `meta_cloud` es la Cloud API de Meta sin intermediario (ADR 0007). */
+export const WhatsappBsp = z.enum(["meta_cloud", "respond_io", "360dialog", "other"]);
 export const CommissionModel = z.enum(["fee", "commission", "fee_plus_commission"]);
 export const QualificationMode = z.enum(["assisted", "autonomous"]);
 

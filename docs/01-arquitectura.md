@@ -21,7 +21,7 @@
 | Agentes | Functions + API de Claude / Gemini | Calificación y propuestas |
 | Catálogo | Firestore + servidor MCP en Cloud Run | Tours, salidas, requisitos, precios orientativos |
 | CRM | HubSpot o Pipedrive | Pipeline comercial de la agencia |
-| WhatsApp | BSP (respond.io, 360dialog o similar) | Bandeja compartida y API |
+| WhatsApp | Cloud API de Meta detrás de un adaptador de BSP ([ADR 0007](adr/0007-whatsapp-cloud-api-adaptador.md)) | API de mensajes y plantillas; bandeja del modo asistido por decidir (#58) |
 | Analítica | BigQuery + Looker Studio | Embudo, atribución, comisiones |
 
 ## Flujo 1 · Lead desde landing
