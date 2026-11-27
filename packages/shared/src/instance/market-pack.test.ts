@@ -231,4 +231,26 @@ describe("MarketPack", () => {
     );
     expect(issuePaths(result)).toEqual(["legalTexts.privacyPageSlug"]);
   });
+  it("acepta contentGuardrails con frases prohibidas", () => {
+    const pack = withValue(validPack, "contentGuardrails", {
+      forbiddenClaims: ["frase prohibida uno (ficticia)", "frase prohibida dos (ficticia)"],
+    });
+    expect(issuePaths(MarketPack.safeParse(pack))).toEqual([]);
+  });
+
+  it.each([
+    ["contentGuardrails.forbiddenClaims", []],
+    ["contentGuardrails.forbiddenClaims.0", " "],
+    ["contentGuardrails", { forbiddenClaims: ["x"], unknown: true }],
+    ["contentGuardrails.forbiddenClaims", ["repetida", "repetida"]],
+  ])("rechaza %s = %j", (path, value) => {
+    const base = withValue(validPack, "contentGuardrails", { forbiddenClaims: ["x"] });
+    const result = MarketPack.safeParse(
+      path === "contentGuardrails"
+        ? withValue(validPack, path, value)
+        : withValue(base, path, value),
+    );
+    expect(result.success).toBe(false);
+    expect(issuePaths(result)).toContain(path);
+  });
 });

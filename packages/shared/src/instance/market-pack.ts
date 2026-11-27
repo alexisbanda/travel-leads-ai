@@ -196,6 +196,32 @@ export const MarketLandingUi = z
 export type MarketLandingUi = z.infer<typeof MarketLandingUi>;
 
 /**
+ * Salvaguardas del contenido para viajeros que se redacta con IA (p. ej. el
+ * generador de landings de instance-cli). `forbiddenClaims` son frases, en el
+ * idioma del mercado, que prometen disponibilidad, una reserva confirmada o un
+ * precio final: si el texto generado contiene alguna (sin distinguir
+ * mayúsculas ni tildes, como frase completa), se rechaza. Usa frases y no
+ * palabras sueltas para no bloquear preguntas legítimas.
+ */
+export const MarketContentGuardrails = z
+  .object({
+    forbiddenClaims: z
+      .array(NonEmptyText)
+      .min(1, { message: "indica al menos una frase prohibida" }),
+  })
+  .strict()
+  .superRefine((guardrails, ctx) => {
+    for (const claim of duplicates(guardrails.forbiddenClaims)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["forbiddenClaims"],
+        message: `frase prohibida repetida: ${claim}`,
+      });
+    }
+  });
+export type MarketContentGuardrails = z.infer<typeof MarketContentGuardrails>;
+
+/**
  * Claves del pack de mercado que se pueden declarar como bloqueadas: la
  * instancia no puede sobrescribirlas al resolver la configuración.
  */
@@ -254,6 +280,13 @@ export const MarketPack = z
     agentTone: NonEmptyText,
     /** Textos de interfaz de la plantilla de landings. */
     landingUi: MarketLandingUi,
+    /**
+     * Salvaguardas del contenido generado con IA. Opcional en el esquema; las
+     * herramientas que generan contenido (instance:landing:generate) se niegan
+     * a ejecutarse si el pack no lo define. No es una clave bloqueable: la
+     * instancia no tiene campo para sobrescribirlo.
+     */
+    contentGuardrails: MarketContentGuardrails.optional(),
     /** Claves que la instancia no puede sobrescribir. */
     locked: z.array(MarketPackLockableKey),
   })
